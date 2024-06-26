@@ -1,0 +1,47 @@
+name: Trigger auto deployment for headscale
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/headscale-AutoDeployTrigger-4c740048-c140-4802-8d0d-77a4c23adcfc.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.HEADSCALE_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.HEADSCALE_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.HEADSCALE_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: headscale.azurecr.io
+          registryUsername: ${{ secrets.HEADSCALE_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.HEADSCALE_REGISTRY_PASSWORD }}
+          containerAppName: headscale
+          resourceGroup: DefaultResourceGroup-SUK
+          imageToBuild: headscale.azurecr.io/headscale:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
