@@ -1,51 +1,12 @@
 ---
-version: "3.9"
+version: "4.0.0"
 
 services:
   headscale:
-    # image: ghcr.io/juanfont/headscale:0.20
     build: .
-    # command: headscale serve
-
-    depends_on:
-      - minio
-
-    environment:
-      - HEADSCALE_SERVER_URL=http://192.168.122.1:8080
-      - HEADSCALE_BASE_DOMAIN=luislavena.info
-      # - HEADSCALE_PRIVATE_KEY=CHANGEME
-      # - HEADSCALE_NOISE_PRIVATE_KEY=CHANGEME
-      - S3_ACCESS_KEY_ID=admin
-      - S3_SECRET_ACCESS_KEY=changeme
-      - S3_REGION=home
-      - S3_BUCKET_NAME=homelab
-      - S3_ENDPOINT=http://minio:9000
-
-    ports:
-      # Listen on virtual bridge (virbr0)
-      - "192.168.122.1:8080:8080"
-
     volumes:
       - headscale:/data
 
-  minio:
-    image: quay.io/minio/minio:latest
-    command: minio server /data --console-address ":9090"
-
-    environment:
-      - MINIO_REGION=home
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=changeme
-
-    ports:
-      # Limit MinIO console to localhost
-      - "127.0.0.1:9090:9090"
-
-    volumes:
-      - minio:/data
-
 volumes:
   headscale:
-    driver: local
-  minio:
     driver: local
