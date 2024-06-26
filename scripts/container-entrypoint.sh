@@ -15,26 +15,14 @@ check_config_files() {
 	if [ ! -f $headscale_config_path ]; then
 		echo "INFO: No Headscale configuration file found, creating one using environment variables..."
 
-		# abort if needed variables are missing
-		if [ -z "$HEADSCALE_SERVER_URL" ]; then
-			echo "ERROR: Required environment variable 'HEADSCALE_SERVER_URL' is missing." >&2
-			abort_config=1
-		fi
+		local required_env_vars=('HEADSCALE_SERVER_URL' 'HEADSCALE_BASE_DOMAIN' 'AZURE_BLOB_BUCKET_NAME' 'AZURE_BLOB_ACCESS_KEY')
 
-		if [ -z "$HEADSCALE_BASE_DOMAIN" ]; then
-			echo "ERROR: Required environment variable 'HEADSCALE_BASE_DOMAIN' is missing." >&2
-			abort_config=1
-		fi
-
-		if [ -z "$AZURE_BLOB_BUCKET_NAME" ]; then
-			echo "ERROR: Required environment variable 'AZURE_BLOB_BUCKET_NAME' is missing." >&2
-			abort_config=1
-		fi
-
-		if [ -z "$AZURE_BLOB_ACCESS_KEY" ]; then
-			echo "ERROR: Required environment variable 'AZURE_BLOB_ACCESS_KEY' is missing." >&2
-			abort_config=1
-		fi
+		for VAR in "${required_env_vars[@]}"; do
+			if [ -z "${!VAR}" ]; then
+				echo "ERROR: Required environment variable `$VAR` is unset or set to empty string"
+				abort_config=1
+			fi
+		done
 
 		if [ $abort_config -eq 0 ]; then
 			mkdir -p /etc/headscale
