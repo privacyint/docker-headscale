@@ -65,7 +65,7 @@ check_config_files() {
 }
 
 check_socket_directory() {
-	mkdir -p /var/run/headscale
+	mkdir -p /run/headscale
 }
 
 if ! check_config_files; then
