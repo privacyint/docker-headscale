@@ -1,7 +1,7 @@
 ---
 server_url: $HEADSCALE_SERVER_URL
-listen_addr: 0.0.0.0:8080
 metrics_listen_addr: 0.0.0.0:9090
+listen_addr: 0.0.0.0:443
 private_key_path: /data/private.key
 noise:
   private_key_path: /data/noise_private.key
