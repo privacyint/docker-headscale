@@ -7,6 +7,7 @@ check_config_files() {
 	local headscale_config_template=/usr/local/share/headscale/config.template.yaml
 	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
+	local litestream_config_path=/etc/litestream.yml
 
 	local abort_config=0
 
@@ -25,12 +26,26 @@ check_config_files() {
 			abort_config=1
 		fi
 
+		if [ -z "$AZURE_BLOB_BUCKET_NAME" ]; then
+			echo "ERROR: Required environment variable 'AZURE_BLOB_BUCKET_NAME' is missing." >&2
+			abort_config=1
+		fi
+
+		if [ -z "$AZURE_BLOB_ACCESS_KEY" ]; then
+			echo "ERROR: Required environment variable 'AZURE_BLOB_ACCESS_KEY' is missing." >&2
+			abort_config=1
+		fi
+
 		if [ $abort_config -eq 0 ]; then
 			mkdir -p /etc/headscale
 			cp $headscale_config_template $headscale_config_path
 			sed -i "s@\$HEADSCALE_SERVER_URL@$HEADSCALE_SERVER_URL@" $headscale_config_path
 			sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
 			echo "INFO: Headscale configuration file created."
+
+			sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
+			sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
+			echo "INFO: Litestream configuration file created."
 		else
 			return $abort_config
 		fi
