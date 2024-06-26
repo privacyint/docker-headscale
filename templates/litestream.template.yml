@@ -4,6 +4,6 @@ dbs:
     replicas:
       - type:         abs
         account-name: headscale_db_replica
-        account-key:  ${AZURE_BLOB_ACCESS_KEY}
-        bucket:       ${AZURE_BLOB_BUCKET_NAME}
+        account-key:  $AZURE_BLOB_ACCESS_KEY
+        bucket:       $AZURE_BLOB_BUCKET_NAME
         path:         headscale
