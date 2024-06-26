@@ -25,8 +25,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
     # Litestream
     { \
         export \
-            LITESTREAM_VERSION=0.3.11 \
-            LITESTREAM_SHA256=83b63dffb1ef5f3e54e9399dcf750a35a6a9b3b20a3ca5601653cce36146c51b; \
+            LITESTREAM_VERSION=0.3.13 \
+            LITESTREAM_SHA256=eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0; \
         wget -q -O litestream.tar.gz https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz; \
         echo "${LITESTREAM_SHA256} *litestream.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
         tar -xf litestream.tar.gz; \
