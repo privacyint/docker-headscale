@@ -35,8 +35,16 @@ derp:
 # Disables the automatic check for headscale updates on startup
 disable_check_updates: true
 
-db_type: sqlite3
-db_path: /data/headscale.sqlite3
+database:
+  type: sqlite
+
+  # SQLite config
+  sqlite:
+    path: /data/headscale.sqlite3
+
+    # Enable WAL mode for SQLite. This is recommended for production environments.
+    # https://www.sqlite.org/wal.html
+    write_ahead_log: true
 
 # TLS
 tls_cert_path: ""
