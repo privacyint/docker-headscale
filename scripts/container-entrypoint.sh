@@ -26,6 +26,11 @@ check_config_files() {
 			abort_config=1
 		fi
 
+		if [ -z "$AZURE_BLOB_ACCOUNT_NAME" ]; then
+			echo "ERROR: Required environment variable 'AZURE_BLOB_ACCOUNT_NAME' is missing." >&2
+			abort_config=1
+		fi
+
 		if [ -z "$AZURE_BLOB_BUCKET_NAME" ]; then
 			echo "ERROR: Required environment variable 'AZURE_BLOB_BUCKET_NAME' is missing." >&2
 			abort_config=1
@@ -43,6 +48,7 @@ check_config_files() {
 			sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
 			echo "INFO: Headscale configuration file created."
 
+			sed -i "s@\$AZURE_BLOB_ACCOUNT_NAME@$AZURE_BLOB_ACCOUNT_NAME@" $litestream_config_path
 			sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
 			sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
 			echo "INFO: Litestream configuration file created."

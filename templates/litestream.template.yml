@@ -3,7 +3,7 @@ dbs:
   - path: /data/headscale.sqlite3
     replicas:
       - type:         abs
-        account-name: headscale_db_replica
+        account-name: $AZURE_BLOB_ACCOUNT_NAME
         account-key:  $AZURE_BLOB_ACCESS_KEY
         bucket:       $AZURE_BLOB_BUCKET_NAME
-        path:         headscale
+        path:         headscale-db-backups
