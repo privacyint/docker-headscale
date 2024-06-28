@@ -24,6 +24,12 @@ prefixes:
   # - random: assigns the next free IP from a pseudo-random IP generator (crypto/rand).
   allocation: sequential
 
+# DERP is a relay system that Tailscale uses when a direct
+# connection cannot be established.
+# https://tailscale.com/blog/how-tailscale-works/#encrypted-tcp-relays-derp
+#
+# headscale needs a list of DERP servers that can be presented
+# to the clients.
 derp:
   server:
     enabled: false
