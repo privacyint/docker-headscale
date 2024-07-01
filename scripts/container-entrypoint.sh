@@ -11,6 +11,10 @@ check_config_files() {
 
 	local abort_config=0
 
+	if [ ! -d "/data/" ]; then
+		mkdir /data
+	fi
+
 	# check for Headscale config file
 	if [ ! -f $headscale_config_path ]; then
 		echo "INFO: No Headscale configuration file found, creating one using environment variables..."
