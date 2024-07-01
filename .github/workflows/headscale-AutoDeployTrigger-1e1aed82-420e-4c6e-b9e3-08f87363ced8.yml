@@ -8,7 +8,7 @@ on:
       [ main ]
     paths:
     - '**'
-    - '.github/workflows/headscale-AutoDeployTrigger-4c740048-c140-4802-8d0d-77a4c23adcfc.yml'
+    - '.github/workflows/headscale-AutoDeployTrigger-1e1aed82-420e-4c6e-b9e3-08f87363ced8.yml'
 
   # Allow manual trigger 
   workflow_dispatch:      
