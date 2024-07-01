@@ -50,7 +50,7 @@ database:
 
     # Enable WAL mode for SQLite. This is recommended for production environments.
     # https://www.sqlite.org/wal.html
-    write_ahead_log: true
+    # write_ahead_log: true
 
 # TLS
 tls_cert_path: ""
