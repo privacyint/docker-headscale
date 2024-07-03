@@ -2,6 +2,10 @@
 
 set -e
 
+check_data_directory() {
+	mkdir -p /data
+}
+
 check_config_files() {
 	local headscale_config_path=/etc/headscale/config.yaml
 	local headscale_config_template=/usr/local/share/headscale/config.template.yaml
@@ -10,10 +14,6 @@ check_config_files() {
 	local litestream_config_path=/etc/litestream.yml
 
 	local abort_config=0
-
-	if [ ! -d "/data/" ]; then
-		mkdir /data
-	fi
 
 	# check for Headscale config file
 	if [ ! -f $headscale_config_path ]; then
@@ -93,6 +93,10 @@ check_config_files() {
 check_socket_directory() {
 	mkdir -p /var/run/headscale
 }
+
+if ! check_data_directory; then
+	exit 1
+fi
 
 if ! check_config_files; then
 	exit 1
