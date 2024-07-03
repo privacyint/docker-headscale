@@ -49,14 +49,14 @@ check_config_files() {
 			echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
 			HEADSCALE_LISTEN_PORT=443
 		else
-			if [ $(echo "$HEADSCALE_LISTEN_PORT" | grep -cE "^\-?([0-9]+)(\.[0-9]+)?$") -gt 0 ]; then
-				echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric." >&2
+			case "$HEADSCALE_LISTEN_PORT" in
+				'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric."; abort_config=1;;
+				0*[!0]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' has a leading zero."; abort_config=1;;
+			esac
+
+			if [ "$HEADSCALE_LISTEN_PORT" -lt 1  ] || [ "$HEADSCALE_LISTEN_PORT" -gt 65535 ] ]; then
+				echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
 				abort_config=1
-			else
-				if [ "$HEADSCALE_LISTEN_PORT" -lt 1  ] || [ "$HEADSCALE_LISTEN_PORT" -gt 65535 ] ]; then
-					echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
-					abort_config=1
-				fi
 			fi
 		fi
 
