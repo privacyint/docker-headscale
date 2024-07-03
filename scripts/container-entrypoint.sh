@@ -45,11 +45,27 @@ check_config_files() {
 			abort_config=1
 		fi
 
+		if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
+			echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
+			HEADSCALE_LISTEN_PORT=443
+		else
+			if [ $(echo "$HEADSCALE_LISTEN_PORT" | grep -cE "^\-?([0-9]+)(\.[0-9]+)?$") -gt 0 ]; then
+				echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric." >&2
+				abort_config=1
+			else
+				if [ "$HEADSCALE_LISTEN_PORT" -lt 1  ] || [ "$HEADSCALE_LISTEN_PORT" -gt 65535 ] ]; then
+					echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
+					abort_config=1
+				fi
+			fi
+		fi
+
 		if [ $abort_config -eq 0 ]; then
 			mkdir -p /etc/headscale
 			cp $headscale_config_template $headscale_config_path
 			sed -i "s@\$HEADSCALE_SERVER_URL@$HEADSCALE_SERVER_URL@" $headscale_config_path
 			sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
+			sed -i "s@\$HEADSCALE_LISTEN_PORT@$HEADSCALE_LISTEN_PORT@" $headscale_config_path
 			echo "INFO: Headscale configuration file created."
 
 			sed -i "s@\$AZURE_BLOB_ACCOUNT_NAME@$AZURE_BLOB_ACCOUNT_NAME@" $litestream_config_path
