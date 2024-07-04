@@ -1,0 +1,4 @@
+$HEADSCALE_SERVER_URL:$HEADSCALE_LISTEN_PORT {
+    reverse_proxy 127.0.0.1:8080
+}
+
