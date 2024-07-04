@@ -2,6 +2,15 @@
 
 set -e
 
+abort_config=0
+
+check_env_var() {
+	if [ -z "$1" ]; then
+		echo "ERROR: Required environment variable '${1}' is missing." >&2
+		abort_config=1
+	else
+}
+
 check_data_directory() {
 	mkdir -p /data
 }
@@ -13,37 +22,11 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 	local litestream_config_path=/etc/litestream.yml
 
-	local abort_config=0
-
 	# check for Headscale config file
 	if [ ! -f $headscale_config_path ]; then
 		echo "INFO: No Headscale configuration file found, creating one using environment variables..."
 
 		# abort if needed variables are missing
-		if [ -z "$HEADSCALE_SERVER_URL" ]; then
-			echo "ERROR: Required environment variable 'HEADSCALE_SERVER_URL' is missing." >&2
-			abort_config=1
-		fi
-
-		if [ -z "$HEADSCALE_BASE_DOMAIN" ]; then
-			echo "ERROR: Required environment variable 'HEADSCALE_BASE_DOMAIN' is missing." >&2
-			abort_config=1
-		fi
-
-		if [ -z "$AZURE_BLOB_ACCOUNT_NAME" ]; then
-			echo "ERROR: Required environment variable 'AZURE_BLOB_ACCOUNT_NAME' is missing." >&2
-			abort_config=1
-		fi
-
-		if [ -z "$AZURE_BLOB_BUCKET_NAME" ]; then
-			echo "ERROR: Required environment variable 'AZURE_BLOB_BUCKET_NAME' is missing." >&2
-			abort_config=1
-		fi
-
-		if [ -z "$AZURE_BLOB_ACCESS_KEY" ]; then
-			echo "ERROR: Required environment variable 'AZURE_BLOB_ACCESS_KEY' is missing." >&2
-			abort_config=1
-		fi
 
 		if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
 			echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
@@ -59,6 +42,18 @@ check_config_files() {
 				abort_config=1
 			fi
 		fi
+		check_env_var ${HEADSCALE_SERVER_URL}
+		check_env_var ${HEADSCALE_BASE_DOMAIN}
+		check_env_var ${AZURE_BLOB_ACCOUNT_NAME}
+		check_env_var ${AZURE_BLOB_BUCKET_NAME}
+		check_env_var ${AZURE_BLOB_ACCESS_KEY}
+		check_env_var ${AZURE_DNS_SUBSCRIPTION_ID}
+		check_env_var ${AZURE_DNS_RESOURCE_GROUP_NAME}
+		check_env_var ${AZURE_DNS_TENANT_ID}
+		check_env_var ${AZURE_DNS_CLIENT_ID}
+		check_env_var ${AZURE_DNS_CLIENT_SECRET}
+		check_env_var ${HEADSCALE_SERVER_URL}
+
 
 		if [ $abort_config -eq 0 ]; then
 			mkdir -p /etc/headscale
