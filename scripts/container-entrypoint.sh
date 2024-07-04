@@ -8,7 +8,7 @@ check_env_var() {
 	if [ -z "$1" ]; then
 		echo "ERROR: Required environment variable '${1}' is missing." >&2
 		abort_config=1
-	else
+	fi
 }
 
 check_listen_port() {
