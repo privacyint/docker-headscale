@@ -2,11 +2,11 @@
 
 set -e
 
-abort_config=0
+export abort_config=0
 
 check_env_var() {
 	if [ -z "$1" ]; then
-		echo "ERROR: Required environment variable '${1}' is missing." >&2
+		echo "ERROR: Required environment variable '${2}' is missing." >&2
 		abort_config=1
 	fi
 }
@@ -45,16 +45,16 @@ check_config_files() {
 		echo "INFO: No Headscale configuration file found, creating one using environment variables..."
 
 		# abort if needed variables are missing
-		check_env_var ${HEADSCALE_SERVER_URL}
-		check_env_var ${HEADSCALE_BASE_DOMAIN}
-		check_env_var ${AZURE_BLOB_ACCOUNT_NAME}
-		check_env_var ${AZURE_BLOB_BUCKET_NAME}
-		check_env_var ${AZURE_BLOB_ACCESS_KEY}
-		check_env_var ${AZURE_DNS_SUBSCRIPTION_ID}
-		check_env_var ${AZURE_DNS_RESOURCE_GROUP_NAME}
-		check_env_var ${AZURE_DNS_TENANT_ID}
-		check_env_var ${AZURE_DNS_CLIENT_ID}
-		check_env_var ${AZURE_DNS_CLIENT_SECRET}
+		check_env_var "${HEADSCALE_SERVER_URL}" "HEADSCALE_SERVER_URL"
+		check_env_var "${HEADSCALE_BASE_DOMAIN}" "HEADSCALE_BASE_DOMAIN"
+		check_env_var "${AZURE_BLOB_ACCOUNT_NAME}" "AZURE_BLOB_ACCOUNT_NAME"
+		check_env_var "${AZURE_BLOB_BUCKET_NAME}" "AZURE_BLOB_BUCKET_NAME"
+		check_env_var "${AZURE_BLOB_ACCESS_KEY}" "AZURE_BLOB_ACCESS_KEY"
+		check_env_var "${AZURE_DNS_SUBSCRIPTION_ID}" "AZURE_DNS_SUBSCRIPTION_ID"
+		check_env_var "${AZURE_DNS_RESOURCE_GROUP_NAME}" "AZURE_DNS_RESOURCE_GROUP_NAME"
+		check_env_var "${AZURE_DNS_TENANT_ID}" "AZURE_DNS_TENANT_ID"
+		check_env_var "${AZURE_DNS_CLIENT_ID}" "AZURE_DNS_CLIENT_ID"
+		check_env_var "${AZURE_DNS_CLIENT_SECRET}" "AZURE_DNS_CLIENT_SECRET"
 
 		# abort if our listen port is invalid, or default to `:443` if it's unset
 		check_listen_port ${HEADSCALE_LISTEN_PORT}
