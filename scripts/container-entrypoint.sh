@@ -11,6 +11,23 @@ check_env_var() {
 	else
 }
 
+check_listen_port() {
+	if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
+		echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
+		HEADSCALE_LISTEN_PORT=443
+	else
+		case "$HEADSCALE_LISTEN_PORT" in
+			'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric."; abort_config=1;;
+			0*[!0]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' has a leading zero."; abort_config=1;;
+		esac
+
+		if [ "$HEADSCALE_LISTEN_PORT" -lt 1  ] || [ "$HEADSCALE_LISTEN_PORT" -gt 65535 ] ]; then
+			echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
+			abort_config=1
+		fi
+	fi
+}
+
 check_data_directory() {
 	mkdir -p /data
 }
@@ -27,21 +44,6 @@ check_config_files() {
 		echo "INFO: No Headscale configuration file found, creating one using environment variables..."
 
 		# abort if needed variables are missing
-
-		if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
-			echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
-			HEADSCALE_LISTEN_PORT=443
-		else
-			case "$HEADSCALE_LISTEN_PORT" in
-				'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric."; abort_config=1;;
-				0*[!0]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' has a leading zero."; abort_config=1;;
-			esac
-
-			if [ "$HEADSCALE_LISTEN_PORT" -lt 1  ] || [ "$HEADSCALE_LISTEN_PORT" -gt 65535 ] ]; then
-				echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
-				abort_config=1
-			fi
-		fi
 		check_env_var ${HEADSCALE_SERVER_URL}
 		check_env_var ${HEADSCALE_BASE_DOMAIN}
 		check_env_var ${AZURE_BLOB_ACCOUNT_NAME}
@@ -54,6 +56,8 @@ check_config_files() {
 		check_env_var ${AZURE_DNS_CLIENT_SECRET}
 		check_env_var ${HEADSCALE_SERVER_URL}
 
+		# abort if our listen port is invalid, or default to `:443` if it's unset
+		check_listen_port ${HEADSCALE_LISTEN_PORT}
 
 		if [ $abort_config -eq 0 ]; then
 			mkdir -p /etc/headscale
