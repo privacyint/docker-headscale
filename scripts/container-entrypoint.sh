@@ -40,48 +40,44 @@ check_config_files() {
 	local litestream_config_path=/etc/litestream.yml
 	local caddy_config_path=/etc/caddy/caddy.yaml
 
-	# check for Headscale config file
-	if [ ! -f $headscale_config_path ]; then
-		echo "INFO: No Headscale configuration file found, creating one using environment variables..."
+	echo "INFO: Creating our Headscale config using environment variables..."
+	# abort if needed variables are missing
+	check_env_var "${HEADSCALE_SERVER_URL}" "HEADSCALE_SERVER_URL"
+	check_env_var "${HEADSCALE_BASE_DOMAIN}" "HEADSCALE_BASE_DOMAIN"
+	check_env_var "${AZURE_BLOB_ACCOUNT_NAME}" "AZURE_BLOB_ACCOUNT_NAME"
+	check_env_var "${AZURE_BLOB_BUCKET_NAME}" "AZURE_BLOB_BUCKET_NAME"
+	check_env_var "${AZURE_BLOB_ACCESS_KEY}" "AZURE_BLOB_ACCESS_KEY"
+	check_env_var "${AZURE_DNS_SUBSCRIPTION_ID}" "AZURE_DNS_SUBSCRIPTION_ID"
+	check_env_var "${AZURE_DNS_RESOURCE_GROUP_NAME}" "AZURE_DNS_RESOURCE_GROUP_NAME"
+	check_env_var "${AZURE_DNS_TENANT_ID}" "AZURE_DNS_TENANT_ID"
+	check_env_var "${AZURE_DNS_CLIENT_ID}" "AZURE_DNS_CLIENT_ID"
+	check_env_var "${AZURE_DNS_CLIENT_SECRET}" "AZURE_DNS_CLIENT_SECRET"
 
-		# abort if needed variables are missing
-		check_env_var "${HEADSCALE_SERVER_URL}" "HEADSCALE_SERVER_URL"
-		check_env_var "${HEADSCALE_BASE_DOMAIN}" "HEADSCALE_BASE_DOMAIN"
-		check_env_var "${AZURE_BLOB_ACCOUNT_NAME}" "AZURE_BLOB_ACCOUNT_NAME"
-		check_env_var "${AZURE_BLOB_BUCKET_NAME}" "AZURE_BLOB_BUCKET_NAME"
-		check_env_var "${AZURE_BLOB_ACCESS_KEY}" "AZURE_BLOB_ACCESS_KEY"
-		check_env_var "${AZURE_DNS_SUBSCRIPTION_ID}" "AZURE_DNS_SUBSCRIPTION_ID"
-		check_env_var "${AZURE_DNS_RESOURCE_GROUP_NAME}" "AZURE_DNS_RESOURCE_GROUP_NAME"
-		check_env_var "${AZURE_DNS_TENANT_ID}" "AZURE_DNS_TENANT_ID"
-		check_env_var "${AZURE_DNS_CLIENT_ID}" "AZURE_DNS_CLIENT_ID"
-		check_env_var "${AZURE_DNS_CLIENT_SECRET}" "AZURE_DNS_CLIENT_SECRET"
+	# abort if our listen port is invalid, or default to `:443` if it's unset
+	check_listen_port ${HEADSCALE_LISTEN_PORT}
 
-		# abort if our listen port is invalid, or default to `:443` if it's unset
-		check_listen_port ${HEADSCALE_LISTEN_PORT}
+	if [ $abort_config -eq 0 ]; then
+		mkdir -p /etc/headscale
+		cp $headscale_config_template $headscale_config_path
+		sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
+		echo "INFO: Headscale configuration file created."
 
-		if [ $abort_config -eq 0 ]; then
-			mkdir -p /etc/headscale
-			cp $headscale_config_template $headscale_config_path
-			sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
-			echo "INFO: Headscale configuration file created."
+		sed -i "s@\$AZURE_BLOB_ACCOUNT_NAME@$AZURE_BLOB_ACCOUNT_NAME@" $litestream_config_path
+		sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
+		sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
+		echo "INFO: Litestream configuration file created."
 
-			sed -i "s@\$AZURE_BLOB_ACCOUNT_NAME@$AZURE_BLOB_ACCOUNT_NAME@" $litestream_config_path
-			sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
-			sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
-			echo "INFO: Litestream configuration file created."
+		sed -i "s@\$HEADSCALE_SERVER_URL@$HEADSCALE_SERVER_URL@" $caddy_config_path
+		sed -i "s@\$HEADSCALE_LISTEN_PORT@$HEADSCALE_LISTEN_PORT@" $caddy_config_path
+		sed -i "s@\$AZURE_DNS_SUBSCRIPTION_ID@$AZURE_DNS_SUBSCRIPTION_ID@" $caddy_config_path
+		sed -i "s@\$AZURE_DNS_RESOURCE_GROUP_NAME@$AZURE_DNS_RESOURCE_GROUP_NAME@" $caddy_config_path
+		sed -i "s@\$AZURE_DNS_TENANT_ID@$AZURE_DNS_TENANT_ID@" $caddy_config_path
+		sed -i "s@\$AZURE_DNS_CLIENT_ID@$AZURE_DNS_CLIENT_ID@" $caddy_config_path
+		sed -i "s@\$AZURE_DNS_CLIENT_SECRET@$AZURE_DNS_CLIENT_SECRET@" $caddy_config_path
+		echo "INFO: Caddyfile created."
 
-			sed -i "s@\$HEADSCALE_SERVER_URL@$HEADSCALE_SERVER_URL@" $caddy_config_path
-			sed -i "s@\$HEADSCALE_LISTEN_PORT@$HEADSCALE_LISTEN_PORT@" $caddy_config_path
-			sed -i "s@\$AZURE_DNS_SUBSCRIPTION_ID@$AZURE_DNS_SUBSCRIPTION_ID@" $caddy_config_path
-			sed -i "s@\$AZURE_DNS_RESOURCE_GROUP_NAME@$AZURE_DNS_RESOURCE_GROUP_NAME@" $caddy_config_path
-			sed -i "s@\$AZURE_DNS_TENANT_ID@$AZURE_DNS_TENANT_ID@" $caddy_config_path
-			sed -i "s@\$AZURE_DNS_CLIENT_ID@$AZURE_DNS_CLIENT_ID@" $caddy_config_path
-			sed -i "s@\$AZURE_DNS_CLIENT_SECRET@$AZURE_DNS_CLIENT_SECRET@" $caddy_config_path
-			echo "INFO: Caddyfile created."
-
-		else
-			return $abort_config
-		fi
+	else
+		return $abort_config
 	fi
 
 	if [ ! -f $headscale_private_key_path ]; then
