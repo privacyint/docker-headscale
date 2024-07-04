@@ -54,7 +54,6 @@ check_config_files() {
 		check_env_var ${AZURE_DNS_TENANT_ID}
 		check_env_var ${AZURE_DNS_CLIENT_ID}
 		check_env_var ${AZURE_DNS_CLIENT_SECRET}
-		check_env_var ${HEADSCALE_SERVER_URL}
 
 		# abort if our listen port is invalid, or default to `:443` if it's unset
 		check_listen_port ${HEADSCALE_LISTEN_PORT}
