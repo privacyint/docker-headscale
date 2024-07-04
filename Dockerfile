@@ -1,3 +1,12 @@
+# ---
+# Build caddy with CloudFlare DNS support
+FROM caddy:2.8.4-builder AS caddy-builder
+
+RUN xcaddy build \
+    --with github.com/caddy-dns/cloudflare
+
+# --- 
+# Build our main image
 FROM alpine:3.20.1
 
 # ---
@@ -5,6 +14,10 @@ FROM alpine:3.20.1
 RUN --mount=type=cache,sharing=private,target=/var/cache/apk \
     set -eux; \
     apk upgrade
+
+# ---
+# Copy caddy from the first stage
+COPY --from=caddy-builder /usr/bin/caddy /usr/local/bin/caddy
 
 # ---
 # copy headscale
@@ -36,13 +49,16 @@ RUN --mount=type=cache,target=/var/cache/apk \
     # smoke tests
     [ "$(command -v headscale)" = '/usr/local/bin/headscale' ]; \
     [ "$(command -v litestream)" = '/usr/local/bin/litestream' ]; \
+    [ "$(command -v caddy)" = '/usr/local/bin/caddy' ]; \
     headscale version; \
-    litestream version
+    litestream version; \
+    caddy version
 
 # ---
 # copy configuration and templates
 COPY ./templates/headscale.template.yaml /usr/local/share/headscale/config.template.yaml
 COPY ./templates/litestream.template.yml /etc/litestream.yml
+COPY ./templates/caddy.template.yaml /etc/caddy.yaml
 COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
 
 ENTRYPOINT ["/container-entrypoint.sh"]
