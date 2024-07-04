@@ -1,9 +1,9 @@
 # ---
-# Build caddy with CloudFlare DNS support
+# Build caddy with Azure DNS support
 FROM caddy:2.8.4-builder AS caddy-builder
 
 RUN xcaddy build \
-    --with github.com/caddy-dns/cloudflare
+    --with github.com/caddy-dns/azure
 
 # --- 
 # Build our main image
