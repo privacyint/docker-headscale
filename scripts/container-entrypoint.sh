@@ -38,6 +38,7 @@ check_config_files() {
 	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
 	local litestream_config_path=/etc/litestream.yml
+	local caddy_config_path=/etc/caddy/caddy.yaml
 
 	# check for Headscale config file
 	if [ ! -f $headscale_config_path ]; then
@@ -70,6 +71,14 @@ check_config_files() {
 			sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
 			sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
 			echo "INFO: Litestream configuration file created."
+
+			sed -i "s@\$AZURE_DNS_SUBSCRIPTION_ID@$AZURE_DNS_SUBSCRIPTION_ID@" $caddy_config_path
+			sed -i "s@\$AZURE_DNS_RESOURCE_GROUP_NAME@$AZURE_DNS_RESOURCE_GROUP_NAME@" $caddy_config_path
+			sed -i "s@\$AZURE_DNS_TENANT_ID@$AZURE_DNS_TENANT_ID@" $caddy_config_path
+			sed -i "s@\$AZURE_DNS_CLIENT_ID@$AZURE_DNS_CLIENT_ID@" $caddy_config_path
+			sed -i "s@\$AZURE_DNS_CLIENT_SECRET@$AZURE_DNS_CLIENT_SECRET@" $caddy_config_path
+			echo "INFO: Caddyfile created."
+
 		else
 			return $abort_config
 		fi
