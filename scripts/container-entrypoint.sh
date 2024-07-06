@@ -48,9 +48,6 @@ check_config_files() {
 	check_env_var "${AZURE_BLOB_ACCESS_KEY}" "AZURE_BLOB_ACCESS_KEY"
 	check_env_var "${AZURE_DNS_SUBSCRIPTION_ID}" "AZURE_DNS_SUBSCRIPTION_ID"
 	check_env_var "${AZURE_DNS_RESOURCE_GROUP_NAME}" "AZURE_DNS_RESOURCE_GROUP_NAME"
-	check_env_var "${AZURE_DNS_TENANT_ID}" "AZURE_DNS_TENANT_ID"
-	check_env_var "${AZURE_DNS_CLIENT_ID}" "AZURE_DNS_CLIENT_ID"
-	check_env_var "${AZURE_DNS_CLIENT_SECRET}" "AZURE_DNS_CLIENT_SECRET"
 
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port ${HEADSCALE_LISTEN_PORT}
