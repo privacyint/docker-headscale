@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
 # copy configuration and templates
 COPY ./templates/headscale.template.yaml /etc/headscale/config.yaml
 COPY ./templates/litestream.template.yml /etc/litestream.yml
-COPY ./templates/caddy.template.yaml /etc/caddy/caddy.yaml
+COPY ./templates/caddy.template.yaml /etc/caddy/Caddyfile
 COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
 
 ENTRYPOINT ["/container-entrypoint.sh"]
