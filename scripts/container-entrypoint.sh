@@ -55,11 +55,6 @@ check_config_files() {
 	if [ $abort_config -eq 0 ]; then
 		sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
 		echo "INFO: Headscale configuration file created."
-
-		sed -i "s@\$AZURE_BLOB_ACCOUNT_NAME@$AZURE_BLOB_ACCOUNT_NAME@" $litestream_config_path
-		sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
-		sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
-		echo "INFO: Litestream configuration file created."
 	else
 		return $abort_config
 	fi
