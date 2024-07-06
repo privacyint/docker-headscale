@@ -38,7 +38,7 @@ check_config_files() {
 	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
 	local litestream_config_path=/etc/litestream.yml
-	local caddy_config_path=/etc/caddy/caddy.yaml
+	local caddy_config_path=/etc/caddy/Caddyfile
 
 	echo "INFO: Creating our Headscale config using environment variables..."
 	# abort if needed variables are missing
