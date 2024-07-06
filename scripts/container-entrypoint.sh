@@ -89,7 +89,7 @@ if ! check_socket_directory; then
 	exit 1
 fi
 
-echo "INFO: Attempt to restore Headscale database if missing..."
+echo "INFO: Attempt to restore previous Headscale database if there's a replica..."
 litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3
 
 echo "INFO: Starting Headscale using Litestream..."
