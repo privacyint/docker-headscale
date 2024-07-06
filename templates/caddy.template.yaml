@@ -1,14 +1,14 @@
-$HEADSCALE_SERVER_URL:$HEADSCALE_LISTEN_PORT {
+{$HEADSCALE_SERVER_URL}:{$HEADSCALE_LISTEN_PORT} {
     reverse_proxy 127.0.0.1:8080
 }
 
 tls {
   dns azure {
-    subscription_id $AZURE_DNS_SUBSCRIPTION_ID
-    resource_group_name $AZURE_DNS_RESOURCE_GROUP_NAME
-    tenant_id $AZURE_DNS_TENANT_ID
-    client_id $AZURE_DNS_CLIENT_ID
-    client_secret $AZURE_DNS_CLIENT_SECRET
+    subscription_id {$AZURE_DNS_SUBSCRIPTION_ID}
+    resource_group_name {$AZURE_DNS_RESOURCE_GROUP_NAME}
+    tenant_id {$AZURE_DNS_TENANT_ID}
+    client_id {$AZURE_DNS_CLIENT_ID}
+    client_secret {$AZURE_DNS_CLIENT_SECRET}
   }
 }
 

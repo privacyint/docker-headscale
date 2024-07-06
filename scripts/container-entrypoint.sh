@@ -66,16 +66,6 @@ check_config_files() {
 		sed -i "s@\$AZURE_BLOB_ACCESS_KEY@$AZURE_BLOB_ACCESS_KEY@" $litestream_config_path
 		sed -i "s@\$AZURE_BLOB_BUCKET_NAME@$AZURE_BLOB_BUCKET_NAME@" $litestream_config_path
 		echo "INFO: Litestream configuration file created."
-
-		sed -i "s@\$HEADSCALE_SERVER_URL@$HEADSCALE_SERVER_URL@" $caddy_config_path
-		sed -i "s@\$HEADSCALE_LISTEN_PORT@$HEADSCALE_LISTEN_PORT@" $caddy_config_path
-		sed -i "s@\$AZURE_DNS_SUBSCRIPTION_ID@$AZURE_DNS_SUBSCRIPTION_ID@" $caddy_config_path
-		sed -i "s@\$AZURE_DNS_RESOURCE_GROUP_NAME@$AZURE_DNS_RESOURCE_GROUP_NAME@" $caddy_config_path
-		sed -i "s@\$AZURE_DNS_TENANT_ID@$AZURE_DNS_TENANT_ID@" $caddy_config_path
-		sed -i "s@\$AZURE_DNS_CLIENT_ID@$AZURE_DNS_CLIENT_ID@" $caddy_config_path
-		sed -i "s@\$AZURE_DNS_CLIENT_SECRET@$AZURE_DNS_CLIENT_SECRET@" $caddy_config_path
-		echo "INFO: Caddyfile created."
-
 	else
 		return $abort_config
 	fi
