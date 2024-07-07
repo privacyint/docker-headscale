@@ -58,10 +58,11 @@ check_config_files() {
 		return $abort_config
 	fi
 
-	if [ ! -f $headscale_private_key_path ]; then
-		if [ ! -z "$HEADSCALE_PRIVATE_KEY" ]; then
-			echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
-		fi
+	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
+		echo "INFO: Headscale will generate a new private key."
+	else
+		echo "INFO: Using environment value for Headscale's private key."
+		echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
 	fi
 
 	if [ ! -f $headscale_noise_private_key_path ]; then
