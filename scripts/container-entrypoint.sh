@@ -29,10 +29,6 @@ check_listen_port() {
 	fi
 }
 
-check_data_directory() {
-	mkdir -p /data
-}
-
 check_config_files() {
 	local headscale_config_path=/etc/headscale/config.yaml
 	local headscale_private_key_path=/data/private.key
@@ -73,19 +69,16 @@ check_config_files() {
 	fi
 }
 
-check_socket_directory() {
+check_needed_directories() {
 	mkdir -p /var/run/headscale
+	mkdir -p /data
 }
 
-if ! check_data_directory; then
+if ! check_needed_directories; then
 	exit 1
 fi
 
 if ! check_config_files; then
-	exit 1
-fi
-
-if ! check_socket_directory; then
 	exit 1
 fi
 
