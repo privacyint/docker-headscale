@@ -1,13 +1,24 @@
 # ---
+# Tool version args
+ARG HEADSCALE_VERSION="0.23.0-alpha12"
+ARG HEADSCALE_SHA256="6fd8483672a19b119ac0bea5bb39ae85eb8900f1405689f52a579fa988d8839c"
+ARG LITESTREAM_VERSION="0.3.13"
+ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0"
+# Container version args
+ARG CADDY_BUILDER_VERSION="2.8.4-builder"
+ARG MAIN_IMAGE_ALPINE_VERSION="3.20.1"
+
+###########
+# ---
 # Build caddy with Azure DNS support
-FROM caddy:2.8.4-builder AS caddy-builder
+FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
 
 RUN xcaddy build \
     --with github.com/caddy-dns/azure
 
 # --- 
 # Build our main image
-FROM alpine:3.20.1
+FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
 
 # ---
 # upgrade system and installed dependencies for security patches
@@ -27,9 +38,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
     cd /tmp; \
     # Headscale
     { \
-        export \
-            HEADSCALE_VERSION=0.23.0-alpha12 \
-            HEADSCALE_SHA256=6fd8483672a19b119ac0bea5bb39ae85eb8900f1405689f52a579fa988d8839c; \
         wget -q -O headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64; \
         echo "${HEADSCALE_SHA256} *headscale" | sha256sum -c - >/dev/null 2>&1; \
         chmod +x headscale; \
@@ -37,9 +45,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
     }; \
     # Litestream
     { \
-        export \
-            LITESTREAM_VERSION=0.3.13 \
-            LITESTREAM_SHA256=eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0; \
         wget -q -O litestream.tar.gz https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz; \
         echo "${LITESTREAM_SHA256} *litestream.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
         tar -xf litestream.tar.gz; \
