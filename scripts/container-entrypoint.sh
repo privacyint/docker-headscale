@@ -4,7 +4,7 @@ set -e
 
 export abort_config=0
 
-check_env_var() {
+check_env_var_populated() {
     var="$1"
 	if [ -z "${!var}" ]; then
 		echo "ERROR: Required environment variable '$var' is missing." >&2
@@ -40,13 +40,13 @@ check_config_files() {
 
 	echo "INFO: Creating our Headscale config using environment variables..."
 	# abort if needed variables are missing
-	check_env_var "HEADSCALE_SERVER_URL"
-	check_env_var "HEADSCALE_BASE_DOMAIN"
-	check_env_var "AZURE_BLOB_ACCOUNT_NAME"
-	check_env_var "AZURE_BLOB_BUCKET_NAME"
-	check_env_var "AZURE_BLOB_ACCESS_KEY"
-	check_env_var "AZURE_DNS_SUBSCRIPTION_ID"
-	check_env_var "AZURE_DNS_RESOURCE_GROUP_NAME"
+	check_env_var_populated "HEADSCALE_SERVER_URL"
+	check_env_var_populated "HEADSCALE_BASE_DOMAIN"
+	check_env_var_populated "AZURE_BLOB_ACCOUNT_NAME"
+	check_env_var_populated "AZURE_BLOB_BUCKET_NAME"
+	check_env_var_populated "AZURE_BLOB_ACCESS_KEY"
+	check_env_var_populated "AZURE_DNS_SUBSCRIPTION_ID"
+	check_env_var_populated "AZURE_DNS_RESOURCE_GROUP_NAME"
 
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port ${HEADSCALE_LISTEN_PORT}
