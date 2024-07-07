@@ -15,7 +15,7 @@ check_env_var() {
 check_listen_port() {
 	if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
 		echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
-		HEADSCALE_LISTEN_PORT=443
+		export HEADSCALE_LISTEN_PORT=443
 	else
 		case "$HEADSCALE_LISTEN_PORT" in
 			'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric."; abort_config=1;;
