@@ -47,12 +47,8 @@ check_config_files() {
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port ${HEADSCALE_LISTEN_PORT}
 
-	if [ $abort_config -eq 0 ]; then
-		sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
-		echo "INFO: Headscale configuration file created."
-	else
-		return $abort_config
-	fi
+	sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
+	echo "INFO: Headscale configuration file created."
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
 		echo "INFO: Headscale will generate a new private key."
@@ -75,15 +71,22 @@ check_needed_directories() {
 }
 
 if ! check_needed_directories; then
-	exit 1
+	echo "ERROR: Unable to create required configuration directories."
+	$abort_config=1
 fi
 
 if ! check_config_files; then
-	exit 1
+	echo "ERROR: We don't have enough information to run our services."
+	$abort_config=1
 fi
 
-echo "INFO: Attempt to restore previous Headscale database if there's a replica..."
-litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3
-
-echo "INFO: Starting Headscale using Litestream..."
-exec litestream replicate -exec 'headscale serve'
+if [ $abort_config -eq 0 ]; then
+	echo "INFO: Attempt to restore previous Headscale database if there's a replica..."
+	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3
+	
+	echo "INFO: Starting Headscale using Litestream..."
+	exec litestream replicate -exec 'headscale serve'
+else
+	echo "ERROR: Something went wrong. Exiting."
+	return $abort_config
+fi
