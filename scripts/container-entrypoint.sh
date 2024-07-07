@@ -4,6 +4,10 @@ set -e
 
 export abort_config=0
 
+####
+# Takes the name of an environment variable as a string, sets `$abort_config` to `1`
+# if it's unset (also spits out a hopefully useful message to `stderr`)
+#
 check_env_var_populated() {
     var="$1"
 	if [ -z "${!var}" ]; then
@@ -12,6 +16,9 @@ check_env_var_populated() {
 	fi
 }
 
+####
+# Checks `$HEADSCALE_LISTEN_PORT` is a valid port, or if unset defaults to `:443`
+#
 check_listen_port() {
 	if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
 		echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
@@ -29,6 +36,10 @@ check_listen_port() {
 	fi
 }
 
+####
+# Checks our various environment variables are populated, and squirts them into their
+# places, as required.
+#
 check_config_files() {
 	local headscale_config_path=/etc/headscale/config.yaml
 	local headscale_private_key_path=/data/private.key
@@ -65,11 +76,17 @@ check_config_files() {
 	fi
 }
 
+####
+# Ensures our configuration directories exist
+#
 check_needed_directories() {
 	mkdir -p /var/run/headscale
 	mkdir -p /data
 }
 
+#---
+# LOGIC STARTSHERE
+#
 if ! check_needed_directories; then
 	echo "ERROR: Unable to create required configuration directories."
 	$abort_config=1
