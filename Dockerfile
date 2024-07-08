@@ -21,6 +21,13 @@ RUN xcaddy build \
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
 
 # ---
+# import our "global" `ARG` values into this stage
+ARG HEADSCALE_VERSION
+ARG HEADSCALE_SHA256
+ARG LITESTREAM_VERSION
+ARG LITESTREAM_SHA256
+
+# ---
 # upgrade system and installed dependencies for security patches
 RUN --mount=type=cache,sharing=private,target=/var/cache/apk \
     set -eux; \
