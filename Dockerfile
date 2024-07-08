@@ -36,6 +36,9 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # ---
     # Copy caddy from the first stage
     COPY --from=caddy-builder /usr/bin/caddy /usr/local/bin/caddy
+    # smoke tests
+    RUN [ "$(command -v caddy)" = '/usr/local/bin/caddy' ]; \
+        caddy version
 
     # ---
     # copy headscale
@@ -61,10 +64,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         # smoke tests
         [ "$(command -v headscale)" = '/usr/local/bin/headscale' ]; \
         [ "$(command -v litestream)" = '/usr/local/bin/litestream' ]; \
-        [ "$(command -v caddy)" = '/usr/local/bin/caddy' ]; \
         headscale version; \
-        litestream version; \
-        caddy version
+        litestream version
 
     # ---
     # copy configuration and templates
