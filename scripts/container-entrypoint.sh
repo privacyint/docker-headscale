@@ -72,6 +72,8 @@ check_config_files() {
 		echo "INFO: Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
 	fi
+
+	return $abort_config
 }
 
 ####
