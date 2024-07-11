@@ -46,21 +46,25 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         --mount=type=tmpfs,target=/tmp \
         set -eux; \
         cd /tmp; \
+        # BusyBox's wget isn't reliable enough
+        apk add wget; \
         # Headscale
         { \
-            wget -q -O headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64; \
+            wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64; \
             echo "${HEADSCALE_SHA256} *headscale" | sha256sum -c - >/dev/null 2>&1; \
             chmod +x headscale; \
             mv headscale /usr/local/bin/; \
         }; \
         # Litestream
         { \
-            wget -q -O litestream.tar.gz https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz; \
+            wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O litestream.tar.gz https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz; \
             echo "${LITESTREAM_SHA256} *litestream.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
             tar -xf litestream.tar.gz; \
             mv litestream /usr/local/bin/; \
             rm -f litestream.tar.gz; \
         }; \
+        # Remove wget and dependencies
+        apk del wget; \
         # smoke tests
         [ "$(command -v headscale)" = '/usr/local/bin/headscale' ]; \
         [ "$(command -v litestream)" = '/usr/local/bin/litestream' ]; \
