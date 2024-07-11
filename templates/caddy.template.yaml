@@ -3,12 +3,6 @@
 }
 
 tls {
-  dns azure {
-    subscription_id {$AZURE_DNS_SUBSCRIPTION_ID}
-    resource_group_name {$AZURE_DNS_RESOURCE_GROUP_NAME}
-    tenant_id {$AZURE_DNS_TENANT_ID}
-    client_id {$AZURE_DNS_CLIENT_ID}
-    client_secret {$AZURE_DNS_CLIENT_SECRET}
-  }
+	dns cloudflare {env.CF_API_TOKEN}
 }
 
