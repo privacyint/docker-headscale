@@ -17,20 +17,20 @@ check_env_var_populated() {
 }
 
 ####
-# Checks `$HEADSCALE_LISTEN_PORT` is a valid port, or if unset defaults to `:443`
+# Checks `$PUBLIC_LISTEN_PORT` is a valid port, or if unset defaults to `:443`
 #
 check_listen_port() {
-	if [ -z "$HEADSCALE_LISTEN_PORT" ]; then
-		echo "INFO: Environment variable 'HEADSCALE_LISTEN_PORT' is missing, defaulting to port 443"
-		export HEADSCALE_LISTEN_PORT=443
+	if [ -z "$PUBLIC_LISTEN_PORT" ]; then
+		echo "INFO: Environment variable 'PUBLIC_LISTEN_PORT' is missing, defaulting to port 443"
+		export PUBLIC_LISTEN_PORT=443
 	else
-		case "$HEADSCALE_LISTEN_PORT" in
-			'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' is not numeric."; abort_config=1;;
-			0*[!0]*) echo >&2 "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' has a leading zero."; abort_config=1;;
+		case "$PUBLIC_LISTEN_PORT" in
+			'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' is not numeric."; abort_config=1;;
+			0*[!0]*) echo >&2 "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' has a leading zero."; abort_config=1;;
 		esac
 
-		if [ "$HEADSCALE_LISTEN_PORT" -lt 1  ] || [ "$HEADSCALE_LISTEN_PORT" -gt 65535 ] ]; then
-			echo "ERROR: Environment variable 'HEADSCALE_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
+		if [ "$PUBLIC_LISTEN_PORT" -lt 1  ] || [ "$PUBLIC_LISTEN_PORT" -gt 65535 ] ]; then
+			echo "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
 			abort_config=1
 		fi
 	fi
@@ -42,12 +42,13 @@ check_listen_port() {
 #
 check_config_files() {
 	local caddy_config_path=/etc/caddy/Caddyfile
+	local headscale_config_path=/etc/headscale/config.yaml
 	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	echo "INFO: Checking required environment variables..."
 	# abort if needed variables are missing
-	check_env_var_populated "HEADSCALE_SERVER_URL"
+	check_env_var_populated "PUBLIC_SERVER_URL"
 	check_env_var_populated "HEADSCALE_BASE_DOMAIN"
 	check_env_var_populated "AZURE_BLOB_ACCOUNT_NAME"
 	check_env_var_populated "AZURE_BLOB_BUCKET_NAME"
@@ -55,11 +56,16 @@ check_config_files() {
 	check_env_var_populated "CF_API_TOKEN"
 
 	# abort if our listen port is invalid, or default to `:443` if it's unset
-	check_listen_port ${HEADSCALE_LISTEN_PORT}
+	check_listen_port ${PUBLIC_LISTEN_PORT}
+
+	echo "INFO: Creating Headscale configuration file from environment variables."
+	sed -i "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" $headscale_config_path
+	sed -i "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" $headscale_config_path
+	echo "INFO: Headscale configuration file created."
 
 	echo "INFO: Creating Caddy configuration file from environment variables."
-	sed -i "s@\$HEADSCALE_SERVER_URL@$HEADSCALE_SERVER_URL@" $caddy_config_path
-	sed -i "s@\$HEADSCALE_LISTEN_PORT@$HEADSCALE_LISTEN_PORT@" $caddy_config_path
+	sed -i "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" $caddy_config_path
+	sed -i "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" $caddy_config_path
 	echo "INFO: Caddy configuration file created."
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then

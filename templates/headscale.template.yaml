@@ -1,5 +1,5 @@
 ---
-server_url: $HEADSCALE_SERVER_URL:$HEADSCALE_LISTEN_PORT
+server_url: $PUBLIC_SERVER_URL:$PUBLIC_LISTEN_PORT
 listen_addr: 127.0.0.1:8080
 metrics_listen_addr: 127.0.0.1:9090
 
