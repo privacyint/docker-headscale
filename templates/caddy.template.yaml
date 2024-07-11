@@ -1,8 +1,7 @@
 {env.HEADSCALE_SERVER_URL}:{env.HEADSCALE_LISTEN_PORT} {
     reverse_proxy 127.0.0.1:8080
-}
 
-tls {
-	dns cloudflare {env.CF_API_TOKEN}
+  tls {
+    dns cloudflare {env.CF_API_TOKEN}
+  }
 }
-
