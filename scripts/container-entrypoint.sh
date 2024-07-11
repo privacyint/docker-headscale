@@ -105,7 +105,7 @@ if [ $abort_config -eq 0 ]; then
 	litestream replicate -exec 'headscale serve' &
 
 	echo "INFO: Starting Caddy"
-	exec -d caddy run
+	caddy start --config /etc/caddy/Caddyfile
 else
 	echo "ERROR: Something went wrong. Exiting."
 	return $abort_config
