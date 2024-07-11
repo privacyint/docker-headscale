@@ -56,7 +56,7 @@ check_config_files() {
 	check_env_var_populated "CF_API_TOKEN"
 
 	# abort if our listen port is invalid, or default to `:443` if it's unset
-	check_listen_port ${PUBLIC_LISTEN_PORT}
+	check_listen_port
 
 	echo "INFO: Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" $headscale_config_path
