@@ -91,12 +91,12 @@ check_needed_directories() {
 #---
 # LOGIC STARTSHERE
 #
-if ! check_needed_directories; then
+if [ ! check_needed_directories ]; then
 	echo "ERROR: Unable to create required configuration directories."
 	$abort_config=1
 fi
 
-if ! check_config_files; then
+if [ ! check_config_files ]; then
 	echo "ERROR: We don't have enough information to run our services."
 	$abort_config=1
 fi
