@@ -41,7 +41,7 @@ check_listen_port() {
 # places, as required.
 #
 check_config_files() {
-	local caddy_config_path=/etc/caddy/Casddyfile
+	local caddy_config_path=/etc/caddy/Caddyfile
 	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
 
