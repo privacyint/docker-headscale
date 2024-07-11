@@ -106,10 +106,10 @@ if [ $abort_config -eq 0 ]; then
 	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3
 	
 	echo "INFO: Starting Headscale using Litestream..."
-	exec litestream replicate -exec 'headscale serve'
+	exec litestream replicate -exec 'headscale serve' &
 
 	echo "INFO: Starting Caddy"
-	exec caddy run
+	exec caddy run &
 else
 	echo "ERROR: Something went wrong. Exiting."
 	return $abort_config
