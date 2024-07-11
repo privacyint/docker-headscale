@@ -102,8 +102,8 @@ if [ $abort_config -eq 0 ]; then
 	echo "INFO: Starting Headscale using Litestream..."
 	exec litestream replicate -exec 'headscale serve' &
 
-	echo "INFO: Starting Caddy"
-	exec caddy run &
+	#echo "INFO: Starting Caddy"
+	#exec caddy run &
 else
 	echo "ERROR: Something went wrong. Exiting."
 	return $abort_config
