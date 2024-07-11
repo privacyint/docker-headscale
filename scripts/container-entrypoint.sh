@@ -57,8 +57,7 @@ check_config_files() {
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port ${HEADSCALE_LISTEN_PORT}
 
-	sed -i "s@\$HEADSCALE_BASE_DOMAIN@$HEADSCALE_BASE_DOMAIN@" $headscale_config_path
-	echo "INFO: Headscale configuration file created."
+	echo "INFO: Headscale configuration file using environment variables."
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
 		echo "INFO: Headscale will generate a new private key."
