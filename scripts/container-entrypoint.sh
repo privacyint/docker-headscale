@@ -59,8 +59,8 @@ check_config_files() {
 	check_listen_port
 
 	echo "INFO: Creating Headscale configuration file from environment variables."
-	sed -i "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" $headscale_config_path
-	sed -i "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" $headscale_config_path
+	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path
+	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path
 	echo "INFO: Headscale configuration file created."
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
