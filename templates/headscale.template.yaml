@@ -87,9 +87,7 @@ oidc:
   issuer: "$HEADSCALE_OIDC_ISSUER"
   client_id: "$HEADSCALE_OIDC_CLIENT_ID"
   client_secret: "$HEADSCALE_OIDC_CLIENT_SECRET"
-
-  # Optional: add "groups"
-  scope: ["openid", "profile", "email", "groups"]
+  scope: ["openid", "profile", "email"]
   extra_params:
     # Use your own domain, associated with Azure AD
     domain_hint: "$HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"
