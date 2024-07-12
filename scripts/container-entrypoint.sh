@@ -54,6 +54,10 @@ check_config_files() {
 	check_env_var_populated "AZURE_BLOB_BUCKET_NAME"
 	check_env_var_populated "AZURE_BLOB_ACCESS_KEY"
 	check_env_var_populated "CF_API_TOKEN"
+	check_env_var_populated "HEADSCALE_OIDC_ISSUER"
+	check_env_var_populated "HEADSCALE_OIDC_CLIENT_ID"
+	check_env_var_populated "HEADSCALE_OIDC_CLIENT_SECRET"
+	check_env_var_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"
 
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port
