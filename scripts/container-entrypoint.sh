@@ -49,7 +49,7 @@ check_config_files() {
 	echo "INFO: Checking required environment variables..."
 	# abort if needed variables are missing
 	check_env_var_populated "PUBLIC_SERVER_URL"
-	check_env_var_populated "HEADSCALE_BASE_DOMAIN"
+	check_env_var_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	check_env_var_populated "AZURE_BLOB_ACCOUNT_NAME"
 	check_env_var_populated "AZURE_BLOB_BUCKET_NAME"
 	check_env_var_populated "AZURE_BLOB_ACCESS_KEY"
