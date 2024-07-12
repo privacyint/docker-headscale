@@ -91,14 +91,18 @@ check_needed_directories() {
 #---
 # LOGIC STARTSHERE
 #
-if [ ! check_needed_directories ]; then
+check_needed_directories
+DIRS_RETURN_CODE=$?
+if [ "$DIRS_RETURN_CODE" -ne "0" ]; then
 	echo "ERROR: Unable to create required configuration directories."
-	$abort_config=1
+	export $abort_config=1
 fi
 
-if [ ! check_config_files ]; then
+check_config_files
+CONFIGS_RETURN_CODE=$?
+if [ "$CONFIGS_RETURN_CODE" -ne "0" ]; then
 	echo "ERROR: We don't have enough information to run our services."
-	$abort_config=1
+	export $abort_config=1
 fi
 
 if [ $abort_config -eq 0 ]; then
