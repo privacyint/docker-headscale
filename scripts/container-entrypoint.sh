@@ -63,11 +63,6 @@ check_config_files() {
 	sed -i "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" $headscale_config_path
 	echo "INFO: Headscale configuration file created."
 
-	echo "INFO: Creating Caddy configuration file from environment variables."
-	sed -i "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" $caddy_config_path
-	sed -i "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" $caddy_config_path
-	echo "INFO: Caddy configuration file created."
-
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
 		echo "INFO: Headscale will generate a new private key."
 	else
@@ -107,14 +102,14 @@ if [ ! check_config_files ]; then
 fi
 
 if [ $abort_config -eq 0 ]; then
+	echo "INFO: Starting Caddy using environment variables"
+	caddy start --config "/etc/caddy/Caddyfile"
+
 	echo "INFO: Attempt to restore previous Headscale database if there's a replica..."
 	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3
 	
 	echo "INFO: Starting Headscale using Litestream and our Environment Variables..."
 	litestream replicate -exec 'headscale serve' &
-
-	echo "INFO: Starting Caddy"
-	caddy start --config /etc/caddy/Caddyfile
 else
 	echo "ERROR: Something went wrong. Exiting."
 	return $abort_config

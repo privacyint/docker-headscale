@@ -1,7 +1,7 @@
-$PUBLIC_SERVER_URL:$PUBLIC_LISTEN_PORT {
+{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {
     reverse_proxy 127.0.0.1:8080
 
   tls {
-    dns cloudflare ${CF_API_TOKEN}
+    dns cloudflare {$CF_API_TOKEN}
   }
 }
