@@ -48,6 +48,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         cd /tmp; \
         # BusyBox's wget isn't reliable enough
         apk add wget; \
+        # I'm gonna need a better shell, too
+        apk add bash; \
         # Headscale
         { \
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64; \
