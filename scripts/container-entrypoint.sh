@@ -6,14 +6,16 @@ export abort_config=0
 
 ####
 # Takes the name of an environment variable as a string, sets `$abort_config` to `1`
-# if it's unset (also spits out a hopefully useful message to `stderr`)
+# if it's unset (also spits out a hopefully useful message to `stderr`). Returns a status.
 #
 check_env_var_populated() {
     var="$1"
 	if [ -z "${!var}" ]; then
 		echo "ERROR: Required environment variable '$var' is missing." >&2
 		abort_config=1
+		return 1
 	fi
+	return 0
 }
 
 ####
