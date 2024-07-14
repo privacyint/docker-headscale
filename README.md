@@ -1,7 +1,6 @@
-# Headscale on an Azure Web App
-> Making it easy (for me) to deploy production-ready setup
+# Headscale on an immutable Docker image
 
-It should be easier to deploy [Headscale][headscale] to Azure, without much
+It should be easier to deploy [Headscale][headscale] without having to touch
 configuration files.
 
 This repository aims to provide that while still providing a good backup
