@@ -90,8 +90,9 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
             rm -f headscale-gui.tar.gz; \
         };
     
-    # Remove wget and dependencies
-    RUN apk del wget;
+    # Remove build-time dependencies
+    RUN --mount=type=cache,target=/var/cache/apk \
+        apk del wget;
 
     # ---
     # copy configuration and templates
