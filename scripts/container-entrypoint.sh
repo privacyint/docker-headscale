@@ -19,12 +19,11 @@ check_env_var_populated() {
 }
 
 ####
-# Checks `$PUBLIC_LISTEN_PORT` is a valid port, or if unset defaults to `:443`
+# Checks `$PUBLIC_LISTEN_PORT` is a valid port (if set).
 #
 check_listen_port() {
 	if [ -z "$PUBLIC_LISTEN_PORT" ]; then
-		echo "INFO: Environment variable 'PUBLIC_LISTEN_PORT' is missing, defaulting to port 443"
-		export PUBLIC_LISTEN_PORT=443
+		echo "INFO: Environment variable 'PUBLIC_LISTEN_PORT' is missing, it will default to port 443"
 	else
 		case "$PUBLIC_LISTEN_PORT" in
 			'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' is not numeric."; abort_config=1;;
