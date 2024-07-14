@@ -74,9 +74,8 @@ check_config_files() {
 	fi
 
 	echo "INFO: Creating Headscale configuration file from environment variables."
-	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path
-	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path
-	echo "INFO: Headscale configuration file created."
+	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
 		echo "INFO: Headscale will generate a new private key."
@@ -108,15 +107,15 @@ check_needed_directories() {
 #
 if ! check_needed_directories ; then
 	echo "ERROR: Unable to create required configuration directories."
-	export $abort_config=1
+	abort_config=1
 fi
 
 if ! check_config_files ; then
 	echo "ERROR: We don't have enough information to run our services."
-	export $abort_config=1
+	abort_config=1
 fi
 
-if [ $abort_config -eq 0 ]; then
+if [ ${abort_config} -eq 0 ] ; then
 	echo "INFO: Starting Caddy using environment variables"
 	caddy start --config "/etc/caddy/Caddyfile"
 
@@ -127,5 +126,5 @@ if [ $abort_config -eq 0 ]; then
 	litestream replicate -exec 'headscale serve'
 else
 	echo "ERROR: Something went wrong. Exiting."
-	return $abort_config
+	exit $abort_config
 fi
