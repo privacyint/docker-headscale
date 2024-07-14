@@ -52,7 +52,6 @@ check_config_files() {
 	# abort if needed variables are missing
 	check_env_var_populated "PUBLIC_SERVER_URL"
 	check_env_var_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-	check_env_var_populated "LITESTREAM_REPLICA_URL"
 	check_env_var_populated "CF_API_TOKEN"
 	check_env_var_populated "HEADSCALE_OIDC_ISSUER"
 	check_env_var_populated "HEADSCALE_OIDC_CLIENT_ID"
@@ -61,6 +60,21 @@ check_config_files() {
 
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port
+
+	check_env_var_populated "LITESTREAM_REPLICA_URL"
+	if $? eq "0" ; then
+		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
+			echo "INFO: Litestream uses S3-Alike storage."
+			check_env_var_populated "LITESTREAM_ACCESS_KEY_ID"
+			check_env_var_populated "LITESTREAM_SECRET_ACCESS_KEY"
+		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
+			echo "INFO: Litestream uses Azure Blob storage."
+			check_env_var_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
+		else
+			echo "ERROR: 'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'" >&2
+			abort_config=1
+		fi
+	fi
 
 	echo "INFO: Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path
