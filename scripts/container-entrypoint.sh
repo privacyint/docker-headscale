@@ -50,9 +50,7 @@ check_config_files() {
 	# abort if needed variables are missing
 	check_env_var_populated "PUBLIC_SERVER_URL"
 	check_env_var_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-	check_env_var_populated "AZURE_BLOB_ACCOUNT_NAME"
-	check_env_var_populated "AZURE_BLOB_BUCKET_NAME"
-	check_env_var_populated "AZURE_BLOB_ACCESS_KEY"
+	check_env_var_populated "LITESTREAM_REPLICA_URL"
 	check_env_var_populated "CF_API_TOKEN"
 	check_env_var_populated "HEADSCALE_OIDC_ISSUER"
 	check_env_var_populated "HEADSCALE_OIDC_CLIENT_ID"
