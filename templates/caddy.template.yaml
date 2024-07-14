@@ -1,5 +1,10 @@
 {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443} {
-    reverse_proxy 127.0.0.1:8080
+  reverse_proxy /api/ 127.0.0.1:8080
+
+  root * /admin
+  encode gzip zstd
+  try_files index.html /data/headscale-gui/
+  file_server
 
   tls {
     dns cloudflare {$CF_API_TOKEN}
