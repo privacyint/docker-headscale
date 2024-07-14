@@ -40,12 +40,12 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # ---
     # Copy caddy from the first stage
     COPY --from=caddy-builder /usr/bin/caddy /usr/local/bin/caddy
-    # smoke tests
+    # Caddy smoke test
     RUN [ "$(command -v caddy)" = '/usr/local/bin/caddy' ]; \
         caddy version
 
     # ---
-    # copy headscale
+    # set up our environment
     RUN --mount=type=cache,target=/var/cache/apk \
         --mount=type=tmpfs,target=/tmp \
         set -eux; \
@@ -55,38 +55,43 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         # I'm gonna need a better shell, too
         apk add bash; \
         # We need GNU sed
-        apk add sed; \
-        # Headscale
-        { \
+        apk add sed;
+
+    # Headscale
+    RUN { \
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64; \
             echo "${HEADSCALE_SHA256} *headscale" | sha256sum -c - >/dev/null 2>&1; \
             chmod +x headscale; \
             mv headscale /usr/local/bin/; \
         }; \
-        # Litestream
-        { \
+        # smoke test
+        [ "$(command -v headscale)" = '/usr/local/bin/headscale' ]; \
+        headscale version;
+    
+    # Litestream
+    RUN { \
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O litestream.tar.gz https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz; \
             echo "${LITESTREAM_SHA256} *litestream.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
             tar -xf litestream.tar.gz; \
             mv litestream /usr/local/bin/; \
             rm -f litestream.tar.gz; \
         }; \
-        # Headscale web GUI
-        { \
+        # smoke test
+        [ "$(command -v litestream)" = '/usr/local/bin/litestream' ]; \
+        litestream version;
+    
+    # Headscale web GUI
+    RUN { \
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O headscale-gui.tar.gz https://github.com/GoodiesHQ/headscale-admin/releases/download/v${HEADSCALE_ADMIN_VERSION}/admin.tar.gz; \
             echo "${HEADSCALE_ADMIN_SHA256} *headscale-gui.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
             mkdir -p headscale-gui; \
             tar -xf headscale-gui.tar.gz -C headscale-gui; \
             mv headscale-gui /data/; \
             rm -f headscale-gui.tar.gz; \
-        }; \
-        # Remove wget and dependencies
-        apk del wget; \
-        # smoke tests
-        [ "$(command -v headscale)" = '/usr/local/bin/headscale' ]; \
-        [ "$(command -v litestream)" = '/usr/local/bin/litestream' ]; \
-        headscale version; \
-        litestream version
+        };
+    
+    # Remove wget and dependencies
+    RUN apk del wget;
 
     # ---
     # copy configuration and templates
