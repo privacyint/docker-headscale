@@ -59,8 +59,7 @@ check_config_files() {
 	# abort if our listen port is invalid, or default to `:443` if it's unset
 	check_listen_port
 
-	check_env_var_populated "LITESTREAM_REPLICA_URL"
-	if $? eq "0" ; then
+	if check_env_var_populated "LITESTREAM_REPLICA_URL" -eq "0" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 			echo "INFO: Litestream uses S3-Alike storage."
 			check_env_var_populated "LITESTREAM_ACCESS_KEY_ID"
@@ -107,16 +106,12 @@ check_needed_directories() {
 #---
 # LOGIC STARTSHERE
 #
-check_needed_directories
-DIRS_RETURN_CODE=$?
-if [ "$DIRS_RETURN_CODE" -ne "0" ]; then
+if ! check_needed_directories ; then
 	echo "ERROR: Unable to create required configuration directories."
 	export $abort_config=1
 fi
 
-check_config_files
-CONFIGS_RETURN_CODE=$?
-if [ "$CONFIGS_RETURN_CODE" -ne "0" ]; then
+if ! check_config_files ; then
 	echo "ERROR: We don't have enough information to run our services."
 	export $abort_config=1
 fi
