@@ -16,7 +16,9 @@ ARG MAIN_IMAGE_ALPINE_VERSION="3.20.1"
 FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
 
     RUN xcaddy build \
-        --with github.com/caddy-dns/cloudflare
+        --with github.com/caddy-dns/cloudflare \
+        --with github.com/crmejia/certmagic_sqlite3 \
+        ;;
 
 # --- 
 # Build our main image
