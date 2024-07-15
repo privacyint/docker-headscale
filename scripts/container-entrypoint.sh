@@ -116,13 +116,13 @@ if ! check_config_files ; then
 fi
 
 if [ ${abort_config} -eq 0 ] ; then
-	echo "INFO: Attempt to restore previous Headscale database if there's a replica and SSL cert if it has been issued..."
-	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3
-
-	echo "INFO: Starting Caddy using Litestream and our environment variables"
-	litestream replicate -exec 'caddy start --config "/etc/caddy/Caddyfile"'
-
-	echo "INFO: Starting Headscale using Litestream and our Environment Variables..."
+	echo "INFO: Attempt to restore previous Headscale database if there's a replica and SSL cert if it has been issued..." && \
+	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
+    \
+	echo "INFO: Starting Caddy using Litestream and our environment variables" && \
+	litestream replicate -exec 'caddy start --config "/etc/caddy/Caddyfile"' && \
+    \
+	echo "INFO: Starting Headscale using Litestream and our Environment Variables..." && \
 	litestream replicate -exec 'headscale serve'
 else
 	echo "ERROR: Something went wrong. Exiting."
