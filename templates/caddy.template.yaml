@@ -1,4 +1,6 @@
-storage sqlite "certmagic" { }
+storage sqlite "certmagic" {
+  "datasourcename":"/data/caddy.sqlite3"
+}
 
 {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443} {
   reverse_proxy /api/ 127.0.0.1:8080

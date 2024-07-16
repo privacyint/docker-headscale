@@ -3,3 +3,6 @@ dbs:
   - path: /data/headscale.sqlite3
     replicas:
       - url: ${LITESTREAM_REPLICA_URL}
+  - path: /data/caddy.sqlite3
+    replicas:
+      - url: ${LITESTREAM_REPLICA_URL}
