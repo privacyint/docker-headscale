@@ -17,8 +17,7 @@ FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
 
     RUN xcaddy build \
         --with github.com/caddy-dns/cloudflare \
-        --with github.com/crmejia/certmagic_sqlite3 \
-        ;;
+        --with github.com/crmejia/certmagic_sqlite3
 
 # --- 
 # Build our main image
