@@ -2,7 +2,7 @@
 dbs:
   - path: /data/headscale.sqlite3
     replicas:
-      - url: ${LITESTREAM_REPLICA_URL}
+      - url: "${LITESTREAM_REPLICA_URL}-headscale"
   - path: /data/caddy.sqlite3
     replicas:
-      - url: ${LITESTREAM_REPLICA_URL}
+      - url: "${LITESTREAM_REPLICA_URL}-caddy"
