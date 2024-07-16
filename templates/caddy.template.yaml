@@ -1,6 +1,5 @@
 {
-  storage sqlite "certmagic" {
-    "datasourcename":"/data/caddy.sqlite3"
+  storage sqlite "/data/caddy.sqlite3" {
   }
 }
 
