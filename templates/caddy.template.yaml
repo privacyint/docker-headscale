@@ -1,5 +1,7 @@
-storage sqlite "certmagic" {
-  "datasourcename":"/data/caddy.sqlite3"
+{
+  storage sqlite "certmagic" {
+    "datasourcename":"/data/caddy.sqlite3"
+  }
 }
 
 {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443} {
