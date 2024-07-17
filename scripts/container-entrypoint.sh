@@ -128,6 +128,12 @@ if [ ${abort_config} -eq 0 ] ; then
 	echo "INFO: Starting Headscale using Litestream and our Environment Variables..." && \
 	litestream replicate -exec 'headscale serve'
 else
-	echo "ERROR: Something went wrong. Exiting."
+	echo "ERROR: Something went wrong."
+	if [ -z $DEBUG ] ; then
+		# Allow us to start a terminal in the container for debugging
+		sleep infinity
+	fi
+
+	echo "Exiting with code ${abort_config}"
 	exit $abort_config
 fi
