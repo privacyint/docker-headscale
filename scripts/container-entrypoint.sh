@@ -106,12 +106,12 @@ check_needed_directories() {
 # LOGIC STARTSHERE
 #
 if ! check_needed_directories ; then
-	echo "ERROR: Unable to create required configuration directories."
+	echo >&2 "ERROR: Unable to create required configuration directories."
 	abort_config=1
 fi
 
 if ! check_config_files ; then
-	echo "ERROR: We don't have enough information to run our services."
+	echo >&2 "ERROR: We don't have enough information to run our services."
 	abort_config=1
 fi
 
@@ -128,12 +128,12 @@ if [ ${abort_config} -eq 0 ] ; then
 	echo "INFO: Starting Headscale using Litestream and our Environment Variables..." && \
 	litestream replicate -exec 'headscale serve'
 else
-	echo "ERROR: Something went wrong."
+	echo >&2 "ERROR: Something went wrong."
 	if [ -z $DEBUG ] ; then
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
 
-	echo "Exiting with code ${abort_config}"
+	echo >&2 "Exiting with code ${abort_config}"
 	exit $abort_config
 fi
