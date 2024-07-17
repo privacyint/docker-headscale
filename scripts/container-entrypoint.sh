@@ -129,7 +129,8 @@ if [ ${abort_config} -eq 0 ] ; then
 	litestream replicate -exec 'headscale serve'
 else
 	echo >&2 "ERROR: Something went wrong."
-	if [ -z $DEBUG ] ; then
+	if [ ! -z "$DEBUG" ] ; then
+		echo "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
