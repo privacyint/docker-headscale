@@ -116,10 +116,6 @@ if ! check_config_files ; then
 fi
 
 if [ ${abort_config} -eq 0 ] ; then
-	# https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes
-	sysctl -w net.core.rmem_max=7500000
-	sysctl -w net.core.wmem_max=7500000
-
 	echo "INFO: Attempt to restore previous Caddy database if there's a replica" && \
 	litestream restore -if-db-not-exists -if-replica-exists /data/caddy.sqlite3 && \
     \
