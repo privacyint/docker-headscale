@@ -78,9 +78,9 @@ check_config_files() {
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
-		echo "INFO: Headscale will generate a new private key."
+		echo "INFO: Headscale will generate a new private DERP key."
 	else
-		echo "INFO: Using environment value for Headscale's private key."
+		echo "INFO: Using environment value for Headscale's private DERP key."
 		echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
 	fi
 
@@ -106,16 +106,20 @@ check_needed_directories() {
 # LOGIC STARTSHERE
 #
 if ! check_needed_directories ; then
-	echo "ERROR: Unable to create required configuration directories."
+	echo >&2 "ERROR: Unable to create required configuration directories."
 	abort_config=1
 fi
 
 if ! check_config_files ; then
-	echo "ERROR: We don't have enough information to run our services."
+	echo >&2 "ERROR: We don't have enough information to run our services."
 	abort_config=1
 fi
 
 if [ ${abort_config} -eq 0 ] ; then
+	# https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes
+	sysctl -w net.core.rmem_max=7500000
+	sysctl -w net.core.wmem_max=7500000
+
 	echo "INFO: Attempt to restore previous Caddy database if there's a replica" && \
 	litestream restore -if-db-not-exists -if-replica-exists /data/caddy.sqlite3 && \
     \
@@ -128,6 +132,13 @@ if [ ${abort_config} -eq 0 ] ; then
 	echo "INFO: Starting Headscale using Litestream and our Environment Variables..." && \
 	litestream replicate -exec 'headscale serve'
 else
-	echo "ERROR: Something went wrong. Exiting."
+	echo >&2 "ERROR: Something went wrong."
+	if [ ! -z "$DEBUG" ] ; then
+		echo "Sleeping so you can connect and debug"
+		# Allow us to start a terminal in the container for debugging
+		sleep infinity
+	fi
+
+	echo >&2 "Exiting with code ${abort_config}"
 	exit $abort_config
 fi
