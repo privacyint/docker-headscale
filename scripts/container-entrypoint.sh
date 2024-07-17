@@ -78,9 +78,9 @@ check_config_files() {
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
-		echo "INFO: Headscale will generate a new private key."
+		echo "INFO: Headscale will generate a new private DERP key."
 	else
-		echo "INFO: Using environment value for Headscale's private key."
+		echo "INFO: Using environment value for Headscale's private DERP key."
 		echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
 	fi
 
