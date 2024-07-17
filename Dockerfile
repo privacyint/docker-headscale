@@ -3,7 +3,6 @@
 ARG HEADSCALE_VERSION="0.23.0-alpha12"
 ARG HEADSCALE_SHA256="6fd8483672a19b119ac0bea5bb39ae85eb8900f1405689f52a579fa988d8839c"
 ARG HEADSCALE_ADMIN_VERSION="0.1.12b"
-ARG HEADSCALE_ADMIN_SHA512="30af8ec4fafe069c8b91caf2066a254d1d1bc237e0ad0e8f169aaeac92b4506a"
 ARG LITESTREAM_VERSION="0.3.13"
 ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0"
 # Container version args
@@ -19,6 +18,10 @@ FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
         --with github.com/caddy-dns/cloudflare \
         --with github.com/crmejia/certmagic-sqlite3
 
+# ---
+# Docker hates variables in COPY, apparently. Hello, workaround.
+FROM goodieshq/headscale-admin:${HEADSCALE_ADMIN_VERSION} AS admin-gui
+
 # --- 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
@@ -27,8 +30,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # import our "global" `ARG` values into this stage
     ARG HEADSCALE_VERSION
     ARG HEADSCALE_SHA256
-    ARG HEADSCALE_ADMIN_VERSION
-    ARG HEADSCALE_ADMIN_SHA512
     ARG LITESTREAM_VERSION
     ARG LITESTREAM_SHA256
 
@@ -82,14 +83,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         litestream version;
     
     # Headscale web GUI
-    RUN { \
-            wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O headscale-gui.tar.gz https://github.com/GoodiesHQ/headscale-admin/releases/download/v${HEADSCALE_ADMIN_VERSION}/admin.tar.gz; \
-            echo "${HEADSCALE_ADMIN_SHA256} *headscale-gui.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
-            mkdir -p headscale-gui; \
-            tar -xf headscale-gui.tar.gz -C headscale-gui; \
-            mv headscale-gui /data/; \
-            rm -f headscale-gui.tar.gz; \
-        };
+    COPY --from=admin-gui /app/admin/ /data/admin-gui/admin/
     
     # Remove build-time dependencies
     RUN --mount=type=cache,target=/var/cache/apk \
