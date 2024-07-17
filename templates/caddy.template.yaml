@@ -4,12 +4,16 @@
 }
 
 {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443} {
-  root /admin /data/admin-gui/admin
-  encode gzip zstd
-  try_files {path}.html {path}
-  file_server
+  handle_path /admin* {
+    root * /data/admin-gui/admin
+    encode gzip zstd
+    try_files {path}.html {path}
+    file_server
+  }
 
-  reverse_proxy 127.0.0.1:8080
+  handle {
+    reverse_proxy 127.0.0.1:8080
+  }
 
   tls {
     dns cloudflare {$CF_API_TOKEN}
