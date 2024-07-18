@@ -82,10 +82,6 @@ check_config_files() {
 	check_required_global_var_is_populated "PUBLIC_SERVER_URL"
 	check_required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	check_required_global_var_is_populated "CF_API_TOKEN"
-	check_required_global_var_is_populated "HEADSCALE_OIDC_ISSUER"
-	check_required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
-	check_required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
-	check_required_global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
