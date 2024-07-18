@@ -5,7 +5,8 @@ set -e
 export abort_config=0
 
 #######################################
-# Check if an environment variable has been populated
+# Check if a required environment variable has been populated, otherwise set
+# `abort_config` to non-zero
 # GLOBALS:
 #   abort_config
 # ARGUMENTS:
@@ -16,7 +17,25 @@ export abort_config=0
 # RETURN:
 #   1 if the variable is populated
 #######################################
-global_global_var_is_populated() {
+check_required_global_var_is_populated() {
+	if ! var_is_populated $"1" "yes, very much so!" ; then
+		abort_config=$!
+		return 0
+	fi
+	return 1
+}
+
+#######################################
+# Check if an environment variable has been populated
+# ARGUMENTS:
+#   Variable to check
+#   Optional: Required (if non-zero, on failure sets `abort_config` to this value)
+# OUTPUTS:
+#   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
+# RETURN:
+#   1 if the variable is populated
+#######################################
+global_var_is_populated() {
     var="$1"
     required="$2"
 	if [ -z "${!var}" ] && [ -n "${required-}" ] ; then
@@ -60,13 +79,13 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	echo "INFO: Checking required environment variables..."
-	global_var_is_populated "PUBLIC_SERVER_URL" yes
-	global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN" yes
-	global_var_is_populated "CF_API_TOKEN" yes
-	global_var_is_populated "HEADSCALE_OIDC_ISSUER" yes
-	global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID" yes
-	global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET" yes
-	global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" yes
+	check_required_global_var_is_populated "PUBLIC_SERVER_URL"
+	check_required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	check_required_global_var_is_populated "CF_API_TOKEN"
+	check_required_global_var_is_populated "HEADSCALE_OIDC_ISSUER"
+	check_required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
+	check_required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
+	check_required_global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
@@ -78,11 +97,11 @@ check_config_files() {
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 			echo "INFO: Litestream uses S3-Alike storage."
-			global_var_is_populated "LITESTREAM_ACCESS_KEY_ID" yes
-			global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY" yes
+			check_required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
+			check_required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
 		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
 			echo "INFO: Litestream uses Azure Blob storage."
-			global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY" yes
+			check_required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 		else
 			echo "ERROR: 'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'" >&2
 			abort_config=1
@@ -105,6 +124,11 @@ check_config_files() {
 	else
 		echo "INFO: Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
+	fi
+
+	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
+		check_required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_ID"
+  		check_required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_SECRET"
 	fi
 
 	return $abort_config
