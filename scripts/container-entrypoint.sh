@@ -18,23 +18,26 @@ check_env_var_populated() {
 	return 0
 }
 
-####
-# Checks `$PUBLIC_LISTEN_PORT` is a valid port (if set).
-#
-check_listen_port() {
-	if [ -z "$PUBLIC_LISTEN_PORT" ]; then
-		echo "INFO: Environment variable 'PUBLIC_LISTEN_PORT' is missing, it will default to port 443"
-	else
-		case "$PUBLIC_LISTEN_PORT" in
-			'' | *[!0123456789]*) echo >&2 "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' is not numeric."; abort_config=1;;
-			0*[!0]*) echo >&2 "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' has a leading zero."; abort_config=1;;
-		esac
+#######################################
+# Check a given environment variable is a "valid" port (1-65535)
+# ARGUMENTS:
+#   Variable to check
+# RETURN:
+#   0 if it's considered valid, non-zero on error.
+#######################################
+check_is_valid_port() {
+    port="$1"
+	case "${!port}" in
+		'' | *[!0123456789]*) echo >&2 "ERROR: '$port' is not numeric."; return 1;;
+		0*[!0]*) echo >&2 "ERROR: '$port' has a leading zero."; return 1;;
+	esac
 
-		if [ "$PUBLIC_LISTEN_PORT" -lt 1  ] || [ "$PUBLIC_LISTEN_PORT" -gt 65535 ] ; then
-			echo "ERROR: Environment variable 'PUBLIC_LISTEN_PORT' must be a valid port within the range of 1-65535." >&2
-			abort_config=1
-		fi
+	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
+		echo "ERROR: '$port' must be a valid port within the range of 1-65535." >&2
+		return 1
 	fi
+
+	return 0
 }
 
 ####
@@ -56,8 +59,12 @@ check_config_files() {
 	check_env_var_populated "HEADSCALE_OIDC_CLIENT_SECRET"
 	check_env_var_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"
 
-	# abort if our listen port is invalid, or default to `:443` if it's unset
-	check_listen_port
+	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
+	if check_env_var_populated "PUBLIC_LISTEN_PORT" -eq "0" ; then
+		if check_is_valid_port "PUBLIC_LISTEN_PORT" -ne "0" ; then
+			abort_config=1
+		fi
+	fi
 
 	if check_env_var_populated "LITESTREAM_REPLICA_URL" -eq "0" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
