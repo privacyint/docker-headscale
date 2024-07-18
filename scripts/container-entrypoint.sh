@@ -131,7 +131,7 @@ check_config_files() {
   		check_required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_SECRET"
 	fi
 
-	return $abort_config
+	return "$abort_config"
 }
 
 ####
@@ -155,7 +155,7 @@ if ! check_config_files ; then
 	abort_config=1
 fi
 
-if [ ${abort_config} -eq 0 ] ; then
+if [ "${abort_config}" -eq 0 ] ; then
 	echo "INFO: Attempt to restore previous Caddy database if there's a replica" && \
 	litestream restore -if-db-not-exists -if-replica-exists /data/caddy.sqlite3 && \
     \
@@ -176,5 +176,5 @@ else
 	fi
 
 	echo >&2 "Exiting with code ${abort_config}"
-	exit $abort_config
+	exit "$abort_config"
 fi
