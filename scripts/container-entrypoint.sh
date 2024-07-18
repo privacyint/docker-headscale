@@ -33,21 +33,21 @@ global_global_var_is_populated() {
 # ARGUMENTS:
 #   Variable to check
 # RETURN:
-#   0 if it's considered valid, non-zero on error.
+#   `1` if it's considered valid, `0` on error.
 #######################################
-check_is_valid_port() {
+is_valid_port() {
     port="$1"
 	case "${!port}" in
-		'' | *[!0123456789]*) echo >&2 "ERROR: '$port' is not numeric."; return 1;;
-		0*[!0]*) echo >&2 "ERROR: '$port' has a leading zero."; return 1;;
+		'' | *[!0123456789]*) echo >&2 "ERROR: '$port' is not numeric."; return 0;;
+		0*[!0]*) echo >&2 "ERROR: '$port' has a leading zero."; return 0;;
 	esac
 
 	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
 		echo "ERROR: '$port' must be a valid port within the range of 1-65535." >&2
-		return 1
+		return 0
 	fi
 
-	return 0
+	return 1
 }
 
 ####
@@ -70,7 +70,7 @@ check_config_files() {
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
-		if check_is_valid_port "PUBLIC_LISTEN_PORT" -ne "0" ; then
+		if ! is_valid_port "PUBLIC_LISTEN_PORT" ; then
 			abort_config=1
 		fi
 	fi
