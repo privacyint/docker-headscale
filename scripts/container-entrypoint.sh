@@ -4,18 +4,28 @@ set -e
 
 export abort_config=0
 
-####
-# Takes the name of an environment variable as a string, sets `$abort_config` to `1`
-# if it's unset (also spits out a hopefully useful message to `stderr`). Returns a status.
-#
-check_env_var_populated() {
+#######################################
+# Check if an environment variable has been populated
+# GLOBALS:
+#   abort_config
+# ARGUMENTS:
+#   Variable to check
+#   Optional: Required (if non-zero, on failure sets `abort_config` to this value)
+# OUTPUTS:
+#   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
+# RETURN:
+#   1 if the variable is populated
+#######################################
+global_global_var_is_populated() {
     var="$1"
-	if [ -z "${!var}" ]; then
-		echo "ERROR: Required environment variable '$var' is missing." >&2
-		abort_config=1
-		return 1
+    required="$2"
+	if [ -z "${!var}" ] && [ -n "${required-}" ] ; then
+		echo "ERROR: Required environment variable '$var' is required." >&2
+		abort_config="${required}"
+		return 0
 	fi
-	return 0
+	echo "INFO: Environment variable '$var' is empty"
+	return 1
 }
 
 #######################################
@@ -50,30 +60,29 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	echo "INFO: Checking required environment variables..."
-	# abort if needed variables are missing
-	check_env_var_populated "PUBLIC_SERVER_URL"
-	check_env_var_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-	check_env_var_populated "CF_API_TOKEN"
-	check_env_var_populated "HEADSCALE_OIDC_ISSUER"
-	check_env_var_populated "HEADSCALE_OIDC_CLIENT_ID"
-	check_env_var_populated "HEADSCALE_OIDC_CLIENT_SECRET"
-	check_env_var_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"
+	global_var_is_populated "PUBLIC_SERVER_URL" yes
+	global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN" yes
+	global_var_is_populated "CF_API_TOKEN" yes
+	global_var_is_populated "HEADSCALE_OIDC_ISSUER" yes
+	global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID" yes
+	global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET" yes
+	global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" yes
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
-	if check_env_var_populated "PUBLIC_LISTEN_PORT" -eq "0" ; then
+	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
 		if check_is_valid_port "PUBLIC_LISTEN_PORT" -ne "0" ; then
 			abort_config=1
 		fi
 	fi
 
-	if check_env_var_populated "LITESTREAM_REPLICA_URL" -eq "0" ; then
+	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 			echo "INFO: Litestream uses S3-Alike storage."
-			check_env_var_populated "LITESTREAM_ACCESS_KEY_ID"
-			check_env_var_populated "LITESTREAM_SECRET_ACCESS_KEY"
+			global_var_is_populated "LITESTREAM_ACCESS_KEY_ID" yes
+			global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY" yes
 		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
 			echo "INFO: Litestream uses Azure Blob storage."
-			check_env_var_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
+			global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY" yes
 		else
 			echo "ERROR: 'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'" >&2
 			abort_config=1
