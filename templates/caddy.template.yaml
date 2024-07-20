@@ -1,9 +1,4 @@
-{
-  storage sqlite "/data/caddy.sqlite3" {
-  }
-}
-
-{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443} {
+{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443}, {$HOSTNAME}.{$PUBLIC_SERVER_URL} {
   handle_path /admin* {
     root * /data/admin-gui/admin
     encode gzip zstd
