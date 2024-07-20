@@ -38,11 +38,11 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         set -eux; \
         apk upgrade; \
         # BusyBox's wget isn't reliable enough
-        apk add wget; \
+        apk add wget --virtual BuildTimeDeps; \
         # I'm gonna need a better shell, too
         apk add bash; \
         # We need GNU sed
-        apk add sed;
+        apk add sed --virtual BuildTimeDeps;
 
     # ---
     # Copy caddy from the first stage
@@ -80,7 +80,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     
     # Remove build-time dependencies
     RUN --mount=type=cache,target=/var/cache/apk \
-        apk del wget;
+        apk del BuildTimeDeps;
 
     # ---
     # copy configuration and templates
