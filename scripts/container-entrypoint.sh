@@ -17,6 +17,19 @@ info_out() {
 }
 
 #######################################
+# Echo out an ERROR message
+# ARGUMENTS:
+#   Message
+# OUTPUTS:
+#   Message to `STDERR`
+# RETURN:
+#   `1`
+#######################################
+error_out() {
+	echo >&2 "ERROR: $1"
+}
+
+#######################################
 # Check if a required environment variable has been populated, otherwise set
 # `abort_config` to non-zero
 # GLOBALS:
@@ -51,7 +64,7 @@ global_var_is_populated() {
     var="$1"
     required="$2"
 	if [ -z "${!var}" ] && [ -n "${required-}" ] ; then
-		echo "ERROR: Required environment variable '$var' is required." >&2
+		error_out "Required environment variable '$var' is unset."
 		abort_config="${required}"
 		return 0
 	fi
@@ -69,12 +82,12 @@ global_var_is_populated() {
 is_valid_port() {
     port="$1"
 	case "${!port}" in
-		'' | *[!0123456789]*) echo >&2 "ERROR: '$port' is not numeric."; return 0;;
-		0*[!0]*) echo >&2 "ERROR: '$port' has a leading zero."; return 0;;
+		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 0;;
+		0*[!0]*) error_out "'$port' has a leading zero."; return 0;;
 	esac
 
 	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
-		echo "ERROR: '$port' must be a valid port within the range of 1-65535." >&2
+		error_out "'$port' must be a valid port within the range of 1-65535."
 		return 0
 	fi
 
@@ -111,7 +124,7 @@ check_config_files() {
 			info_out "Litestream uses Azure Blob storage."
 			check_required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 		else
-			echo "ERROR: 'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'" >&2
+			error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
 			abort_config=1
 		fi
 	fi
@@ -154,12 +167,12 @@ check_needed_directories() {
 # LOGIC STARTSHERE
 #
 if ! check_needed_directories ; then
-	echo >&2 "ERROR: Unable to create required configuration directories."
+	error_out "Unable to create required configuration directories."
 	abort_config=1
 fi
 
 if ! check_config_files ; then
-	echo >&2 "ERROR: We don't have enough information to run our services."
+	error_out "We don't have enough information to run our services."
 	abort_config=1
 fi
 
@@ -176,13 +189,13 @@ if [ "${abort_config}" -eq 0 ] ; then
 	info_out "Starting Headscale using Litestream and our Environment Variables..." && \
 	litestream replicate -exec 'headscale serve'
 else
-	echo >&2 "ERROR: Something went wrong."
+	error_out "Something went wrong."
 	if [ -n "$DEBUG" ] ; then
 		info_out "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
 
-	echo >&2 "Exiting with code ${abort_config}"
+	error_out "Exiting with code ${abort_config}"
 	exit "$abort_config"
 fi
