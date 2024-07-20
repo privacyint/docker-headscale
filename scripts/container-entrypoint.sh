@@ -40,10 +40,10 @@ error_out() {
 # OUTPUTS:
 #   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
 # RETURN:
-#   1 if the variable is populated
+#   `1` if the variable is populated, otherwise `0`
 #######################################
 check_required_global_var_is_populated() {
-	if ! var_is_populated $"1" "yes, very much so!" ; then
+	if ! global_var_is_populated $"1" "yes, very much so!" ; then
 		abort_config=$!
 		return 0
 	fi
@@ -58,7 +58,7 @@ check_required_global_var_is_populated() {
 # OUTPUTS:
 #   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
 # RETURN:
-#   1 if the variable is populated
+#   `1` if the variable is populated, otherwise `0`
 #######################################
 global_var_is_populated() {
     var="$1"
