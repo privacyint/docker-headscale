@@ -15,8 +15,7 @@ ARG MAIN_IMAGE_ALPINE_VERSION="3.20.1"
 FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
 
     RUN xcaddy build \
-        --with github.com/caddy-dns/cloudflare \
-        --with github.com/crmejia/certmagic-sqlite3
+        --with github.com/caddy-dns/cloudflare
 
 # ---
 # Docker hates variables in COPY, apparently. Hello, workaround.
