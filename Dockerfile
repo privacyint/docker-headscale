@@ -33,10 +33,16 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     ARG LITESTREAM_SHA256
 
     # ---
-    # upgrade system and installed dependencies for security patches
+    # upgrade system, install dependencies
     RUN --mount=type=cache,sharing=private,target=/var/cache/apk \
         set -eux; \
-        apk upgrade
+        apk upgrade; \
+        # BusyBox's wget isn't reliable enough
+        apk add wget; \
+        # I'm gonna need a better shell, too
+        apk add bash; \
+        # We need GNU sed
+        apk add sed;
 
     # ---
     # Copy caddy from the first stage
@@ -46,18 +52,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         caddy version
 
     # ---
-    # set up our environment
-    RUN --mount=type=cache,target=/var/cache/apk \
-        --mount=type=tmpfs,target=/tmp \
-        set -eux; \
-        cd /tmp; \
-        # BusyBox's wget isn't reliable enough
-        apk add wget; \
-        # I'm gonna need a better shell, too
-        apk add bash; \
-        # We need GNU sed
-        apk add sed;
-
     # Headscale
     RUN { \
             wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0 -q -O headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64; \
