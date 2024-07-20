@@ -5,6 +5,18 @@ set -e
 export abort_config=0
 
 #######################################
+# Echo out an INFO message
+# ARGUMENTS:
+#   Message
+# OUTPUTS:
+#   Message to `STDOUT`
+#######################################
+info_out() {
+	echo "INFO: $1"
+	return 1
+}
+
+#######################################
 # Check if a required environment variable has been populated, otherwise set
 # `abort_config` to non-zero
 # GLOBALS:
@@ -43,7 +55,7 @@ global_var_is_populated() {
 		abort_config="${required}"
 		return 0
 	fi
-	echo "INFO: Environment variable '$var' is empty"
+	info_out "Environment variable '$var' is empty"
 	return 1
 }
 
@@ -78,7 +90,7 @@ check_config_files() {
 	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
 
-	echo "INFO: Checking required environment variables..."
+	info_out "Checking required environment variables..."
 	check_required_global_var_is_populated "PUBLIC_SERVER_URL"
 	check_required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	check_required_global_var_is_populated "CF_API_TOKEN"
@@ -92,11 +104,11 @@ check_config_files() {
 
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
-			echo "INFO: Litestream uses S3-Alike storage."
+			info_out "Litestream uses S3-Alike storage."
 			check_required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
 			check_required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
 		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
-			echo "INFO: Litestream uses Azure Blob storage."
+			info_out "Litestream uses Azure Blob storage."
 			check_required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 		else
 			echo "ERROR: 'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'" >&2
@@ -104,21 +116,21 @@ check_config_files() {
 		fi
 	fi
 
-	echo "INFO: Creating Headscale configuration file from environment variables."
+	info_out "Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 
 	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
-		echo "INFO: Headscale will generate a new private DERP key."
+		info_out "Headscale will generate a new private DERP key."
 	else
-		echo "INFO: Using environment value for Headscale's private DERP key."
+		info_out "Using environment value for Headscale's private DERP key."
 		echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
 	fi
 
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
-		echo "INFO: Headscale will generate a new private noise key."
+		info_out "Headscale will generate a new private noise key."
 	else
-		echo "INFO: Using environment value for our private noise key."
+		info_out "Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
 	fi
 
@@ -152,21 +164,21 @@ if ! check_config_files ; then
 fi
 
 if [ "${abort_config}" -eq 0 ] ; then
-	echo "INFO: Attempt to restore previous Caddy database if there's a replica" && \
+	info_out "Attempt to restore previous Caddy database if there's a replica" && \
 	litestream restore -if-db-not-exists -if-replica-exists /data/caddy.sqlite3 && \
     \
-	echo "INFO: Starting Caddy using Litestream and our environment variables" && \
+	info_out "Starting Caddy using Litestream and our environment variables" && \
 	litestream replicate -exec 'caddy start --config "/etc/caddy/Caddyfile"' && \
     \
-	echo "INFO: Attempt to restore previous Headscale database if there's a replica" && \
+	info_out "Attempt to restore previous Headscale database if there's a replica" && \
 	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
     \
-	echo "INFO: Starting Headscale using Litestream and our Environment Variables..." && \
+	info_out "Starting Headscale using Litestream and our Environment Variables..." && \
 	litestream replicate -exec 'headscale serve'
 else
 	echo >&2 "ERROR: Something went wrong."
 	if [ -n "$DEBUG" ] ; then
-		echo "Sleeping so you can connect and debug"
+		info_out "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
