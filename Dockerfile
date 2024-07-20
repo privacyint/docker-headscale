@@ -42,7 +42,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         # I'm gonna need a better shell, too
         apk add bash; \
         # We need GNU sed
-        apk add sed --virtual BuildTimeDeps;
+        apk add sed;
 
     # ---
     # Copy caddy from the first stage
