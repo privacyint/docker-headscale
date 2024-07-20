@@ -42,8 +42,8 @@ error_out() {
 # RETURN:
 #   `1` if the variable is populated, otherwise `0`
 #######################################
-check_required_global_var_is_populated() {
-	if ! global_var_is_populated $"1" "yes, very much so!" ; then
+required_global_var_is_populated() {
+	if ! global_var_is_populated "$1" "yes, very much so!" ; then
 		abort_config=$!
 		return 0
 	fi
@@ -104,9 +104,9 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	info_out "Checking required environment variables..."
-	check_required_global_var_is_populated "PUBLIC_SERVER_URL"
-	check_required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-	check_required_global_var_is_populated "CF_API_TOKEN"
+	required_global_var_is_populated "PUBLIC_SERVER_URL"
+	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	required_global_var_is_populated "CF_API_TOKEN"
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
@@ -118,11 +118,11 @@ check_config_files() {
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 			info_out "Litestream uses S3-Alike storage."
-			check_required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
-			check_required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
+			required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
+			required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
 		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
 			info_out "Litestream uses Azure Blob storage."
-			check_required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
+			required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 		else
 			error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
 			abort_config=1
@@ -148,8 +148,8 @@ check_config_files() {
 	fi
 
 	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		check_required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_ID"
-  		check_required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_SECRET"
+		required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_ID"
+  		required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_SECRET"
 	fi
 
 	return "$abort_config"
