@@ -129,6 +129,13 @@ check_config_files() {
 		fi
 	fi
 
+	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
+		info_out "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
+		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
+		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
+		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
+	fi
+
 	info_out "Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
