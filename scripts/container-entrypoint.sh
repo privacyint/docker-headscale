@@ -30,27 +30,6 @@ error_out() {
 }
 
 #######################################
-# Check if a required environment variable has been populated, otherwise set
-# `abort_config` to non-zero
-# GLOBALS:
-#   abort_config
-# ARGUMENTS:
-#   Variable to check
-#   Optional: Required (if non-zero, on failure sets `abort_config` to this value)
-# OUTPUTS:
-#   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
-# RETURN:
-#   `1` if the variable is populated, otherwise `0`
-#######################################
-required_global_var_is_populated() {
-	if ! global_var_is_populated "$1" "yes, very much so!" ; then
-		abort_config=$!
-		return 0
-	fi
-	return 1
-}
-
-#######################################
 # Check if an environment variable has been populated
 # ARGUMENTS:
 #   Variable to check
@@ -69,6 +48,27 @@ global_var_is_populated() {
 		return 0
 	fi
 	info_out "Environment variable '$var' is empty"
+	return 1
+}
+
+#######################################
+# Check if a required environment variable has been populated, otherwise set
+# `abort_config` to non-zero
+# GLOBALS:
+#   abort_config
+# ARGUMENTS:
+#   Variable to check
+#   Optional: Required (if non-zero, on failure sets `abort_config` to this value)
+# OUTPUTS:
+#   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
+# RETURN:
+#   `1` if the variable is populated, otherwise `0`
+#######################################
+required_global_var_is_populated() {
+	if ! global_var_is_populated "$1" "1" ; then
+		abort_config=$!
+		return 0
+	fi
 	return 1
 }
 
