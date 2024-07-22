@@ -67,8 +67,9 @@ global_var_is_populated() {
 #   `0` if the variable is populated, otherwise non-zero
 #######################################
 required_global_var_is_populated() {
-	if ! global_var_is_populated "$1" ; then
-		error_out "Environment variable '$1' is required"
+    var="$1"
+	if ! global_var_is_populated "$var" ; then
+		error_out "Environment variable '$var' is required"
 		return 1
 	fi
 	return 0
