@@ -69,6 +69,11 @@ log:
   format: text
   level: info
 
+# headscale supports Tailscale's ACL policies.
+# Please have a look to their KB to better understand the concepts: https://tailscale.com/kb/1018/acls/
+policy:
+  mode: database
+
 dns_config:
   override_local_dns: true
   nameservers:
