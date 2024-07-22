@@ -10,10 +10,12 @@ abort_config=0
 #   Message
 # OUTPUTS:
 #   Message to `STDOUT`
+# RETURN:
+#   `0`
 #######################################
 info_out() {
 	echo "INFO: $1"
-	return 1
+	return 0
 }
 
 #######################################
@@ -25,11 +27,12 @@ info_out() {
 # OUTPUTS:
 #   Message to `STDERR`
 # RETURN:
-#   `1`
+#   `0`
 #######################################
 error_out() {
 	echo >&2 "ERROR: $1"
 	abort_config=1
+	return 0
 }
 
 #######################################
