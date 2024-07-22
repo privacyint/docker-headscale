@@ -46,7 +46,7 @@ error_out() {
 #######################################
 global_var_is_populated() {
     var="$1"
-	if [ -z "${var}" ] ; then
+	if [ -z "${!var}" ] ; then
 		info_out "Environment variable '$var' is empty"
 		return 1
 	fi
