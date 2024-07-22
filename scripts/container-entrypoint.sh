@@ -42,12 +42,17 @@ error_out() {
 global_var_is_populated() {
     var="$1"
     required="$2"
-	if [ -z "${!var}" ] && [ -n "${required-}" ] ; then
-		error_out "Required environment variable '$var' is unset."
-		abort_config="${required}"
-		return 0
+	if [ -z "${!var}" ] ; then
+		if [ -n "${required-}" ] ; then
+			error_out "Required environment variable '$var' is unset."
+			abort_config="${required}"
+			return 0
+		else
+			info_out "Environment variable '$var' is empty"
+			return 0
+		fi
 	fi
-	info_out "Environment variable '$var' is empty"
+
 	return 1
 }
 
