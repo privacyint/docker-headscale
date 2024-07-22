@@ -177,27 +177,31 @@ check_needed_directories() {
 #---
 # LOGIC STARTSHERE
 #
-check_needed_directories || error_out "Unable to create required configuration directories."
+run() {
+	check_needed_directories || error_out "Unable to create required configuration directories."
 
-check_config_files || error_out "We don't have enough information to run our services."
+	check_config_files || error_out "We don't have enough information to run our services."
 
-if [ "${abort_config}" -eq 0 ] ; then
-	info_out "Starting Caddy using our environment variables" && \
-	caddy start --config "/etc/caddy/Caddyfile" && \
-    \
-	info_out "Attempt to restore previous Headscale database if there's a replica" && \
-	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
-    \
-	info_out "Starting Headscale using Litestream and our Environment Variables..." && \
-	litestream replicate -exec 'headscale serve'
-else
-	error_out "Something went wrong."
-	if [ -n "$DEBUG" ] ; then
-		info_out "Sleeping so you can connect and debug"
-		# Allow us to start a terminal in the container for debugging
-		sleep infinity
+	if [ "${abort_config}" -eq 0 ] ; then
+		info_out "Starting Caddy using our environment variables" && \
+		caddy start --config "/etc/caddy/Caddyfile" && \
+		\
+		info_out "Attempt to restore previous Headscale database if there's a replica" && \
+		litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
+		\
+		info_out "Starting Headscale using Litestream and our Environment Variables..." && \
+		litestream replicate -exec 'headscale serve'
+	else
+		error_out "Something went wrong."
+		if [ -n "$DEBUG" ] ; then
+			info_out "Sleeping so you can connect and debug"
+			# Allow us to start a terminal in the container for debugging
+			sleep infinity
+		fi
+
+		error_out "Exiting with code ${abort_config}"
+		exit "$abort_config"
 	fi
+}
 
-	error_out "Exiting with code ${abort_config}"
-	exit "$abort_config"
-fi
+run
