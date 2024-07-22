@@ -174,13 +174,9 @@ check_needed_directories() {
 #---
 # LOGIC STARTSHERE
 #
-if ! check_needed_directories ; then
-	error_out "Unable to create required configuration directories."
-fi
+check_needed_directories || error_out "Unable to create required configuration directories."
 
-if ! check_config_files ; then
-	error_out "We don't have enough information to run our services."
-fi
+check_config_files || error_out "We don't have enough information to run our services."
 
 if [ "${abort_config}" -eq 0 ] ; then
 	info_out "Starting Caddy using our environment variables" && \
