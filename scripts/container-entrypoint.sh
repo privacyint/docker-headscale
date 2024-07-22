@@ -182,7 +182,7 @@ fi
 
 if [ "${abort_config}" -eq 0 ] ; then
 	info_out "Starting Caddy using our environment variables" && \
-	caddy start --config "/etc/caddy/Caddyfile" \
+	caddy start --config "/etc/caddy/Caddyfile" && \
     \
 	info_out "Attempt to restore previous Headscale database if there's a replica" && \
 	litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
