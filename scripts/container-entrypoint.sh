@@ -168,8 +168,10 @@ check_config_files() {
 # Ensures our configuration directories exist
 #
 check_needed_directories() {
-	mkdir -p /var/run/headscale
-	mkdir -p /data
+	mkdir -p /var/run/headscale || return 1
+	mkdir -p /data || return 2
+
+	return 0
 }
 
 #---
