@@ -1,4 +1,4 @@
-{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443}, {$HOST}.{$PUBLIC_SERVER_URL} {
+{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT:443}, https://{$HOST}.{$PUBLIC_SERVER_URL} {
   handle_path /admin* {
     root * /data/admin-gui/admin
     encode gzip zstd
