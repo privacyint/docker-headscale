@@ -2,7 +2,7 @@
 
 set -e
 
-export abort_config=0
+abort_config=0
 
 #######################################
 # Echo out an INFO message
