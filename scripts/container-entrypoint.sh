@@ -18,6 +18,8 @@ info_out() {
 
 #######################################
 # Echo out an ERROR message
+# GLOBALS:
+#   `abort_config` is set to `1`
 # ARGUMENTS:
 #   Message
 # OUTPUTS:
@@ -27,6 +29,7 @@ info_out() {
 #######################################
 error_out() {
 	echo >&2 "ERROR: $1"
+	abort_config=1
 }
 
 #######################################
@@ -63,7 +66,6 @@ global_var_is_populated() {
 required_global_var_is_populated() {
 	if ! global_var_is_populated "$1" ; then
 		error_out "Environment variable '$1' is required"
-		abort_config=1
 		return 1
 	fi
 	return 0
@@ -73,11 +75,13 @@ required_global_var_is_populated() {
 # Check a given environment variable is a "valid" port (1-65535)
 # ARGUMENTS:
 #   Variable to check
+# OUTPUTS:
+#   Uses `error_out()` on failure
 # RETURN:
 #   `0` if it's considered valid, non-zero on error.
 #######################################
-is_valid_port() {
     port="$1"
+check_is_valid_port() {
 	case "${!port}" in
 		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 1;;
 		0*[!0]*) error_out "'$port' has a leading zero."; return 2;;
@@ -107,9 +111,7 @@ check_config_files() {
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
-		if ! is_valid_port "PUBLIC_LISTEN_PORT" ; then
-			abort_config=1
-		fi
+		check_is_valid_port "PUBLIC_LISTEN_PORT"
 	fi
 
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
@@ -122,7 +124,6 @@ check_config_files() {
 			required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 		else
 			error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
-			abort_config=1
 		fi
 	fi
 
@@ -172,12 +173,10 @@ check_needed_directories() {
 #
 if ! check_needed_directories ; then
 	error_out "Unable to create required configuration directories."
-	abort_config=1
 fi
 
 if ! check_config_files ; then
 	error_out "We don't have enough information to run our services."
-	abort_config=1
 fi
 
 if [ "${abort_config}" -eq 0 ] ; then
