@@ -84,8 +84,8 @@ required_global_var_is_populated() {
 # RETURN:
 #   `0` if it's considered valid, non-zero on error.
 #######################################
-    port="$1"
 check_is_valid_port() {
+    port="$1"
 	case "${!port}" in
 		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 1;;
 		0*[!0]*) error_out "'$port' has a leading zero."; return 2;;
