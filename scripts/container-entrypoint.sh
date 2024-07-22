@@ -156,8 +156,8 @@ check_config_files() {
 	fi
 
 	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_ID"
-  		required_global_var_is_populated "$HEADSCALE_OIDC_CLIENT_SECRET"
+		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
+  		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
 	fi
 
 	return $([ "${abort_config}" -eq 0 ])
