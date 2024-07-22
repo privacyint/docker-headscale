@@ -33,27 +33,19 @@ error_out() {
 # Check if an environment variable has been populated
 # ARGUMENTS:
 #   Variable to check
-#   Optional: Required (if non-zero, on failure sets `abort_config` to this value)
 # OUTPUTS:
-#   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
+#   Writes to STDERR on failure
 # RETURN:
-#   `1` if the variable is populated, otherwise `0`
+#   `0` if the variable is populated, otherwise non-zero
 #######################################
 global_var_is_populated() {
     var="$1"
-    required="$2"
 	if [ -z "${!var}" ] ; then
-		if [ -n "${required-}" ] ; then
-			error_out "Required environment variable '$var' is unset."
-			abort_config="${required}"
-			return 0
-		else
-			info_out "Environment variable '$var' is empty"
-			return 0
-		fi
+		info_out "Environment variable '$var' is empty"
+		return 1
 	fi
 
-	return 1
+	return 0
 }
 
 #######################################
@@ -63,18 +55,18 @@ global_var_is_populated() {
 #   abort_config
 # ARGUMENTS:
 #   Variable to check
-#   Optional: Required (if non-zero, on failure sets `abort_config` to this value)
 # OUTPUTS:
-#   Writes to STOUT if `$2` is 0, otherwise writes to SDERR
+#   Writes to STDERR on failure
 # RETURN:
-#   `1` if the variable is populated, otherwise `0`
+#   `0` if the variable is populated, otherwise non-zero
 #######################################
 required_global_var_is_populated() {
-	if ! global_var_is_populated $1 "1" ; then
+	if ! global_var_is_populated "$1" ; then
+		error_out "Environment variable '$1' is required"
 		abort_config=1
-		return 0
+		return 1
 	fi
-	return 1
+	return 0
 }
 
 #######################################
@@ -82,21 +74,21 @@ required_global_var_is_populated() {
 # ARGUMENTS:
 #   Variable to check
 # RETURN:
-#   `1` if it's considered valid, `0` on error.
+#   `0` if it's considered valid, non-zero on error.
 #######################################
 is_valid_port() {
     port="$1"
 	case "${!port}" in
-		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 0;;
-		0*[!0]*) error_out "'$port' has a leading zero."; return 0;;
+		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 1;;
+		0*[!0]*) error_out "'$port' has a leading zero."; return 2;;
 	esac
 
 	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
 		error_out "'$port' must be a valid port within the range of 1-65535."
-		return 0
+		return 3
 	fi
 
-	return 1
+	return 0
 }
 
 ####
