@@ -70,8 +70,8 @@ global_var_is_populated() {
 #   `1` if the variable is populated, otherwise `0`
 #######################################
 required_global_var_is_populated() {
-	if ! global_var_is_populated "$1" "1" ; then
-		abort_config=$!
+	if ! global_var_is_populated $1 "1" ; then
+		abort_config=1
 		return 0
 	fi
 	return 1
