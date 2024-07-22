@@ -161,7 +161,7 @@ check_config_files() {
   		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
 	fi
 
-	return $([ "${abort_config}" -eq 0 ])
+	return "${abort_config}"
 }
 
 ####
