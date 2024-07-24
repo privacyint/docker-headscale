@@ -118,7 +118,7 @@ check_config_files() {
 		check_is_valid_port "PUBLIC_LISTEN_PORT"
 	fi
 
-	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
+	if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 			info_out "Litestream uses S3-Alike storage."
 			required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
