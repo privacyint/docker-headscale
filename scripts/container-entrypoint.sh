@@ -68,7 +68,7 @@ global_var_is_populated() {
 #######################################
 required_global_var_is_populated() {
 	var="$1"
-	if ! global_var_is_populated "$var" ; then
+	if ! global_var_is_populated "$var" &>/dev/null ; then
 		error_out "Environment variable '$var' is required"
 		return 1
 	fi
