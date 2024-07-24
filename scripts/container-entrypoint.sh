@@ -142,13 +142,6 @@ check_config_files() {
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 
-	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
-		info_out "Headscale will generate a new private DERP key."
-	else
-		info_out "Using environment value for Headscale's private DERP key."
-		echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
-	fi
-
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
 		info_out "Headscale will generate a new private noise key."
 	else
