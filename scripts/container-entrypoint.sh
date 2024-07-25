@@ -2,8 +2,8 @@
 
 set -e
 
-abort_config=0
-litestream_deliberately_disabled=0
+abort_config=false
+litestream_deliberately_disabled=false
 
 #######################################
 # Echo out an INFO message
@@ -22,7 +22,7 @@ info_out() {
 #######################################
 # Echo out an ERROR message
 # GLOBALS:
-#   `abort_config` is set to `1`
+#   `abort_config` is set to `true`
 # ARGUMENTS:
 #   Message
 # OUTPUTS:
@@ -32,7 +32,7 @@ info_out() {
 #######################################
 error_out() {
 	echo >&2 "ERROR: $1"
-	abort_config=1
+	abort_config=true
 	return 0
 }
 
@@ -122,7 +122,7 @@ check_config_files() {
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
 			info_out "This server is very deliberately ephemeral."
-			litestream_deliberately_disabled=1
+			litestream_deliberately_disabled=true
 		else
 			if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 				if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
@@ -178,11 +178,11 @@ run() {
 
 	check_config_files || error_out "We don't have enough information to run our services."
 
-	if [ "${abort_config}" -eq 0 ] ; then
+	if $abort_config ; then
 		info_out "Starting Caddy using our environment variables" && \
 		caddy start --config "/etc/caddy/Caddyfile"
 
-		if [ "${litestream_deliberately_disabled}" -eq 0 ]; then
+		if $litestream_deliberately_disabled ; then
 			info_out "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
 			\
