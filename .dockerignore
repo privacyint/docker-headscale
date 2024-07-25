@@ -1,0 +1,4 @@
+**/.vscode
+**/*.env
+**/azure.toml
+**/headscale.yaml

@@ -45,7 +45,7 @@ error_out() {
 #   `0` if the variable is populated, otherwise non-zero
 #######################################
 global_var_is_populated() {
-    var="$1"
+	var="$1"
 	if [ -z "${!var}" ] ; then
 		info_out "Environment variable '$var' is empty"
 		return 1
@@ -67,8 +67,8 @@ global_var_is_populated() {
 #   `0` if the variable is populated, otherwise non-zero
 #######################################
 required_global_var_is_populated() {
-    var="$1"
-	if ! global_var_is_populated "$var" ; then
+	var="$1"
+	if ! global_var_is_populated "$var" &>/dev/null ; then
 		error_out "Environment variable '$var' is required"
 		return 1
 	fi
@@ -85,7 +85,7 @@ required_global_var_is_populated() {
 #   `0` if it's considered valid, non-zero on error.
 #######################################
 check_is_valid_port() {
-    port="$1"
+	port="$1"
 	case "${!port}" in
 		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 1;;
 		0*[!0]*) error_out "'$port' has a leading zero."; return 2;;
@@ -118,7 +118,7 @@ check_config_files() {
 		check_is_valid_port "PUBLIC_LISTEN_PORT"
 	fi
 
-	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
+	if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 			info_out "Litestream uses S3-Alike storage."
 			required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
@@ -142,23 +142,11 @@ check_config_files() {
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 
-	if [ -z "$HEADSCALE_PRIVATE_KEY" ]; then
-		info_out "Headscale will generate a new private DERP key."
-	else
-		info_out "Using environment value for Headscale's private DERP key."
-		echo -n "$HEADSCALE_PRIVATE_KEY" > $headscale_private_key_path
-	fi
-
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
 		info_out "Headscale will generate a new private noise key."
 	else
 		info_out "Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
-	fi
-
-	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
-  		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
 	fi
 
 	return "${abort_config}"

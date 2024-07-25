@@ -83,7 +83,6 @@ dns_config:
     - 2606:4700:4700::1001
 
   magic_dns: true
-  base_domain: "$HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 
 logtail:
   enabled: false
