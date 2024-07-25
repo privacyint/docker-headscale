@@ -3,6 +3,7 @@
 set -e
 
 abort_config=0
+litestream_deliberately_disabled=0
 
 #######################################
 # Echo out an INFO message
@@ -118,16 +119,23 @@ check_config_files() {
 		check_is_valid_port "PUBLIC_LISTEN_PORT"
 	fi
 
-	if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
-		if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
-			info_out "Litestream uses S3-Alike storage."
+	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
+		if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
+			info_out "This server is very deliberately ephemeral."
+			litestream_deliberately_disabled=1
+		else
+			if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
+				if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
+					info_out "Litestream uses S3-Alike storage."
 			required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
 			required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
 		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
 			info_out "Litestream uses Azure Blob storage."
-			required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
-		else
-			error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
+					required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
+				else
+					error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
+				fi
+			fi
 		fi
 	fi
 
@@ -172,13 +180,17 @@ run() {
 
 	if [ "${abort_config}" -eq 0 ] ; then
 		info_out "Starting Caddy using our environment variables" && \
-		caddy start --config "/etc/caddy/Caddyfile" && \
-		\
-		info_out "Attempt to restore previous Headscale database if there's a replica" && \
-		litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
-		\
-		info_out "Starting Headscale using Litestream and our Environment Variables..." && \
-		litestream replicate -exec 'headscale serve'
+		caddy start --config "/etc/caddy/Caddyfile"
+
+		if [ "${litestream_deliberately_disabled}" -eq 0 ]; then
+			info_out "Attempt to restore previous Headscale database if there's a replica" && \
+			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
+			\
+			info_out "Starting Headscale using Litestream and our Environment Variables..." && \
+			litestream replicate -exec 'headscale serve'
+		else
+			headscale serve
+		fi
 	else
 		error_out "Something went wrong."
 		if [ -n "$DEBUG" ] ; then
