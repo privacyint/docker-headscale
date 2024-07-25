@@ -106,7 +106,6 @@ check_is_valid_port() {
 #
 check_config_files() {
 	local headscale_config_path=/etc/headscale/config.yaml
-	local headscale_private_key_path=/data/private.key
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	info_out "Checking required environment variables..."
@@ -127,10 +126,10 @@ check_config_files() {
 			if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 				if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 					info_out "Litestream uses S3-Alike storage."
-			required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
-			required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
-		elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
-			info_out "Litestream uses Azure Blob storage."
+					required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
+					required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
+				elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
+					info_out "Litestream uses Azure Blob storage."
 					required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 				else
 					error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
