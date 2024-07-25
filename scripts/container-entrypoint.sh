@@ -177,7 +177,7 @@ run() {
 
 	check_config_files || error_out "We don't have enough information to run our services."
 
-	if $abort_config ; then
+	if ! $abort_config ; then
 		info_out "Starting Caddy using our environment variables" && \
 		caddy start --config "/etc/caddy/Caddyfile"
 
