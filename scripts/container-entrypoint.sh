@@ -4,6 +4,7 @@ set -e
 
 abort_config=false
 litestream_deliberately_disabled=false
+caddy_deliberately_disabled=false
 
 #######################################
 # Echo out an INFO message
@@ -111,7 +112,12 @@ check_config_files() {
 	info_out "Checking required environment variables..."
 	required_global_var_is_populated "PUBLIC_SERVER_URL"
 	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-	required_global_var_is_populated "CF_API_TOKEN"
+
+	if global_var_is_populated "CADDY_FRONTEND" ; then
+		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
+	else
+		required_global_var_is_populated "CF_API_TOKEN"
+	fi
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
@@ -177,9 +183,11 @@ run() {
 
 	check_config_files || error_out "We don't have enough information to run our services."
 
-	if $abort_config ; then
-		info_out "Starting Caddy using our environment variables" && \
-		caddy start --config "/etc/caddy/Caddyfile"
+	if ! $abort_config ; then
+		if ! $caddy_deliberately_disabled ; then
+			info_out "Starting Caddy using our environment variables" && \
+			caddy start --config "/etc/caddy/Caddyfile"
+		fi
 
 		if $litestream_deliberately_disabled ; then
 			info_out "Attempt to restore previous Headscale database if there's a replica" && \

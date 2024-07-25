@@ -1,11 +1,11 @@
 # Headscale on an immutable Docker image
 
-Deploy [Headscale][headscale] using a "serverless" immutable docker image with real-time [Litestream][litestream] database backup and inbuilt [Caddy][caddy] SSL termination
+Deploy [Headscale][headscale] using a "serverless" immutable docker image with real-time [Litestream][litestream] database backup and (by default) inbuilt [Caddy][caddy] SSL termination
 
 ## Requirements
 
-* Cloudflare DNS
-* S3(Alike)/Azure for [Litestream][litestream]
+* Cloudflare DNS (Can be deliberately disabled)
+* S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled)
 
 ## Installation
 
