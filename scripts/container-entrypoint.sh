@@ -12,12 +12,9 @@ caddy_deliberately_disabled=false
 #   Message
 # OUTPUTS:
 #   Message to `STDOUT`
-# RETURN:
-#   `0`
 #######################################
 info_out() {
 	echo "INFO: $1"
-	return 0
 }
 
 #######################################
@@ -28,13 +25,13 @@ info_out() {
 #   Message
 # OUTPUTS:
 #   Message to `STDERR`
-# RETURN:
-#   `0`
+# RETURNS:
+#   `false`
 #######################################
 error_out() {
 	echo >&2 "ERROR: $1"
 	abort_config=true
-	return 0
+	false
 }
 
 #######################################
@@ -44,16 +41,14 @@ error_out() {
 # OUTPUTS:
 #   Writes to STDERR on failure
 # RETURN:
-#   `0` if the variable is populated, otherwise non-zero
+#   `0` if the variable is populated, otherwise `false`
 #######################################
 global_var_is_populated() {
 	var="$1"
-	if [ -z "${!var}" ] ; then
-		info_out "Environment variable '$var' is empty"
-		return 1
-	fi
-
-	return 0
+	
+	[ -n "${!var}" ] && return
+	
+	false
 }
 
 #######################################
@@ -66,15 +61,14 @@ global_var_is_populated() {
 # OUTPUTS:
 #   Writes to STDERR on failure
 # RETURN:
-#   `0` if the variable is populated, otherwise non-zero
+#   `0` if the variable is populated, otherwise `false`
 #######################################
 required_global_var_is_populated() {
 	var="$1"
-	if ! global_var_is_populated "$var" &>/dev/null ; then
-		error_out "Environment variable '$var' is required"
-		return 1
-	fi
-	return 0
+	
+	global_var_is_populated "$var" &>/dev/null && return
+	
+	error_out "Environment variable '$var' is required"
 }
 
 #######################################
@@ -84,21 +78,18 @@ required_global_var_is_populated() {
 # OUTPUTS:
 #   Uses `error_out()` on failure
 # RETURN:
-#   `0` if it's considered valid, non-zero on error.
+#   `0` if it's considered valid, `false` on error.
 #######################################
 check_is_valid_port() {
 	port="$1"
 	case "${!port}" in
-		'' | *[!0123456789]*) error_out "'$port' is not numeric."; return 1;;
-		0*[!0]*) error_out "'$port' has a leading zero."; return 2;;
+		'' | *[!0123456789]*) error_out "'$port' is not numeric." && return ;;
+		0*[!0]*) error_out "'$port' has a leading zero." && return ;;
 	esac
 
 	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
-		error_out "'$port' must be a valid port within the range of 1-65535."
-		return 3
+		error_out "'$port' must be a valid port within the range of 1-65535." && return
 	fi
-
-	return 0
 }
 
 ####
@@ -161,18 +152,14 @@ check_config_files() {
 		info_out "Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
 	fi
-
-	return "${abort_config}"
 }
 
 ####
 # Ensures our configuration directories exist
 #
 check_needed_directories() {
-	mkdir -p /var/run/headscale || return 1
-	mkdir -p /data || return 2
-
-	return 0
+	mkdir -p /var/run/headscale || return
+	mkdir -p /data || return
 }
 
 #---
