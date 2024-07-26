@@ -101,9 +101,6 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	info_out "Checking required environment variables..."
-	required_global_var_is_populated "PUBLIC_SERVER_URL"
-	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-
 	if global_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
 	else
@@ -142,6 +139,8 @@ check_config_files() {
 		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
 	fi
 
+	required_global_var_is_populated "PUBLIC_SERVER_URL"
+	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	info_out "Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
