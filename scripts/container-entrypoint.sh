@@ -110,6 +110,8 @@ check_config_files() {
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
 		check_is_valid_port "PUBLIC_LISTEN_PORT"
+	else
+		PUBLIC_LISTEN_PORT=443
 	fi
 
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
