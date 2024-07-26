@@ -189,7 +189,7 @@ run() {
 			caddy start --config "/etc/caddy/Caddyfile"
 		fi
 
-		if $litestream_deliberately_disabled ; then
+		if ! $litestream_deliberately_disabled ; then
 			info_out "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
 			\
