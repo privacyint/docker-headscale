@@ -111,7 +111,7 @@ check_config_files() {
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
 		check_is_valid_port "PUBLIC_LISTEN_PORT"
 	else
-		PUBLIC_LISTEN_PORT=443
+		export PUBLIC_LISTEN_PORT=443
 	fi
 
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
