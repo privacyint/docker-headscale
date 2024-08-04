@@ -161,7 +161,8 @@ check_config_files() {
 #
 check_needed_directories() {
 	mkdir -p /var/run/headscale || return
-	mkdir -p /data || return
+	mkdir -p /data/headscale || return
+	mkdir -p /data/caddy || return
 }
 
 #---
