@@ -1,3 +1,9 @@
+{
+    storage file_system {
+        root /data/caddy
+    }
+}
+
 {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {
   handle_path /admin* {
     root * /data/admin-gui/admin
