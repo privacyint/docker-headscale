@@ -101,11 +101,6 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	info_out "Checking required environment variables..."
-	if global_var_is_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
-	else
-		required_global_var_is_populated "CF_API_TOKEN"
-	fi
 
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
@@ -153,6 +148,12 @@ check_config_files() {
 		info_out "Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
 	fi
+
+	if global_var_is_populated "CADDY_FRONTEND" ; then
+		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
+	else
+		required_global_var_is_populated "CF_API_TOKEN"
+	fi
 }
 
 ####
@@ -172,11 +173,6 @@ run() {
 	check_config_files || error_out "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
-		if ! $caddy_deliberately_disabled ; then
-			info_out "Starting Caddy using our environment variables" && \
-			caddy start --config "/etc/caddy/Caddyfile"
-		fi
-
 		if ! $litestream_deliberately_disabled ; then
 			info_out "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
@@ -186,7 +182,12 @@ run() {
 		else
 			headscale serve
 		fi
-	else
+
+		if ! $caddy_deliberately_disabled ; then
+			info_out "Starting Caddy using our environment variables" && \
+			caddy start --config "/etc/caddy/Caddyfile"
+		fi
+
 		error_out "Something went wrong."
 		if [ -n "$DEBUG" ] ; then
 			info_out "Sleeping so you can connect and debug"
