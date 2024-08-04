@@ -188,16 +188,18 @@ run() {
 			caddy start --config "/etc/caddy/Caddyfile"
 		fi
 
-		error_out "Something went wrong."
-		if [ -n "$DEBUG" ] ; then
-			info_out "Sleeping so you can connect and debug"
-			# Allow us to start a terminal in the container for debugging
-			sleep infinity
-		fi
-
-		error_out "Exiting with code ${abort_config}"
-		exit "$abort_config"
+		return
 	fi
+
+	error_out "Something went wrong."
+	if [ -n "$DEBUG" ] ; then
+		info_out "Sleeping so you can connect and debug"
+		# Allow us to start a terminal in the container for debugging
+		sleep infinity
+	fi
+
+	error_out "Exiting with code ${abort_config}"
+	exit "$abort_config"
 }
 
 run
