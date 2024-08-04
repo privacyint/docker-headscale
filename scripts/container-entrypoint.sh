@@ -174,6 +174,11 @@ run() {
 	check_config_files || error_out "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
+		if ! $caddy_deliberately_disabled ; then
+			info_out "Starting Caddy using our environment variables" && \
+			caddy start --config "/etc/caddy/Caddyfile"
+		fi
+
 		if ! $litestream_deliberately_disabled ; then
 			info_out "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
@@ -182,11 +187,6 @@ run() {
 			litestream replicate -exec 'headscale serve'
 		else
 			headscale serve
-		fi
-
-		if ! $caddy_deliberately_disabled ; then
-			info_out "Starting Caddy using our environment variables" && \
-			caddy start --config "/etc/caddy/Caddyfile"
 		fi
 
 		return
