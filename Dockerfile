@@ -47,8 +47,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # ---
     # Install build dependencies
     # - BusyBox's wget isn't reliable enough
-    RUN apk add --no-cache \
-            wget --virtual BuildTimeDeps
+    RUN BUILD_DEPS="wget"; \
+        apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}
     # ---
     # Install runtime dependencies
     # - I'm gonna need a better shell
