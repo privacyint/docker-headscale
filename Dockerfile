@@ -8,6 +8,8 @@ ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a907794
 # Container version args
 ARG CADDY_BUILDER_VERSION="2.8.4-builder"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.20.2"
+# Download links
+ARG HEADSCALE_DOWNLOAD_URL="https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64"
 
 ###########
 # ---
@@ -33,7 +35,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
 
     # ---
     # import our "global" `ARG` values into this stage
-    ARG HEADSCALE_VERSION
+    ARG HEADSCALE_DOWNLOAD_URL
     ARG HEADSCALE_SHA256
     ARG LITESTREAM_VERSION
     ARG LITESTREAM_SHA256
@@ -67,7 +69,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
                  -t 0 \
                  -q \
                  -O headscale \
-                 https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64 \
+                 ${HEADSCALE_DOWNLOAD_URL} \
             ; \
             echo "${HEADSCALE_SHA256} *headscale" | sha256sum -c - >/dev/null 2>&1; \
             chmod +x headscale; \
