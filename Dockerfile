@@ -44,13 +44,16 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # ---
     # Upgrade system
     RUN apk --no-cache upgrade
+    # ---
     # Install build dependencies
-    # BusyBox's wget isn't reliable enough
+    # - BusyBox's wget isn't reliable enough
     RUN apk add --no-cache \
             wget --virtual BuildTimeDeps
-    # I'm gonna need a better shell, too
+    # ---
+    # Install runtime dependencies
+    # - I'm gonna need a better shell
     RUN apk add --no-cache bash
-    # We need GNU sed
+    # - We need GNU sed
     RUN apk add --no-cache sed
 
     # ---
