@@ -10,6 +10,7 @@ ARG CADDY_BUILDER_VERSION="2.8.4-builder"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.20.2"
 # Download links
 ARG HEADSCALE_DOWNLOAD_URL="https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64"
+ARG LITESTREAM_DOWNLOAD_URL="https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz"
 
 ###########
 # ---
@@ -37,7 +38,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # import our "global" `ARG` values into this stage
     ARG HEADSCALE_DOWNLOAD_URL
     ARG HEADSCALE_SHA256
-    ARG LITESTREAM_VERSION
+    ARG LITESTREAM_DOWNLOAD_URL
     ARG LITESTREAM_SHA256
 
     # ---
@@ -88,7 +89,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
                  -t 0 \
                  -q \
                  -O litestream.tar.gz \
-                 https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz \
+                 ${LITESTREAM_DOWNLOAD_URL} \
             ; \
             echo "${LITESTREAM_SHA256} *litestream.tar.gz" | sha256sum -c - >/dev/null 2>&1; \
             tar -xf litestream.tar.gz; \
