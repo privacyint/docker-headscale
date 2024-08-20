@@ -107,8 +107,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY --from=admin-gui /app/admin/ /data/admin-gui/admin/
     
     # Remove build-time dependencies
-    RUN --mount=type=cache,target=/var/cache/apk \
-        apk del BuildTimeDeps;
+    RUN apk del BuildTimeDeps
 
     # ---
     # copy configuration and templates
