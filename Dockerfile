@@ -42,19 +42,16 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     ARG LITESTREAM_SHA256
 
     # ---
-    # Upgrade system
-    RUN apk --no-cache upgrade
-    # ---
-    # Install build dependencies
+    # Upgrade system and install various dependencies
     # - BusyBox's wget isn't reliable enough
-    RUN BUILD_DEPS="wget"; \
-        apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}
-    # ---
-    # Install runtime dependencies
     # - I'm gonna need a better shell
     # - We need GNU sed
-    RUN RUNTIME_DEPS="bash sed"; \
-        apk add --no-cache ${RUNTIME_DEPS}
+    # hadolint ignore=DL3018
+    RUN BUILD_DEPS="wget"; \
+        RUNTIME_DEPS="bash sed"; \
+        apk --no-cache upgrade; \
+        apk add --no-cache --virtual BuildTimeDeps "${BUILD_DEPS}"; \
+        apk add --no-cache "${RUNTIME_DEPS}"
 
     # ---
     # Copy caddy from the first stage
