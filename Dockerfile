@@ -13,6 +13,9 @@ ARG MAIN_IMAGE_ALPINE_VERSION="3.20.2"
 # ---
 # Build caddy with Cloudflare DNS support
 FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
+    # Set SHELL flags for RUN commands to allow -e and pipefail
+    # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+    SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
     RUN xcaddy build \
         --with github.com/caddy-dns/cloudflare
@@ -24,6 +27,9 @@ FROM goodieshq/headscale-admin:${HEADSCALE_ADMIN_VERSION} AS admin-gui
 # --- 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
+    # Set SHELL flags for RUN commands to allow -e and pipefail
+    # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+    SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
     # ---
     # import our "global" `ARG` values into this stage
