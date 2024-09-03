@@ -50,8 +50,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     RUN BUILD_DEPS="wget"; \
         RUNTIME_DEPS="bash sed"; \
         apk --no-cache upgrade; \
-        apk add --no-cache --virtual BuildTimeDeps "${BUILD_DEPS}"; \
-        apk add --no-cache "${RUNTIME_DEPS}"
+        apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}; \
+        apk add --no-cache ${RUNTIME_DEPS}
 
     # ---
     # Copy caddy from the first stage
