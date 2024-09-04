@@ -46,7 +46,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # - BusyBox's wget isn't reliable enough
     # - I'm gonna need a better shell
     # - We need GNU sed
-    # hadolint ignore=DL3018
+    # hadolint ignore=DL3018,SC2086
     RUN BUILD_DEPS="wget"; \
         RUNTIME_DEPS="bash sed"; \
         apk --no-cache upgrade; \
