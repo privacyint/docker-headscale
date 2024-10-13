@@ -75,7 +75,6 @@ policy:
   mode: database
 
 dns:
-  override_local_dns: true
   nameservers:
     - 1.1.1.1
     - 1.0.0.1
