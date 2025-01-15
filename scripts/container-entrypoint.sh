@@ -151,6 +151,7 @@ check_config_files() {
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$HOSTNAME@${HOSTNAME}@" $headscale_config_path || abort_config=1
+	sed -i "s@${HOSTNAME}.https://@https://${HOSTNAME}.@" $headscale_config_path || abort_config=1
 	sed -i "s@\$IPV6_PREFIX@${IPV6_PREFIX}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$IPV4_PREFIX@${IPV4_PREFIX}@" $headscale_config_path || abort_config=1
 
