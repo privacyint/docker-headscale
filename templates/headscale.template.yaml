@@ -75,6 +75,11 @@ database:
     # _DISABLE IF USING NFS_
     write_ahead_log: true
 
+    # Maximum number of WAL file frames before the WAL file is automatically checkpointed.
+    # https://www.sqlite.org/c3ref/wal_autocheckpoint.html
+    # Set to 0 to disable automatic checkpointing.
+    wal_autocheckpoint: 1000
+
 # TLS
 tls_cert_path: ""
 tls_key_path: ""
