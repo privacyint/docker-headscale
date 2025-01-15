@@ -1,5 +1,5 @@
 ---
 dbs:
-  - path: /data/headscale/headscale.sqlite3
+  - path: /data/headscale.sqlite3
     replicas:
       - url: ${LITESTREAM_REPLICA_URL}
