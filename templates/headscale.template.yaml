@@ -54,7 +54,7 @@ database:
 
   # SQLite config
   sqlite:
-    path: /data/headscale.sqlite3
+    path: /data/headscale/headscale.sqlite3
 
     # Enable WAL mode for SQLite. This is recommended for production environments.
     # https://www.sqlite.org/wal.html
