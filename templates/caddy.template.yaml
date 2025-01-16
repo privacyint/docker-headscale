@@ -4,7 +4,7 @@
     }
 }
 
-{$HOSTNAME}.{$PUBLIC_SERVER_URL}, {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {
+{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {
   handle_path /admin* {
     root * /data/admin-gui/admin
     encode gzip zstd
