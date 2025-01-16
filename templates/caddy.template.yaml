@@ -18,7 +18,5 @@
 
   tls {
     dns cloudflare {$CF_API_TOKEN}
-    issuer acme
-    issuer zerossl
   }
 }
