@@ -99,6 +99,7 @@ check_is_valid_port() {
 check_config_files() {
 	local headscale_config_path=/etc/headscale/config.yaml
 	local headscale_noise_private_key_path=/data/noise_private.key
+	local caddyfile=/etc/caddy/Caddyfile 
 
 	info_out "Checking required environment variables..."
 
@@ -168,17 +169,17 @@ check_config_files() {
 		required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
 
 		if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
-			info_out "We're using EAB credentials. Check they're both populated."
+			info_out "We're using ACME EAB credentials. Check they're both populated."
 			required_global_var_is_populated "ACME_EAB_KEY_ID"
 			required_global_var_is_populated "ACME_EAB_MAC_KEY"
 
 			sed -i "s@<<EAB>>@acme_eab {
 				key_id ${ACME_EAB_KEY_ID}
 				mac_key ${ACME_EAB_MAC_KEY}
-			}@" $headscale_config_path || abort_config=1
+			}@" $caddyfile || abort_config=1
 		else
-			info_out "No EAB credentials provided"
-			sed -i "s@<<EAB>>@@" $headscale_config_path || abort_config=1
+			info_out "No ACME EAB credentials provided"
+			sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
 		fi
 	fi
 }
