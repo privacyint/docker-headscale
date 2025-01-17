@@ -166,6 +166,20 @@ check_config_files() {
 	else
 		required_global_var_is_populated "CF_API_TOKEN"
 		required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
+
+		if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
+			info_out "We're using EAB credentials. Check they're both populated."
+			required_global_var_is_populated "ACME_EAB_KEY_ID"
+			required_global_var_is_populated "ACME_EAB_MAC_KEY"
+
+			sed -i "s@<<EAB>>@acme_eab {
+				key_id ${ACME_EAB_KEY_ID}
+				mac_key ${ACME_EAB_MAC_KEY}
+			}@" $headscale_config_path || abort_config=1
+		else
+			info_out "No EAB credentials provided"
+			sed -i "s@<<EAB>>@@" $headscale_config_path || abort_config=1
+		fi
 	fi
 }
 
