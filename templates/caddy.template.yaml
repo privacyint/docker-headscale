@@ -2,6 +2,8 @@
     storage file_system {
         root /data/caddy
     }
+
+    email {$ACME_ISSUANCE_EMAIL}
 }
 
 {$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {

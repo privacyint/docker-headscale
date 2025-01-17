@@ -165,6 +165,7 @@ check_config_files() {
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
 	else
 		required_global_var_is_populated "CF_API_TOKEN"
+		required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
 	fi
 }
 
