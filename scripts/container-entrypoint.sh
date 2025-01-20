@@ -99,6 +99,7 @@ check_is_valid_port() {
 check_config_files() {
 	local headscale_config_path=/etc/headscale/config.yaml
 	local headscale_noise_private_key_path=/data/noise_private.key
+	local caddyfile=/etc/caddy/Caddyfile 
 
 	info_out "Checking required environment variables..."
 
@@ -136,11 +137,23 @@ check_config_files() {
 		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
 	fi
 
+	if ! global_var_is_populated "IPV6_PREFIX" ; then
+		export IPV6_PREFIX="fd7a:115c:a1e0::/48"
+	fi
+	if ! global_var_is_populated "IPV4_PREFIX" ; then
+		export IPV4_PREFIX="100.64.0.0/10"
+	fi
+	
+	info_out "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
+
 	required_global_var_is_populated "PUBLIC_SERVER_URL"
 	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	info_out "Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$IPV6_PREFIX@${IPV6_PREFIX}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$IPV4_PREFIX@${IPV4_PREFIX}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
 
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
 		info_out "Headscale will generate a new private noise key."
@@ -153,6 +166,21 @@ check_config_files() {
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
 	else
 		required_global_var_is_populated "CF_API_TOKEN"
+		required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
+
+		if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
+			info_out "We're using ACME EAB credentials. Check they're both populated."
+			required_global_var_is_populated "ACME_EAB_KEY_ID"
+			required_global_var_is_populated "ACME_EAB_MAC_KEY"
+
+			sed -i "s@<<EAB>>@acme_eab {
+				key_id ${ACME_EAB_KEY_ID}
+				mac_key ${ACME_EAB_MAC_KEY}
+			}@" $caddyfile || abort_config=1
+		else
+			info_out "No ACME EAB credentials provided"
+			sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
+		fi
 	fi
 }
 
