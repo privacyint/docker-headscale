@@ -186,6 +186,15 @@ create_headscale_config_from_environment_vars() {
 	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
 }
 
+reuse_or_create_noise_private_key() {
+	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
+		info_out "Headscale will generate a new private noise key."
+	else
+		info_out "Using environment value for our private noise key."
+		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
+	fi
+}
+
 ####
 # Checks our various environment variables are populated, and squirts them into their
 # places, as required.
@@ -199,12 +208,7 @@ check_config_files() {
 
 	create_headscale_config_from_environment_vars
 
-	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
-		info_out "Headscale will generate a new private noise key."
-	else
-		info_out "Using environment value for our private noise key."
-		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
-	fi
+	reuse_or_create_noise_private_key
 
 	if global_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
