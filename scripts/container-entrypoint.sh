@@ -201,16 +201,8 @@ reuse_or_create_noise_private_key() {
 	fi
 }
 
-check_caddy_specific_environment_variables() {
+check_zerossl_eab() {
 	local caddyfile=/etc/caddy/Caddyfile 
-
-	if global_var_is_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
-		return
-	fi
-
-	required_global_var_is_populated "CF_API_TOKEN"
-	required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
 
 	if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
 		info_out "We're using ACME EAB credentials. Check they're both populated."
@@ -227,6 +219,18 @@ check_caddy_specific_environment_variables() {
 		info_out "No ACME EAB credentials provided"
 		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
 	fi
+}
+
+check_caddy_specific_environment_variables() {
+	if global_var_is_populated "CADDY_FRONTEND" ; then
+		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
+		return
+	fi
+
+	required_global_var_is_populated "CF_API_TOKEN"
+	required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
+
+	check_zerossl_eab
 }
 
 ####
