@@ -164,6 +164,18 @@ check_headscale_env_vars() {
 	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 }
 
+#######################################
+# Run the various environment vars checks
+#######################################
+check_required_environment_vars() {
+	info_out "Checking required environment variables..."
+	check_public_listen_port
+	check_litestream_replica_url
+	check_oidc_settings
+	check_ip_prefixes
+	check_headscale_env_vars
+}
+
 create_headscale_config_from_environment_vars() {
 	info_out "Creating Headscale configuration file from environment variables."
 
@@ -183,12 +195,7 @@ check_config_files() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 	local caddyfile=/etc/caddy/Caddyfile 
 
-	info_out "Checking required environment variables..."
-	check_public_listen_port
-	check_litestream_replica_url
-	check_oidc_settings
-	check_ip_prefixes
-	check_headscale_env_vars
+	check_required_environment_vars
 
 	create_headscale_config_from_environment_vars
 
