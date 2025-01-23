@@ -177,6 +177,8 @@ check_required_environment_vars() {
 }
 
 create_headscale_config_from_environment_vars() {
+	local headscale_config_path=/etc/headscale/config.yaml
+
 	info_out "Creating Headscale configuration file from environment variables."
 
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
@@ -187,6 +189,8 @@ create_headscale_config_from_environment_vars() {
 }
 
 reuse_or_create_noise_private_key() {
+	local headscale_noise_private_key_path=/data/noise_private.key
+
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
 		info_out "Headscale will generate a new private noise key."
 	else
@@ -200,8 +204,6 @@ reuse_or_create_noise_private_key() {
 # places, as required.
 #
 check_config_files() {
-	local headscale_config_path=/etc/headscale/config.yaml
-	local headscale_noise_private_key_path=/data/noise_private.key
 	local caddyfile=/etc/caddy/Caddyfile 
 
 	check_required_environment_vars
