@@ -173,10 +173,7 @@ check_config_files() {
 			required_global_var_is_populated "ACME_EAB_KEY_ID"
 			required_global_var_is_populated "ACME_EAB_MAC_KEY"
 
-			sed -i "s@<<EAB>>@acme_eab {
-				key_id ${ACME_EAB_KEY_ID}
-				mac_key ${ACME_EAB_MAC_KEY}
-			}@" $caddyfile || abort_config=1
+			sed -iz "s@<<EAB>>@acme_eab {\n    key_id ${ACME_EAB_KEY_ID}\n    mac_key ${ACME_EAB_MAC_KEY}\n  }@" $caddyfile || abort_config=1
 		else
 			info_out "No ACME EAB credentials provided"
 			sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
