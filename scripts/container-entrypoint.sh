@@ -164,6 +164,16 @@ check_headscale_env_vars() {
 	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 }
 
+create_headscale_config_from_environment_vars() {
+	info_out "Creating Headscale configuration file from environment variables."
+
+	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$IPV6_PREFIX@${IPV6_PREFIX}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$IPV4_PREFIX@${IPV4_PREFIX}@" $headscale_config_path || abort_config=1
+	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
+}
+
 ####
 # Checks our various environment variables are populated, and squirts them into their
 # places, as required.
@@ -180,12 +190,7 @@ check_config_files() {
 	check_ip_prefixes
 	check_headscale_env_vars
 
-	info_out "Creating Headscale configuration file from environment variables."
-	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$IPV6_PREFIX@${IPV6_PREFIX}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$IPV4_PREFIX@${IPV4_PREFIX}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
+	create_headscale_config_from_environment_vars
 
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
 		info_out "Headscale will generate a new private noise key."
