@@ -105,18 +105,10 @@ check_public_listen_port() {
 	fi
 }
 
-####
-# Checks our various environment variables are populated, and squirts them into their
-# places, as required.
-#
-check_config_files() {
-	local headscale_config_path=/etc/headscale/config.yaml
-	local headscale_noise_private_key_path=/data/noise_private.key
-	local caddyfile=/etc/caddy/Caddyfile 
-
-	info_out "Checking required environment variables..."
-	check_public_listen_port
-
+#######################################
+# Checks `LITESTREAM_REPLICA_URL`
+#######################################
+check_litestream_replica_url(){
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
 			info_out "This server is very deliberately ephemeral."
@@ -136,6 +128,20 @@ check_config_files() {
 			fi
 		fi
 	fi
+}
+
+####
+# Checks our various environment variables are populated, and squirts them into their
+# places, as required.
+#
+check_config_files() {
+	local headscale_config_path=/etc/headscale/config.yaml
+	local headscale_noise_private_key_path=/data/noise_private.key
+	local caddyfile=/etc/caddy/Caddyfile 
+
+	info_out "Checking required environment variables..."
+	check_public_listen_port
+	check_litestream_replica_url
 
 	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
 		info_out "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
