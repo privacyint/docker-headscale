@@ -108,25 +108,27 @@ check_public_listen_port() {
 #######################################
 # Checks `LITESTREAM_REPLICA_URL`
 #######################################
-check_litestream_replica_url(){
-	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
-		if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
-			info_out "This server is very deliberately ephemeral."
-			litestream_deliberately_disabled=true
-		else
-			if required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
-				if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
-					info_out "Litestream uses S3-Alike storage."
-					required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
-					required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
-				elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
-					info_out "Litestream uses Azure Blob storage."
-					required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
-				else
-					error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://'"
-				fi
-			fi
-		fi
+check_litestream_replica_url() {
+	if ! required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
+		error_out "'LITESTREAM_REPLICA_URL' must be populated"
+		return
+	fi		
+
+	if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
+		info_out "This server is very deliberately ephemeral."
+		litestream_deliberately_disabled=true
+		return
+	fi
+
+	if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
+		info_out "Litestream uses S3-Alike storage."
+		required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
+		required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
+	elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
+		info_out "Litestream uses Azure Blob storage."
+		required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
+	else
+		error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
 	fi
 }
 
