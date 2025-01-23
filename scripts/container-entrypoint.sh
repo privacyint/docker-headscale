@@ -92,6 +92,19 @@ check_is_valid_port() {
 	fi
 }
 
+#######################################
+# Checks whether `PUBLIC_LISTEN_PORT` is set and a "valid" port (1-65535)
+# otherwise defaults to `PUBLIC_LISTEN_PORT` to `443`
+#######################################
+check_public_listen_port() {
+	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
+	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
+		check_is_valid_port "PUBLIC_LISTEN_PORT"
+	else
+		export PUBLIC_LISTEN_PORT=443
+	fi
+}
+
 ####
 # Checks our various environment variables are populated, and squirts them into their
 # places, as required.
@@ -102,13 +115,7 @@ check_config_files() {
 	local caddyfile=/etc/caddy/Caddyfile 
 
 	info_out "Checking required environment variables..."
-
-	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
-	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
-		check_is_valid_port "PUBLIC_LISTEN_PORT"
-	else
-		export PUBLIC_LISTEN_PORT=443
-	fi
+	check_public_listen_port
 
 	if global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
 		if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
