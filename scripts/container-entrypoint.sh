@@ -201,18 +201,8 @@ reuse_or_create_noise_private_key() {
 	fi
 }
 
-####
-# Checks our various environment variables are populated, and squirts them into their
-# places, as required.
-#
-check_config_files() {
+check_caddy_specific_environment_variables() {
 	local caddyfile=/etc/caddy/Caddyfile 
-
-	check_required_environment_vars
-
-	create_headscale_config_from_environment_vars
-
-	reuse_or_create_noise_private_key
 
 	if global_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
@@ -236,6 +226,20 @@ check_config_files() {
 			sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
 		fi
 	fi
+}
+
+####
+# Checks our various environment variables are populated, and squirts them into their
+# places, as required.
+#
+check_config_files() {
+	check_required_environment_vars
+
+	create_headscale_config_from_environment_vars
+
+	reuse_or_create_noise_private_key
+
+	check_caddy_specific_environment_variables
 }
 
 ####
