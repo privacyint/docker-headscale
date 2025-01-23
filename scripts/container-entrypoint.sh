@@ -130,6 +130,40 @@ check_litestream_replica_url(){
 	fi
 }
 
+#######################################
+# Checks our OIDC settings are in order, if set
+#######################################
+check_oidc_settings() {
+	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
+		info_out "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
+		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
+		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
+		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
+	fi
+}
+
+#######################################
+# Check if we're using custom prefixes, or default
+#######################################
+check_ip_prefixes() {
+	if ! global_var_is_populated "IPV6_PREFIX" ; then
+		export IPV6_PREFIX="fd7a:115c:a1e0::/48"
+	fi
+	if ! global_var_is_populated "IPV4_PREFIX" ; then
+		export IPV4_PREFIX="100.64.0.0/10"
+	fi
+
+	info_out "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
+}
+
+#######################################
+# Check the require environment variables to start headscale
+#######################################
+check_headscale_env_vars() {
+	required_global_var_is_populated "PUBLIC_SERVER_URL"
+	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+}
+
 ####
 # Checks our various environment variables are populated, and squirts them into their
 # places, as required.
@@ -142,25 +176,10 @@ check_config_files() {
 	info_out "Checking required environment variables..."
 	check_public_listen_port
 	check_litestream_replica_url
+	check_oidc_settings
+	check_ip_prefixes
+	check_headscale_env_vars
 
-	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		info_out "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
-		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
-		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
-		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
-	fi
-
-	if ! global_var_is_populated "IPV6_PREFIX" ; then
-		export IPV6_PREFIX="fd7a:115c:a1e0::/48"
-	fi
-	if ! global_var_is_populated "IPV4_PREFIX" ; then
-		export IPV4_PREFIX="100.64.0.0/10"
-	fi
-	
-	info_out "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
-
-	required_global_var_is_populated "PUBLIC_SERVER_URL"
-	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	info_out "Creating Headscale configuration file from environment variables."
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
