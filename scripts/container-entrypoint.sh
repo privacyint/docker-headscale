@@ -206,25 +206,26 @@ check_caddy_specific_environment_variables() {
 
 	if global_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
+		return
+	fi
+
+	required_global_var_is_populated "CF_API_TOKEN"
+	required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
+
+	if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
+		info_out "We're using ACME EAB credentials. Check they're both populated."
+		required_global_var_is_populated "ACME_EAB_KEY_ID"
+		required_global_var_is_populated "ACME_EAB_MAC_KEY"
+
+		sed -iz "s@<<EAB>>@" \
+			"acme_ca https://acme.zerossl.com/v2/DV90\n" \
+			"acme_eab {\n" \
+			"    key_id ${ACME_EAB_KEY_ID}\n" \
+			"    mac_key ${ACME_EAB_MAC_KEY}\n" \
+			" }@" $caddyfile || abort_config=1
 	else
-		required_global_var_is_populated "CF_API_TOKEN"
-		required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
-
-		if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
-			info_out "We're using ACME EAB credentials. Check they're both populated."
-			required_global_var_is_populated "ACME_EAB_KEY_ID"
-			required_global_var_is_populated "ACME_EAB_MAC_KEY"
-
-			sed -iz "s@<<EAB>>@" \
-			  "acme_ca https://acme.zerossl.com/v2/DV90\n" \
-			  "acme_eab {\n" \
-			  "    key_id ${ACME_EAB_KEY_ID}\n" \
-			  "    mac_key ${ACME_EAB_MAC_KEY}\n" \
-			  " }@" $caddyfile || abort_config=1
-		else
-			info_out "No ACME EAB credentials provided"
-			sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
-		fi
+		info_out "No ACME EAB credentials provided"
+		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
 	fi
 }
 
