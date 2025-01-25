@@ -39,11 +39,7 @@ log_error() {
 #   0 if populated, otherwise false
 #######################################
 global_var_is_populated() {
-	var="$1"
-	
-	[ -n "${!var}" ] && return
-	
-	false
+    [ -n "${!1}" ]
 }
 
 #######################################
