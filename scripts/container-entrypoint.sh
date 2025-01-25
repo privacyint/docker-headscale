@@ -62,7 +62,7 @@ require_env_var() {
 # Globals:
 #   abort_config
 #######################################
-check_is_valid_port() {
+validate_port() {
 	port="$1"
 	case "${!port}" in
 		'' | *[!0123456789]*) log_error "'$port' is not numeric." && return ;;
@@ -80,7 +80,7 @@ check_is_valid_port() {
 check_public_listen_port() {
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if is_env_var_populated "PUBLIC_LISTEN_PORT" ; then
-		check_is_valid_port "PUBLIC_LISTEN_PORT"
+		validate_port "PUBLIC_LISTEN_PORT"
 	else
 		export PUBLIC_LISTEN_PORT=443
 	fi
