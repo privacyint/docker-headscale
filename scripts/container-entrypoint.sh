@@ -117,7 +117,7 @@ check_litestream_replica_url() {
 #######################################
 # Validate OIDC settings
 #######################################
-check_oidc_settings() {
+validate_oidc_settings() {
 	if is_env_var_populated "HEADSCALE_OIDC_ISSUER" ; then
 		log_info "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
 		require_env_var "HEADSCALE_OIDC_CLIENT_ID"
@@ -155,7 +155,7 @@ check_required_environment_vars() {
 	log_info "Checking required environment variables..."
 	check_public_listen_port
 	check_litestream_replica_url
-	check_oidc_settings
+	validate_oidc_settings
 	check_ip_prefixes
 	check_headscale_env_vars
 }
