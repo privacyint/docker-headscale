@@ -169,7 +169,7 @@ create_headscale_config() {
         -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
         -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
         -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
-        "$config_path" || abort_config=true
+        "$config_path" || log_error "Unable to generate Headscale configuration file"
 }
 
 #######################################
