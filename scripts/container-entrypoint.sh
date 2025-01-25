@@ -176,14 +176,14 @@ create_headscale_config() {
 # Handle Noise private key
 #######################################
 reuse_or_create_noise_private_key() {
-	local headscale_noise_private_key_path=/data/noise_private.key
+    local key_path="/data/noise_private.key"
 
-	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
-		log_info "Headscale will generate a new private noise key."
-	else
-		log_info "Using environment value for our private noise key."
-		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
-	fi
+    if is_env_var_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
+        log_info "Using provided private Noise key."
+        echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
+    else
+        log_info "Generating a new private Noise key."
+    fi
 }
 
 #######################################
