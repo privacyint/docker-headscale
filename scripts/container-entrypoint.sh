@@ -158,16 +158,18 @@ check_required_environment_vars() {
 #######################################
 # Create Headscale configuration file
 #######################################
-create_headscale_config_from_environment_vars() {
-	local headscale_config_path=/etc/headscale/config.yaml
+create_headscale_config() {
+    local config_path="/etc/headscale/config.yaml"
 
-	log_info "Creating Headscale configuration file from environment variables."
+    log_info "Generating Headscale configuration file..."
 
-	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$IPV6_PREFIX@${IPV6_PREFIX}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$IPV4_PREFIX@${IPV4_PREFIX}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
+    sed -i \
+        -e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
+        -e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
+        -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
+        -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
+        -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
+        "$config_path" || abort_config=true
 }
 
 #######################################
@@ -223,7 +225,7 @@ check_caddy_specific_environment_variables() {
 check_config_files() {
 	check_required_environment_vars
 
-	create_headscale_config_from_environment_vars
+	create_headscale_config
 
 	reuse_or_create_noise_private_key
 
