@@ -50,11 +50,9 @@ is_env_var_populated() {
 #   abort_config
 #######################################
 require_env_var() {
-	var="$1"
-	
-	is_env_var_populated "$var" &>/dev/null && return
-	
-	log_error "Environment variable '$var' is required"
+    if ! is_env_var_populated "$1"; then
+        log_error "Environment variable '$1' is required"
+    fi
 }
 
 #######################################
