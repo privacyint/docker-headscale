@@ -2,274 +2,264 @@
 
 set -e
 
+# Global flags
 abort_config=false
-litestream_deliberately_disabled=false
-caddy_deliberately_disabled=false
+litestream_disabled=false
+caddy_disabled=false
 
 #######################################
-# Echo out an INFO message
-# ARGUMENTS:
-#   Message
-# OUTPUTS:
+# Log an informational message
+# Arguments:
+#   $1 - Message to log
+# Ouputs:
 #   Message to `STDOUT`
 #######################################
-info_out() {
+log_info() {
 	echo "INFO: $1"
 }
 
 #######################################
-# Echo out an ERROR message
-# GLOBALS:
-#   `abort_config` is set to `true`
-# ARGUMENTS:
-#   Message
-# OUTPUTS:
-#   Message to `STDERR`
-# RETURNS:
-#   `false`
+# Log an error message and set abort flag
+# Arguments:
+#   $1 - Message to log
+# Returns:
+#   false
 #######################################
-error_out() {
+log_error() {
 	echo >&2 "ERROR: $1"
 	abort_config=true
 	false
 }
 
 #######################################
-# Check if an environment variable has been populated
-# ARGUMENTS:
-#   Variable to check
-# OUTPUTS:
-#   Writes to STDERR on failure
-# RETURN:
-#   `0` if the variable is populated, otherwise `false`
+# Check if an environment variable is populated
+# Arguments:
+#   $1 - Variable name
+# Returns:
+#   0 if populated, otherwise false
 #######################################
-global_var_is_populated() {
-	var="$1"
-	
-	[ -n "${!var}" ] && return
-	
-	false
+is_env_var_populated() {
+    [ -n "${!1}" ]
 }
 
 #######################################
-# Check if a required environment variable has been populated, otherwise set
-# `abort_config` to non-zero
-# GLOBALS:
+# Ensure an environment variable is populated
+# Arguments:
+#   $1 - Variable name
+# Globals:
 #   abort_config
-# ARGUMENTS:
-#   Variable to check
-# OUTPUTS:
-#   Writes to STDERR on failure
-# RETURN:
-#   `0` if the variable is populated, otherwise `false`
 #######################################
-required_global_var_is_populated() {
-	var="$1"
-	
-	global_var_is_populated "$var" &>/dev/null && return
-	
-	error_out "Environment variable '$var' is required"
+require_env_var() {
+    if ! is_env_var_populated "$1"; then
+        log_error "Environment variable '$1' is required"
+    fi
 }
 
 #######################################
-# Check a given environment variable is a "valid" port (1-65535)
-# ARGUMENTS:
-#   Variable to check
-# OUTPUTS:
-#   Uses `error_out()` on failure
-# RETURN:
-#   `0` if it's considered valid, `false` on error.
+# Validate a port number
+# Arguments:
+#   $1 - Variable name containing the port
+# Globals:
+#   abort_config
 #######################################
-check_is_valid_port() {
+validate_port() {
 	port="$1"
 	case "${!port}" in
-		'' | *[!0123456789]*) error_out "'$port' is not numeric." && return ;;
-		0*[!0]*) error_out "'$port' has a leading zero." && return ;;
+		'' | *[!0123456789]*) log_error "'$port' is not numeric." && return ;;
+		0*[!0]*) log_error "'$port' has a leading zero." && return ;;
 	esac
 
 	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
-		error_out "'$port' must be a valid port within the range of 1-65535." && return
+		log_error "'$port' must be a valid port within the range of 1-65535." && return
 	fi
 }
 
 #######################################
-# Checks whether `PUBLIC_LISTEN_PORT` is set and a "valid" port (1-65535)
-# otherwise defaults to `PUBLIC_LISTEN_PORT` to `443`
+# Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
-	if global_var_is_populated "PUBLIC_LISTEN_PORT" ; then
-		check_is_valid_port "PUBLIC_LISTEN_PORT"
+	if is_env_var_populated "PUBLIC_LISTEN_PORT" ; then
+		validate_port "PUBLIC_LISTEN_PORT"
 	else
 		export PUBLIC_LISTEN_PORT=443
 	fi
 }
 
 #######################################
-# Checks `LITESTREAM_REPLICA_URL`
+# Validate Litestream replica URL
 #######################################
 check_litestream_replica_url() {
-	if ! required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
-		error_out "'LITESTREAM_REPLICA_URL' must be populated"
-		return
-	fi		
+    if ! require_env_var "LITESTREAM_REPLICA_URL"; then
+        return
+    fi	
 
-	if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
-		info_out "This server is very deliberately ephemeral."
-		litestream_deliberately_disabled=true
-		return
-	fi
+    case "$LITESTREAM_REPLICA_URL" in
+        DISABLED_I_KNOW_WHAT_IM_DOING)
+            log_info "Ephemeral server configuration enabled."
+            litestream_disabled=true
+            ;;
+        s3://*)
+            log_info "Using S3-Alike storage for Litestream."
+            require_env_var "LITESTREAM_ACCESS_KEY_ID"
+            require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
+            ;;
+        abs://*)
+            log_info "Using Azure Blob storage for Litestream."
+            require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
+            ;;
+        *)
+            log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
+            ;;
+    esac
+}
 
-	if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
-		info_out "Litestream uses S3-Alike storage."
-		required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
-		required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
-	elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
-		info_out "Litestream uses Azure Blob storage."
-		required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
-	else
-		error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
+#######################################
+# Validate OIDC settings
+#######################################
+validate_oidc_settings() {
+	if is_env_var_populated "HEADSCALE_OIDC_ISSUER" ; then
+		log_info "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
+		require_env_var "HEADSCALE_OIDC_CLIENT_ID"
+		require_env_var "HEADSCALE_OIDC_CLIENT_SECRET"
+		is_env_var_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
 	fi
 }
 
 #######################################
-# Checks our OIDC settings are in order, if set
+# Set default headscale IP prefixes if not provided
 #######################################
-check_oidc_settings() {
-	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		info_out "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
-		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
-		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
-		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
-	fi
+set_ip_prefixes() {
+    export IPV6_PREFIX="${IPV6_PREFIX:-fd7a:115c:a1e0::/48}"
+    export IPV4_PREFIX="${IPV4_PREFIX:-100.64.0.0/10}"
+    log_info "Using subnets IPV6: '$IPV6_PREFIX', IPV4: '$IPV4_PREFIX'"
 }
 
 #######################################
-# Check if we're using custom prefixes, or default
-#######################################
-check_ip_prefixes() {
-	if ! global_var_is_populated "IPV6_PREFIX" ; then
-		export IPV6_PREFIX="fd7a:115c:a1e0::/48"
-	fi
-	if ! global_var_is_populated "IPV4_PREFIX" ; then
-		export IPV4_PREFIX="100.64.0.0/10"
-	fi
-
-	info_out "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
-}
-
-#######################################
-# Check the require environment variables to start headscale
+# Validate headscale-specific environment variables
 #######################################
 check_headscale_env_vars() {
-	required_global_var_is_populated "PUBLIC_SERVER_URL"
-	required_global_var_is_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	require_env_var "PUBLIC_SERVER_URL"
+	require_env_var "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 }
 
 #######################################
-# Run the various environment vars checks
+# Perform all required environment variable checks
 #######################################
 check_required_environment_vars() {
-	info_out "Checking required environment variables..."
+	log_info "Checking required environment variables..."
 	check_public_listen_port
 	check_litestream_replica_url
-	check_oidc_settings
-	check_ip_prefixes
+	validate_oidc_settings
+	set_ip_prefixes
 	check_headscale_env_vars
 }
 
-create_headscale_config_from_environment_vars() {
-	local headscale_config_path=/etc/headscale/config.yaml
+#######################################
+# Create Headscale configuration file
+#######################################
+create_headscale_config() {
+    local config_path="/etc/headscale/config.yaml"
 
-	info_out "Creating Headscale configuration file from environment variables."
+    log_info "Generating Headscale configuration file..."
 
-	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$IPV6_PREFIX@${IPV6_PREFIX}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$IPV4_PREFIX@${IPV4_PREFIX}@" $headscale_config_path || abort_config=1
-	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
+    sed -i \
+        -e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
+        -e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
+        -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
+        -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
+        -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
+        "$config_path" || abort_config=true
 }
 
+#######################################
+# Handle Noise private key
+#######################################
 reuse_or_create_noise_private_key() {
-	local headscale_noise_private_key_path=/data/noise_private.key
+    local key_path="/data/noise_private.key"
 
-	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
-		info_out "Headscale will generate a new private noise key."
-	else
-		info_out "Using environment value for our private noise key."
-		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
-	fi
+    if is_env_var_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
+        log_info "Using provided private Noise key."
+        echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
+    else
+        log_info "Generating a new private Noise key."
+    fi
 }
 
+#######################################
+# Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
+#######################################
 check_zerossl_eab() {
 	local caddyfile=/etc/caddy/Caddyfile 
 
-	if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
-		info_out "We're using ACME EAB credentials. Check they're both populated."
-		required_global_var_is_populated "ACME_EAB_KEY_ID"
-		required_global_var_is_populated "ACME_EAB_MAC_KEY"
+	if is_env_var_populated "ACME_EAB_KEY_ID" || is_env_var_populated "ACME_EAB_MAC_KEY"; then
+		log_info "We're using ACME EAB credentials. Check they're both populated."
+		require_env_var "ACME_EAB_KEY_ID"
+		require_env_var "ACME_EAB_MAC_KEY"
 
 		sed -iz "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n    key_id ${ACME_EAB_KEY_ID}\n    mac_key ${ACME_EAB_MAC_KEY}\n }@" $caddyfile || abort_config=1
 	else
-		info_out "No ACME EAB credentials provided"
+		log_info "No ACME EAB credentials provided"
 		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
 	fi
 }
 
+#######################################
+# Validate Caddy-specific environment variables
+#######################################
 check_caddy_specific_environment_variables() {
-	if global_var_is_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
+	if is_env_var_populated "CADDY_FRONTEND" ; then
+		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_disabled=true
 		return
 	fi
 
-	required_global_var_is_populated "CF_API_TOKEN"
-	required_global_var_is_populated "ACME_ISSUANCE_EMAIL"
+	require_env_var "CF_API_TOKEN"
+	require_env_var "ACME_ISSUANCE_EMAIL"
 
 	check_zerossl_eab
 }
 
-####
-# Checks our various environment variables are populated, and squirts them into their
-# places, as required.
-#
+#######################################
+# Create our configuration files
+#######################################
 check_config_files() {
 	check_required_environment_vars
 
-	create_headscale_config_from_environment_vars
+	create_headscale_config
 
 	reuse_or_create_noise_private_key
 
 	check_caddy_specific_environment_variables
 }
 
-####
-# Ensures our configuration directories exist
-#
+#######################################
+# Create required directories
+#######################################
 check_needed_directories() {
 	mkdir -p /var/run/headscale || return
 	mkdir -p /data/headscale || return
 	mkdir -p /data/caddy || return
 }
 
-#---
-# LOGIC STARTSHERE
-#
+#######################################
+# Main logic
+#######################################
 run() {
-	check_needed_directories || error_out "Unable to create required configuration directories."
+	check_needed_directories || log_error "Unable to create required configuration directories."
 
-	check_config_files || error_out "We don't have enough information to run our services."
+	check_config_files || log_error "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
-		if ! $caddy_deliberately_disabled ; then
-			info_out "Starting Caddy using our environment variables" && \
+		if ! $caddy_disabled ; then
+			log_info "Starting Caddy using our environment variables" && \
 			caddy start --config "/etc/caddy/Caddyfile"
 		fi
 
-		if ! $litestream_deliberately_disabled ; then
-			info_out "Attempt to restore previous Headscale database if there's a replica" && \
+		if ! $litestream_disabled ; then
+			log_info "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
 			\
-			info_out "Starting Headscale using Litestream and our Environment Variables..." && \
+			log_info "Starting Headscale using Litestream and our Environment Variables..." && \
 			litestream replicate -exec 'headscale serve'
 		else
 			headscale serve
@@ -278,14 +268,14 @@ run() {
 		return
 	fi
 
-	error_out "Something went wrong."
+	log_error "Something went wrong."
 	if [ -n "$DEBUG" ] ; then
-		info_out "Sleeping so you can connect and debug"
+		log_info "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
 
-	error_out "Exiting with code ${abort_config}"
+	log_error "Exiting with code ${abort_config}"
 	exit "$abort_config"
 }
 

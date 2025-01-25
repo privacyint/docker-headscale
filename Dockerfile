@@ -1,19 +1,29 @@
 # ---
 # Tool version args
+# Bump these every time there is a new release. Don't forget the checksum!
 ARG HEADSCALE_VERSION="0.24.1"
-ARG HEADSCALE_ADMIN_VERSION="0.24.3"
-ARG LITESTREAM_VERSION="0.3.13"
-# Tool SHA512SUMs args
 ARG HEADSCALE_SHA256="28540f5bed81e574dd99b3100ee2fa932ecbb68c6ac093a86f2fc32cb07ff731"
+
+ARG LITESTREAM_VERSION="0.3.13"
 ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0"
+
+# ---
 # Container version args
+# Bump these every time there is a new release. No checksum needed.
 ARG CADDY_BUILDER_VERSION="2.9.1-builder"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.21.2"
-# Download links
+ARG HEADSCALE_ADMIN_VERSION="0.24.3"
+
+# ---
+# Tool download links
+# These should never need adjusting unless the URIs change
 ARG HEADSCALE_DOWNLOAD_URL="https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64"
 ARG LITESTREAM_DOWNLOAD_URL="https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz"
 
 ###########
+# LOGIC STARTS HERE
+###########
+
 # ---
 # Build caddy with Cloudflare DNS support
 FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
