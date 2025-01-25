@@ -14,7 +14,7 @@ caddy_deliberately_disabled=false
 # Ouputs:
 #   Message to `STDOUT`
 #######################################
-info_out() {
+log_info() {
 	echo "INFO: $1"
 }
 
@@ -102,17 +102,17 @@ check_litestream_replica_url() {
 	fi		
 
 	if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
-		info_out "This server is very deliberately ephemeral."
+		log_info "This server is very deliberately ephemeral."
 		litestream_deliberately_disabled=true
 		return
 	fi
 
 	if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
-		info_out "Litestream uses S3-Alike storage."
+		log_info "Litestream uses S3-Alike storage."
 		required_global_var_is_populated "LITESTREAM_ACCESS_KEY_ID"
 		required_global_var_is_populated "LITESTREAM_SECRET_ACCESS_KEY"
 	elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
-		info_out "Litestream uses Azure Blob storage."
+		log_info "Litestream uses Azure Blob storage."
 		required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 	else
 		error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
@@ -124,7 +124,7 @@ check_litestream_replica_url() {
 #######################################
 check_oidc_settings() {
 	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		info_out "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
+		log_info "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
 		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_ID"
 		required_global_var_is_populated "HEADSCALE_OIDC_CLIENT_SECRET"
 		global_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
@@ -142,7 +142,7 @@ check_ip_prefixes() {
 		export IPV4_PREFIX="100.64.0.0/10"
 	fi
 
-	info_out "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
+	log_info "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
 }
 
 #######################################
@@ -157,7 +157,7 @@ check_headscale_env_vars() {
 # Perform all required environment variable checks
 #######################################
 check_required_environment_vars() {
-	info_out "Checking required environment variables..."
+	log_info "Checking required environment variables..."
 	check_public_listen_port
 	check_litestream_replica_url
 	check_oidc_settings
@@ -171,7 +171,7 @@ check_required_environment_vars() {
 create_headscale_config_from_environment_vars() {
 	local headscale_config_path=/etc/headscale/config.yaml
 
-	info_out "Creating Headscale configuration file from environment variables."
+	log_info "Creating Headscale configuration file from environment variables."
 
 	sed -i "s@\$PUBLIC_SERVER_URL@${PUBLIC_SERVER_URL}@" $headscale_config_path || abort_config=1
 	sed -i "s@\$PUBLIC_LISTEN_PORT@${PUBLIC_LISTEN_PORT}@" $headscale_config_path || abort_config=1
@@ -187,9 +187,9 @@ reuse_or_create_noise_private_key() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
 	if [ -z "$HEADSCALE_NOISE_PRIVATE_KEY" ]; then
-		info_out "Headscale will generate a new private noise key."
+		log_info "Headscale will generate a new private noise key."
 	else
-		info_out "Using environment value for our private noise key."
+		log_info "Using environment value for our private noise key."
 		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > $headscale_noise_private_key_path
 	fi
 }
@@ -201,13 +201,13 @@ check_zerossl_eab() {
 	local caddyfile=/etc/caddy/Caddyfile 
 
 	if global_var_is_populated "ACME_EAB_KEY_ID" || global_var_is_populated "ACME_EAB_MAC_KEY"; then
-		info_out "We're using ACME EAB credentials. Check they're both populated."
+		log_info "We're using ACME EAB credentials. Check they're both populated."
 		required_global_var_is_populated "ACME_EAB_KEY_ID"
 		required_global_var_is_populated "ACME_EAB_MAC_KEY"
 
 		sed -iz "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n    key_id ${ACME_EAB_KEY_ID}\n    mac_key ${ACME_EAB_MAC_KEY}\n }@" $caddyfile || abort_config=1
 	else
-		info_out "No ACME EAB credentials provided"
+		log_info "No ACME EAB credentials provided"
 		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
 	fi
 }
@@ -259,15 +259,15 @@ run() {
 
 	if ! $abort_config ; then
 		if ! $caddy_deliberately_disabled ; then
-			info_out "Starting Caddy using our environment variables" && \
+			log_info "Starting Caddy using our environment variables" && \
 			caddy start --config "/etc/caddy/Caddyfile"
 		fi
 
 		if ! $litestream_deliberately_disabled ; then
-			info_out "Attempt to restore previous Headscale database if there's a replica" && \
+			log_info "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
 			\
-			info_out "Starting Headscale using Litestream and our Environment Variables..." && \
+			log_info "Starting Headscale using Litestream and our Environment Variables..." && \
 			litestream replicate -exec 'headscale serve'
 		else
 			headscale serve
@@ -278,7 +278,7 @@ run() {
 
 	error_out "Something went wrong."
 	if [ -n "$DEBUG" ] ; then
-		info_out "Sleeping so you can connect and debug"
+		log_info "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
