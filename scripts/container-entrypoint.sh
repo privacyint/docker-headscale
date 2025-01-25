@@ -49,7 +49,7 @@ is_env_var_populated() {
 # Globals:
 #   abort_config
 #######################################
-required_is_env_var_populated() {
+require_env_var() {
 	var="$1"
 	
 	is_env_var_populated "$var" &>/dev/null && return
@@ -92,7 +92,7 @@ check_public_listen_port() {
 # Validate Litestream replica URL
 #######################################
 check_litestream_replica_url() {
-	if ! required_is_env_var_populated "LITESTREAM_REPLICA_URL" ; then
+	if ! require_env_var "LITESTREAM_REPLICA_URL" ; then
 		log_error "'LITESTREAM_REPLICA_URL' must be populated"
 		return
 	fi		
@@ -105,11 +105,11 @@ check_litestream_replica_url() {
 
 	if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
 		log_info "Litestream uses S3-Alike storage."
-		required_is_env_var_populated "LITESTREAM_ACCESS_KEY_ID"
-		required_is_env_var_populated "LITESTREAM_SECRET_ACCESS_KEY"
+		require_env_var "LITESTREAM_ACCESS_KEY_ID"
+		require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
 	elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
 		log_info "Litestream uses Azure Blob storage."
-		required_is_env_var_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
+		require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
 	else
 		log_error "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
 	fi
@@ -121,8 +121,8 @@ check_litestream_replica_url() {
 check_oidc_settings() {
 	if is_env_var_populated "HEADSCALE_OIDC_ISSUER" ; then
 		log_info "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
-		required_is_env_var_populated "HEADSCALE_OIDC_CLIENT_ID"
-		required_is_env_var_populated "HEADSCALE_OIDC_CLIENT_SECRET"
+		require_env_var "HEADSCALE_OIDC_CLIENT_ID"
+		require_env_var "HEADSCALE_OIDC_CLIENT_SECRET"
 		is_env_var_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
 	fi
 }
@@ -145,8 +145,8 @@ check_ip_prefixes() {
 # Validate headscale-specific environment variables
 #######################################
 check_headscale_env_vars() {
-	required_is_env_var_populated "PUBLIC_SERVER_URL"
-	required_is_env_var_populated "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	require_env_var "PUBLIC_SERVER_URL"
+	require_env_var "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 }
 
 #######################################
@@ -198,8 +198,8 @@ check_zerossl_eab() {
 
 	if is_env_var_populated "ACME_EAB_KEY_ID" || is_env_var_populated "ACME_EAB_MAC_KEY"; then
 		log_info "We're using ACME EAB credentials. Check they're both populated."
-		required_is_env_var_populated "ACME_EAB_KEY_ID"
-		required_is_env_var_populated "ACME_EAB_MAC_KEY"
+		require_env_var "ACME_EAB_KEY_ID"
+		require_env_var "ACME_EAB_MAC_KEY"
 
 		sed -iz "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n    key_id ${ACME_EAB_KEY_ID}\n    mac_key ${ACME_EAB_MAC_KEY}\n }@" $caddyfile || abort_config=1
 	else
@@ -217,8 +217,8 @@ check_caddy_specific_environment_variables() {
 		return
 	fi
 
-	required_is_env_var_populated "CF_API_TOKEN"
-	required_is_env_var_populated "ACME_ISSUANCE_EMAIL"
+	require_env_var "CF_API_TOKEN"
+	require_env_var "ACME_ISSUANCE_EMAIL"
 
 	check_zerossl_eab
 }
