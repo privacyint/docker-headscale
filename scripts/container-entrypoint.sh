@@ -5,7 +5,7 @@ set -e
 # Global flags
 abort_config=false
 litestream_disabled=false
-caddy_deliberately_disabled=false
+caddy_disabled=false
 
 #######################################
 # Log an informational message
@@ -209,7 +209,7 @@ check_zerossl_eab() {
 #######################################
 check_caddy_specific_environment_variables() {
 	if is_env_var_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
+		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_disabled=true
 		return
 	fi
 
@@ -250,7 +250,7 @@ run() {
 	check_config_files || log_error "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
-		if ! $caddy_deliberately_disabled ; then
+		if ! $caddy_disabled ; then
 			log_info "Starting Caddy using our environment variables" && \
 			caddy start --config "/etc/caddy/Caddyfile"
 		fi
