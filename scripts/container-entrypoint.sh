@@ -4,7 +4,7 @@ set -e
 
 # Global flags
 abort_config=false
-litestream_deliberately_disabled=false
+litestream_disabled=false
 caddy_deliberately_disabled=false
 
 #######################################
@@ -90,27 +90,28 @@ check_public_listen_port() {
 # Validate Litestream replica URL
 #######################################
 check_litestream_replica_url() {
-	if ! require_env_var "LITESTREAM_REPLICA_URL" ; then
-		log_error "'LITESTREAM_REPLICA_URL' must be populated"
-		return
-	fi		
+    if ! require_env_var "LITESTREAM_REPLICA_URL"; then
+        return
+    fi	
 
-	if [ "${LITESTREAM_REPLICA_URL}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] ; then
-		log_info "This server is very deliberately ephemeral."
-		litestream_deliberately_disabled=true
-		return
-	fi
-
-	if [[ ${LITESTREAM_REPLICA_URL:0:5} == "s3://" ]] ; then
-		log_info "Litestream uses S3-Alike storage."
-		require_env_var "LITESTREAM_ACCESS_KEY_ID"
-		require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
-	elif [[ ${LITESTREAM_REPLICA_URL:0:6} == "abs://" ]] ; then
-		log_info "Litestream uses Azure Blob storage."
-		require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
-	else
-		log_error "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
-	fi
+    case "$LITESTREAM_REPLICA_URL" in
+        DISABLED_I_KNOW_WHAT_IM_DOING)
+            log_info "Ephemeral server configuration enabled."
+            litestream_disabled=true
+            ;;
+        s3://*)
+            log_info "Using S3-Alike storage for Litestream."
+            require_env_var "LITESTREAM_ACCESS_KEY_ID"
+            require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
+            ;;
+        abs://*)
+            log_info "Using Azure Blob storage for Litestream."
+            require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
+            ;;
+        *)
+            log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
+            ;;
+    esac
 }
 
 #######################################
@@ -257,7 +258,7 @@ run() {
 			caddy start --config "/etc/caddy/Caddyfile"
 		fi
 
-		if ! $litestream_deliberately_disabled ; then
+		if ! $litestream_disabled ; then
 			log_info "Attempt to restore previous Headscale database if there's a replica" && \
 			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
 			\
