@@ -129,15 +129,10 @@ validate_oidc_settings() {
 #######################################
 # Set default headscale IP prefixes if not provided
 #######################################
-check_ip_prefixes() {
-	if ! is_env_var_populated "IPV6_PREFIX" ; then
-		export IPV6_PREFIX="fd7a:115c:a1e0::/48"
-	fi
-	if ! is_env_var_populated "IPV4_PREFIX" ; then
-		export IPV4_PREFIX="100.64.0.0/10"
-	fi
-
-	log_info "Using '$IPV6_PREFIX' and '$IPV4_PREFIX' as our subnets"
+set_ip_prefixes() {
+    export IPV6_PREFIX="${IPV6_PREFIX:-fd7a:115c:a1e0::/48}"
+    export IPV4_PREFIX="${IPV4_PREFIX:-100.64.0.0/10}"
+    log_info "Using subnets IPV6: '$IPV6_PREFIX', IPV4: '$IPV4_PREFIX'"
 }
 
 #######################################
@@ -156,7 +151,7 @@ check_required_environment_vars() {
 	check_public_listen_port
 	check_litestream_replica_url
 	validate_oidc_settings
-	check_ip_prefixes
+	set_ip_prefixes
 	check_headscale_env_vars
 }
 
