@@ -2,15 +2,16 @@
 
 set -e
 
+# Global flags
 abort_config=false
 litestream_deliberately_disabled=false
 caddy_deliberately_disabled=false
 
 #######################################
-# Echo out an INFO message
-# ARGUMENTS:
-#   Message
-# OUTPUTS:
+# Log an informational message
+# Arguments:
+#   $1 - Message to log
+# Ouputs:
 #   Message to `STDOUT`
 #######################################
 info_out() {
@@ -18,15 +19,11 @@ info_out() {
 }
 
 #######################################
-# Echo out an ERROR message
-# GLOBALS:
-#   `abort_config` is set to `true`
-# ARGUMENTS:
-#   Message
-# OUTPUTS:
-#   Message to `STDERR`
-# RETURNS:
-#   `false`
+# Log an error message and set abort flag
+# Arguments:
+#   $1 - Message to log
+# Returns:
+#   false
 #######################################
 error_out() {
 	echo >&2 "ERROR: $1"
@@ -35,13 +32,11 @@ error_out() {
 }
 
 #######################################
-# Check if an environment variable has been populated
-# ARGUMENTS:
-#   Variable to check
-# OUTPUTS:
-#   Writes to STDERR on failure
-# RETURN:
-#   `0` if the variable is populated, otherwise `false`
+# Check if an environment variable is populated
+# Arguments:
+#   $1 - Variable name
+# Returns:
+#   0 if populated, otherwise false
 #######################################
 global_var_is_populated() {
 	var="$1"
@@ -52,16 +47,11 @@ global_var_is_populated() {
 }
 
 #######################################
-# Check if a required environment variable has been populated, otherwise set
-# `abort_config` to non-zero
-# GLOBALS:
+# Ensure an environment variable is populated
+# Arguments:
+#   $1 - Variable name
+# Globals:
 #   abort_config
-# ARGUMENTS:
-#   Variable to check
-# OUTPUTS:
-#   Writes to STDERR on failure
-# RETURN:
-#   `0` if the variable is populated, otherwise `false`
 #######################################
 required_global_var_is_populated() {
 	var="$1"
@@ -72,13 +62,11 @@ required_global_var_is_populated() {
 }
 
 #######################################
-# Check a given environment variable is a "valid" port (1-65535)
-# ARGUMENTS:
-#   Variable to check
-# OUTPUTS:
-#   Uses `error_out()` on failure
-# RETURN:
-#   `0` if it's considered valid, `false` on error.
+# Validate a port number
+# Arguments:
+#   $1 - Variable name containing the port
+# Globals:
+#   abort_config
 #######################################
 check_is_valid_port() {
 	port="$1"
@@ -93,8 +81,7 @@ check_is_valid_port() {
 }
 
 #######################################
-# Checks whether `PUBLIC_LISTEN_PORT` is set and a "valid" port (1-65535)
-# otherwise defaults to `PUBLIC_LISTEN_PORT` to `443`
+# Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
@@ -106,7 +93,7 @@ check_public_listen_port() {
 }
 
 #######################################
-# Checks `LITESTREAM_REPLICA_URL`
+# Validate Litestream replica URL
 #######################################
 check_litestream_replica_url() {
 	if ! required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
@@ -133,7 +120,7 @@ check_litestream_replica_url() {
 }
 
 #######################################
-# Checks our OIDC settings are in order, if set
+# Validate OIDC settings
 #######################################
 check_oidc_settings() {
 	if global_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
@@ -145,7 +132,7 @@ check_oidc_settings() {
 }
 
 #######################################
-# Check if we're using custom prefixes, or default
+# Set default headscale IP prefixes if not provided
 #######################################
 check_ip_prefixes() {
 	if ! global_var_is_populated "IPV6_PREFIX" ; then
@@ -159,7 +146,7 @@ check_ip_prefixes() {
 }
 
 #######################################
-# Check the require environment variables to start headscale
+# Validate headscale-specific environment variables
 #######################################
 check_headscale_env_vars() {
 	required_global_var_is_populated "PUBLIC_SERVER_URL"
@@ -167,7 +154,7 @@ check_headscale_env_vars() {
 }
 
 #######################################
-# Run the various environment vars checks
+# Perform all required environment variable checks
 #######################################
 check_required_environment_vars() {
 	info_out "Checking required environment variables..."
@@ -178,6 +165,9 @@ check_required_environment_vars() {
 	check_headscale_env_vars
 }
 
+#######################################
+# Create Headscale configuration file
+#######################################
 create_headscale_config_from_environment_vars() {
 	local headscale_config_path=/etc/headscale/config.yaml
 
@@ -190,6 +180,9 @@ create_headscale_config_from_environment_vars() {
 	sed -i "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@${HEADSCALE_DNS_CONFIG_BASE_DOMAIN}@" $headscale_config_path || abort_config=1
 }
 
+#######################################
+# Handle Noise private key
+#######################################
 reuse_or_create_noise_private_key() {
 	local headscale_noise_private_key_path=/data/noise_private.key
 
@@ -201,6 +194,9 @@ reuse_or_create_noise_private_key() {
 	fi
 }
 
+#######################################
+# Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
+#######################################
 check_zerossl_eab() {
 	local caddyfile=/etc/caddy/Caddyfile 
 
@@ -216,6 +212,9 @@ check_zerossl_eab() {
 	fi
 }
 
+#######################################
+# Validate Caddy-specific environment variables
+#######################################
 check_caddy_specific_environment_variables() {
 	if global_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_deliberately_disabled=true
@@ -228,10 +227,9 @@ check_caddy_specific_environment_variables() {
 	check_zerossl_eab
 }
 
-####
-# Checks our various environment variables are populated, and squirts them into their
-# places, as required.
-#
+#######################################
+# Create our configuration files
+#######################################
 check_config_files() {
 	check_required_environment_vars
 
@@ -242,18 +240,18 @@ check_config_files() {
 	check_caddy_specific_environment_variables
 }
 
-####
-# Ensures our configuration directories exist
-#
+#######################################
+# Create required directories
+#######################################
 check_needed_directories() {
 	mkdir -p /var/run/headscale || return
 	mkdir -p /data/headscale || return
 	mkdir -p /data/caddy || return
 }
 
-#---
-# LOGIC STARTSHERE
-#
+#######################################
+# Main logic
+#######################################
 run() {
 	check_needed_directories || error_out "Unable to create required configuration directories."
 
