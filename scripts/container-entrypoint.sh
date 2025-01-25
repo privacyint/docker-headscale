@@ -25,7 +25,7 @@ log_info() {
 # Returns:
 #   false
 #######################################
-error_out() {
+log_error() {
 	echo >&2 "ERROR: $1"
 	abort_config=true
 	false
@@ -58,7 +58,7 @@ required_global_var_is_populated() {
 	
 	global_var_is_populated "$var" &>/dev/null && return
 	
-	error_out "Environment variable '$var' is required"
+	log_error "Environment variable '$var' is required"
 }
 
 #######################################
@@ -71,12 +71,12 @@ required_global_var_is_populated() {
 check_is_valid_port() {
 	port="$1"
 	case "${!port}" in
-		'' | *[!0123456789]*) error_out "'$port' is not numeric." && return ;;
-		0*[!0]*) error_out "'$port' has a leading zero." && return ;;
+		'' | *[!0123456789]*) log_error "'$port' is not numeric." && return ;;
+		0*[!0]*) log_error "'$port' has a leading zero." && return ;;
 	esac
 
 	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
-		error_out "'$port' must be a valid port within the range of 1-65535." && return
+		log_error "'$port' must be a valid port within the range of 1-65535." && return
 	fi
 }
 
@@ -97,7 +97,7 @@ check_public_listen_port() {
 #######################################
 check_litestream_replica_url() {
 	if ! required_global_var_is_populated "LITESTREAM_REPLICA_URL" ; then
-		error_out "'LITESTREAM_REPLICA_URL' must be populated"
+		log_error "'LITESTREAM_REPLICA_URL' must be populated"
 		return
 	fi		
 
@@ -115,7 +115,7 @@ check_litestream_replica_url() {
 		log_info "Litestream uses Azure Blob storage."
 		required_global_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"
 	else
-		error_out "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
+		log_error "'LITESTREAM_REPLICA_URL' must start with either 's3://' OR 'abs://', or deliberately disabled by setting to 'DISABLED_I_KNOW_WHAT_IM_DOING'"
 	fi
 }
 
@@ -253,9 +253,9 @@ check_needed_directories() {
 # Main logic
 #######################################
 run() {
-	check_needed_directories || error_out "Unable to create required configuration directories."
+	check_needed_directories || log_error "Unable to create required configuration directories."
 
-	check_config_files || error_out "We don't have enough information to run our services."
+	check_config_files || log_error "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
 		if ! $caddy_deliberately_disabled ; then
@@ -276,14 +276,14 @@ run() {
 		return
 	fi
 
-	error_out "Something went wrong."
+	log_error "Something went wrong."
 	if [ -n "$DEBUG" ] ; then
 		log_info "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
 
-	error_out "Exiting with code ${abort_config}"
+	log_error "Exiting with code ${abort_config}"
 	exit "$abort_config"
 }
 
