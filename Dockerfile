@@ -10,7 +10,7 @@ ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a907794
 # ---
 # Container version args
 # Bump these every time there is a new release. No checksum needed.
-ARG CADDY_BUILDER_VERSION="2.9.1-builder"
+ARG CADDY_VERSION="2.9.1"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.21.2"
 ARG HEADSCALE_ADMIN_VERSION="0.24.3"
 
@@ -26,7 +26,7 @@ ARG LITESTREAM_DOWNLOAD_URL="https://github.com/benbjohnson/litestream/releases/
 
 # ---
 # Build caddy with Cloudflare DNS support
-FROM caddy:${CADDY_BUILDER_VERSION} AS caddy-builder
+FROM caddy:${CADDY_VERSION}-builder AS caddy-builder
     # Set SHELL flags for RUN commands to allow -e and pipefail
     # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
     SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
