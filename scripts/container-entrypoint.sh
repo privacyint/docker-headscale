@@ -127,6 +127,14 @@ validate_oidc_settings() {
 }
 
 #######################################
+# Set whether headscale should use Magic DNS
+#######################################
+set_magic_dns() {
+    export MAGIC_DNS="${MAGIC_DNS:-true}"
+    log_info "Using Magic DNS: '$MAGIC_DNS'"
+}
+
+#######################################
 # Set default headscale IP prefixes if not provided
 #######################################
 set_ip_prefixes() {
@@ -152,6 +160,7 @@ check_required_environment_vars() {
 	check_litestream_replica_url
 	validate_oidc_settings
 	set_ip_prefixes
+	set_magic_dns
 	check_headscale_env_vars
 }
 
@@ -169,6 +178,7 @@ create_headscale_config() {
         -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
         -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
         -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
+		-e "s@\$MAGIC_DNS@$MAGIC_DNS@" \
         "$config_path" || log_error "Unable to generate Headscale configuration file"
 }
 
