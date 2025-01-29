@@ -10,7 +10,7 @@ caddy_disabled=false
 #######################################
 # Log an informational message
 # Arguments:
-#   $1 - Message to log
+#   `$1` - Message to log
 # Ouputs:
 #   Message to `STDOUT`
 #######################################
@@ -21,9 +21,13 @@ log_info() {
 #######################################
 # Log an error message and set abort flag
 # Arguments:
-#   $1 - Message to log
+#   `$1` - Message to log
+# Globals:
+#   `abort_config`
 # Returns:
-#   false
+#   `false`
+# Ouputs:
+#   Message to `STDERR`
 #######################################
 log_error() {
 	echo >&2 "ERROR: $1"
@@ -36,7 +40,7 @@ log_error() {
 # Arguments:
 #   $1 - Variable name
 # Returns:
-#   0 if populated, otherwise false
+#   `true` if populated, otherwise `false`
 #######################################
 env_var_is_populated() {
     [ -n "${!1}" ]
@@ -46,8 +50,8 @@ env_var_is_populated() {
 # Ensure an environment variable is populated
 # Arguments:
 #   $1 - Variable name
-# Globals:
-#   abort_config
+# Returns:
+#   `true` if populated, otherwise `false`
 #######################################
 require_env_var() {
     if ! env_var_is_populated "$1"; then
@@ -59,8 +63,8 @@ require_env_var() {
 # Validate a port number
 # Arguments:
 #   $1 - Variable name containing the port
-# Globals:
-#   abort_config
+# Returns:
+#   `true` if deemed valid, otherwise `false`
 #######################################
 validate_port() {
 	port="$1"
@@ -78,7 +82,6 @@ validate_port() {
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
 	if env_var_is_populated "PUBLIC_LISTEN_PORT" ; then
 		validate_port "PUBLIC_LISTEN_PORT"
 	else
@@ -88,6 +91,8 @@ check_public_listen_port() {
 
 #######################################
 # Validate Litestream replica URL
+# Globals:
+#   `litestream_disabled`
 #######################################
 check_litestream_replica_url() {
     if ! require_env_var "LITESTREAM_REPLICA_URL"; then
