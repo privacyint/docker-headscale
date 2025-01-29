@@ -220,6 +220,24 @@ check_zerossl_eab() {
 }
 
 #######################################
+# Validate the Cloudflare API Key if provided and modify Caddyfile as needed
+#######################################
+check_cloudflare_dns_api_key() {
+	local caddyfile=/etc/caddy/Caddyfile 
+
+	if env_var_is_populated "CF_API_TOKEN" ; then
+		log_info "Using Cloudflare for ACME DNS Challenge."
+
+		sed -iz \
+		 "s@<<CLOUDFLARE_ACME>>@tls {\n    dns cloudflare $CF_API_TOKEN\n  }@" \
+		  $caddyfile || abort_config=1
+	else
+		log_info "Using HTTP authentication for ACME DNS Challenge"
+		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile || abort_config=1
+	fi
+}
+
+#######################################
 # Validate Caddy-specific environment variables
 #######################################
 check_caddy_specific_environment_variables() {
@@ -228,9 +246,8 @@ check_caddy_specific_environment_variables() {
 		return
 	fi
 
-	require_env_var "CF_API_TOKEN"
 	require_env_var "ACME_ISSUANCE_EMAIL"
-
+	check_cloudflare_dns_api_key
 	check_zerossl_eab
 }
 
