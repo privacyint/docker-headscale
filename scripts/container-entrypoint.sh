@@ -178,6 +178,7 @@ create_headscale_config() {
         -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
         -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
         -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
+		-e "s@\$MAGIC_DNS@$MAGIC_DNS@" \
         "$config_path" || log_error "Unable to generate Headscale configuration file"
 }
 

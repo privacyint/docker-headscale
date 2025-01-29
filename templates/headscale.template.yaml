@@ -268,7 +268,7 @@ policy:
 # all the fields under `dns` should be set to empty values.
 dns:
   # Whether to use [MagicDNS](https://tailscale.com/kb/1081/magicdns/).
-  magic_dns: false
+  magic_dns: $MAGIC_DNS
 
   # Defines the base domain to create the hostnames for MagicDNS.
   # This domain _must_ be different from the server_url domain.
