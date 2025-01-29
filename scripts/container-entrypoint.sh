@@ -38,7 +38,7 @@ log_error() {
 # Returns:
 #   0 if populated, otherwise false
 #######################################
-is_env_var_populated() {
+env_var_is_populated() {
     [ -n "${!1}" ]
 }
 
@@ -50,7 +50,7 @@ is_env_var_populated() {
 #   abort_config
 #######################################
 require_env_var() {
-    if ! is_env_var_populated "$1"; then
+    if ! env_var_is_populated "$1"; then
         log_error "Environment variable '$1' is required"
     fi
 }
@@ -79,7 +79,7 @@ validate_port() {
 #######################################
 check_public_listen_port() {
 	# If `PUBLIC_LISTEN_PORT` is set it needs to be valid
-	if is_env_var_populated "PUBLIC_LISTEN_PORT" ; then
+	if env_var_is_populated "PUBLIC_LISTEN_PORT" ; then
 		validate_port "PUBLIC_LISTEN_PORT"
 	else
 		export PUBLIC_LISTEN_PORT=443
@@ -118,11 +118,11 @@ check_litestream_replica_url() {
 # Validate OIDC settings
 #######################################
 validate_oidc_settings() {
-	if is_env_var_populated "HEADSCALE_OIDC_ISSUER" ; then
+	if env_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
 		log_info "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
 		require_env_var "HEADSCALE_OIDC_CLIENT_ID"
 		require_env_var "HEADSCALE_OIDC_CLIENT_SECRET"
-		is_env_var_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
+		env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
 	fi
 }
 
@@ -188,7 +188,7 @@ create_headscale_config() {
 reuse_or_create_noise_private_key() {
     local key_path="/data/noise_private.key"
 
-    if is_env_var_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
+    if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
         log_info "Using provided private Noise key."
         echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
     else
@@ -202,7 +202,7 @@ reuse_or_create_noise_private_key() {
 check_zerossl_eab() {
 	local caddyfile=/etc/caddy/Caddyfile 
 
-	if is_env_var_populated "ACME_EAB_KEY_ID" || is_env_var_populated "ACME_EAB_MAC_KEY"; then
+	if env_var_is_populated "ACME_EAB_KEY_ID" || env_var_is_populated "ACME_EAB_MAC_KEY"; then
 		log_info "We're using ACME EAB credentials. Check they're both populated."
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
@@ -218,7 +218,7 @@ check_zerossl_eab() {
 # Validate Caddy-specific environment variables
 #######################################
 check_caddy_specific_environment_variables() {
-	if is_env_var_populated "CADDY_FRONTEND" ; then
+	if env_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_disabled=true
 		return
 	fi
