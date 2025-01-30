@@ -149,6 +149,25 @@ set_ip_prefixes() {
 }
 
 #######################################
+# Set default headscale IP allocation if not provided, check it's valid
+#######################################
+set_ip_allocation() {
+	export IP_ALLOCATION="${IP_ALLOCATION:-sequential}"
+
+    case "$IP_ALLOCATION" in
+        sequential)
+            log_info "Using ${IP_ALLOCATION} IP allocation"
+            ;;
+        random)
+            log_info "Using ${IP_ALLOCATION} IP allocation"
+            ;;
+        *)
+            log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+            ;;
+    esac
+}
+
+#######################################
 # Validate headscale-specific environment variables
 #######################################
 check_headscale_env_vars() {
@@ -165,6 +184,7 @@ check_required_environment_vars() {
 	check_litestream_replica_url
 	validate_oidc_settings
 	set_ip_prefixes
+	set_ip_allocation
 	set_magic_dns
 	check_headscale_env_vars
 }
@@ -182,6 +202,7 @@ create_headscale_config() {
         -e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
         -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
         -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
+        -e "s@\$IP_ALLOCATION@$IP_ALLOCATION@" \
         -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
 		-e "s@\$MAGIC_DNS@$MAGIC_DNS@" \
         "$config_path" || log_error "Unable to generate Headscale configuration file"

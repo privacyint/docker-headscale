@@ -67,7 +67,7 @@ prefixes:
   # Strategy used for allocation of IPs to nodes, available options:
   # - sequential (default): assigns the next free IP from the previous given IP.
   # - random: assigns the next free IP from a pseudo-random IP generator (crypto/rand).
-  allocation: sequential
+  allocation: $IP_ALLOCATION
 
 # DERP is a relay system that Tailscale uses when a direct
 # connection cannot be established.
