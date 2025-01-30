@@ -4,8 +4,8 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 
 ## Requirements
 
-* Cloudflare DNS (Can be deliberately disabled)
-* S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled)
+* Cloudflare DNS for [ACME `DNS-01` authentication](https://letsencrypt.org/docs/challenge-types/#dns-01-challenge) (Can be deliberately disabled to use [`HTTP-01` authentication](https://letsencrypt.org/docs/challenge-types/#http-01-challenge) instead)
+* S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled for full ephemerality)
 
 ## Installation
 
