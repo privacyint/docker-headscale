@@ -82,11 +82,8 @@ validate_port() {
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-	if env_var_is_populated "PUBLIC_LISTEN_PORT" ; then
-		validate_port "PUBLIC_LISTEN_PORT"
-	else
-		export PUBLIC_LISTEN_PORT=443
-	fi
+    export PUBLIC_LISTEN_PORT="${PUBLIC_LISTEN_PORT:-443}"
+	validate_port "PUBLIC_LISTEN_PORT"
 }
 
 #######################################
