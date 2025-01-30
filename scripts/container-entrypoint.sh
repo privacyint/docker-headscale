@@ -154,12 +154,12 @@ set_ip_prefixes() {
 set_ip_allocation() {
 	export IP_ALLOCATION="${IP_ALLOCATION:-sequential}"
 
+	log_info "Using ${IP_ALLOCATION} IP allocation"
+
     case "$IP_ALLOCATION" in
         sequential)
-            log_info "Using ${IP_ALLOCATION} IP allocation"
             ;;
         random)
-            log_info "Using ${IP_ALLOCATION} IP allocation"
             ;;
         *)
             log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
