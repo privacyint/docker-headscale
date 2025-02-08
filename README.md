@@ -10,8 +10,8 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 | [`Headscale`](headscale) | [`v0.25.0-beta.2`](https://github.com/juanfont/headscale/releases/tag/v0.25.0-beta.2) |
 | [`Headscale-Admin`](headscale-admin) | [`v.0.24.8`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.24.8) |
 | [`Litestream`](litestream) | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
-| [`Caddy`](caddy) | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1)
-|
+| [`Caddy`](caddy) | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
+
 ## Requirements
 
 * Cloudflare DNS for [ACME `DNS-01` authentication](dns-01-challenge) (Can be deliberately disabled to use [`HTTP-01` authentication](http-01-challenge) instead)
