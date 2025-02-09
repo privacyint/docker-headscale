@@ -194,8 +194,15 @@ create_headscale_config() {
 
     log_info "Generating Headscale configuration file..."
 
+	if $caddy_disabled ; then
+		export HEADSCALE_LISTEN_ADDRESS="0.0.0.0"
+	else
+		export HEADSCALE_LISTEN_ADDRESS="127.0.0.1"
+	fi
+
     sed -i \
         -e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
+        -e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
         -e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
         -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
         -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
