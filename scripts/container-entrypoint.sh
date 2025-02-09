@@ -282,11 +282,11 @@ check_caddy_specific_environment_variables() {
 check_config_files() {
 	check_required_environment_vars
 
+	check_caddy_specific_environment_variables
+
 	create_headscale_config
 
 	reuse_or_create_noise_private_key
-
-	check_caddy_specific_environment_variables
 }
 
 #######################################
