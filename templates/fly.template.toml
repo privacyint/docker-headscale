@@ -9,6 +9,10 @@ path = "/metrics"
 [experimental]
   auto_rollback = true
 
+[env]
+CADDY_FRONTEND = "DISABLED_I_KNOW_WHAT_IM_DOING"
+LITESTREAM_REPLICA_URL = "DISABLED_I_KNOW_WHAT_IM_DOING"
+
 [[services]]
   internal_port = 8080
   protocol = "tcp"
