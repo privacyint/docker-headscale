@@ -35,3 +35,9 @@ path = "/metrics"
 [mounts]
 source = "$FLY_VOLUME"
 destination = "/data"
+
+[[statics]]
+guest_path = "/"
+index_document = "index.html"
+tigris_bucket = "admin-panel"
+url_prefix = "/admin/"
