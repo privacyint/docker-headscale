@@ -194,8 +194,15 @@ create_headscale_config() {
 
     log_info "Generating Headscale configuration file..."
 
+	if $caddy_disabled ; then
+		export HEADSCALE_LISTEN_ADDRESS="0.0.0.0"
+	else
+		export HEADSCALE_LISTEN_ADDRESS="127.0.0.1"
+	fi
+
     sed -i \
         -e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
+        -e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
         -e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
         -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
         -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
@@ -211,8 +218,13 @@ create_headscale_config() {
 reuse_or_create_noise_private_key() {
     local key_path="/data/noise_private.key"
 
+	if [ -f "$key_path" ]; then
+        log_info "Using existing private Noise key on disk."
+		return
+	fi
+
     if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
-        log_info "Using provided private Noise key."
+        log_info "Using provided private Noise key from environment variable."
         echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
     else
         log_info "Generating a new private Noise key."
@@ -275,11 +287,11 @@ check_caddy_specific_environment_variables() {
 check_config_files() {
 	check_required_environment_vars
 
+	check_caddy_specific_environment_variables
+
 	create_headscale_config
 
 	reuse_or_create_noise_private_key
-
-	check_caddy_specific_environment_variables
 }
 
 #######################################
