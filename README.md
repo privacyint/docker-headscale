@@ -1,6 +1,6 @@
 # Headscale on an immutable Docker image
 
-Deploy [Headscale][headscale] using a "serverless" immutable docker image with real-time [Litestream][litestream] database backup and (by default) inbuilt [Caddy][caddy] SSL termination, using a miniscule [Alpine Linux](alpine-linux) base image. Provides a stateless [headscale-admin](headscale-admin) panel at `/admin/`.
+Deploy [Headscale][headscale] using a "serverless" immutable docker image with real-time [Litestream][litestream] database backup and (by default) inbuilt [Caddy][caddy] SSL termination, using a miniscule [Alpine Linux][alpine-linux] base image. Provides a stateless [headscale-admin][headscale-admin] panel at `/admin/`.
 
 ## Included upstream versions
 
@@ -12,9 +12,10 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 | [`Litestream`](litestream) | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
 | [`Caddy`](caddy) | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
 
+
 ## Requirements
 
-* Cloudflare DNS for [ACME `DNS-01` authentication](dns-01-challenge) (Can be deliberately disabled to use [`HTTP-01` authentication](http-01-challenge) instead)
+* Cloudflare DNS for [ACME `DNS-01` authentication][dns-01-challenge] (Can be deliberately disabled to use [`HTTP-01` authentication][http-01-challenge] instead)
 * S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled for full ephemerality)
 
 ## Installation
@@ -25,7 +26,7 @@ The container entrypoint script will guide you on any errors.
 
 ## Deployment and user creation
 
-Once app is deployed and green, [generate an API Key](headscale-usage) in order to use the admin interface.
+Once app is deployed and green, [generate an API Key][headscale-usage] in order to use the admin interface.
 
 ```console
 headscale apikeys create
