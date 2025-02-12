@@ -2,3 +2,4 @@
 *.env
 azure.toml
 headscale.yaml
+fly.toml
