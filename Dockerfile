@@ -1,8 +1,8 @@
 # ---
 # Tool version args
 # Bump these every time there is a new release. Don't forget the checksum!
-ARG HEADSCALE_VERSION="0.25.0-beta.2"
-ARG HEADSCALE_SHA256="dba8cd8718692c50043cfac78fed0e4366b6e139fedefe7416256ae7d20fb916"
+ARG HEADSCALE_VERSION="0.25.0"
+ARG HEADSCALE_SHA256="c5d9e9f5ceb9fa93a8c903016d20de6bc03e9f8cb68a6b2b8b86093b4738a9a1"
 
 ARG LITESTREAM_VERSION="0.3.13"
 ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0"
@@ -112,7 +112,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         litestream version;
     
     # Headscale web GUI
-    COPY --from=admin-gui /app/admin/ /data/admin-gui/admin/
+    COPY --from=admin-gui /app/admin/ /admin-gui/admin/
     
     # Remove build-time dependencies
     RUN apk del BuildTimeDeps
