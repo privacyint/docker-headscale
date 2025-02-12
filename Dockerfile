@@ -112,7 +112,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         litestream version;
     
     # Headscale web GUI
-    COPY --from=admin-gui /app/admin/ /data/admin-gui/admin/
+    COPY --from=admin-gui /app/admin/ /admin-gui/admin/
     
     # Remove build-time dependencies
     RUN apk del BuildTimeDeps
