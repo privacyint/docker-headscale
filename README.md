@@ -52,6 +52,12 @@ Then set `HEADSCALE_NOISE_PRIVATE_KEY` to the value obtained above.
 
 Note that applying this will cause your application to restart, but afterwards no other change will be necessary.
 
+## Known to run on
+
+* Azure Container Apps
+* Fly.io
+* ??? Let us know!
+
 [headscale]: https://github.com/juanfont/headscale
 [litestream]: https://litestream.io/
 [headscale-admin]: https://github.com/GoodiesHQ/headscale-admin
