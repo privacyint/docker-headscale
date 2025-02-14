@@ -54,5 +54,3 @@ jobs:
           imageToBuild: headscale.azurecr.io/headscale:${{ github.sha }}
           _buildArgumentsKey_: |
             _buildArgumentsValues_
-
-
