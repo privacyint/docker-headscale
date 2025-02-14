@@ -6,7 +6,7 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 
 | Tool | Version |
 |---|---|
-| [`Alpine Linux`](alpine-linux) | [`v3.21.2`](https://git.alpinelinux.org/aports/log/?h=v3.21.2)
+| [`Alpine Linux`](alpine-linux) | [`v3.21.3`](https://git.alpinelinux.org/aports/log/?h=v3.21.3)
 | [`Headscale`](headscale) | [`v0.25.0`](https://github.com/juanfont/headscale/releases/tag/v0.25.0) |
 | [`Headscale-Admin`](headscale-admin) | [`v.0.24.8`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.24.8) |
 | [`Litestream`](litestream) | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
