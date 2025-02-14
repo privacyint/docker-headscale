@@ -31,6 +31,14 @@ jobs:
           tenant-id: ${{ secrets.HEADSCALE_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.HEADSCALE_AZURE_SUBSCRIPTION_ID }}
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
