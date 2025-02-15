@@ -8,7 +8,7 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 |---|---|
 | [`Alpine Linux`](alpine-linux) | [`v3.21.2`](https://git.alpinelinux.org/aports/log/?h=v3.21.2)
 | [`Headscale`](headscale) | [`v0.25.0`](https://github.com/juanfont/headscale/releases/tag/v0.25.0) |
-| [`Headscale-Admin`](headscale-admin) | [`v.0.24.8`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.24.8) |
+| [`Headscale-Admin`](headscale-admin) | [`v.0.24.9`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.24.9) |
 | [`Litestream`](litestream) | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
 | [`Caddy`](caddy) | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
 
