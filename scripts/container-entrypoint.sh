@@ -242,7 +242,9 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		sed -iz "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" $caddyfile || abort_config=1
+		sed -iz \
+		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
+		  $caddyfile || abort_config=1
 	else
 		log_info "No ACME EAB credentials provided"
 		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
