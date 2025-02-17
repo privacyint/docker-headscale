@@ -6,7 +6,7 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 
 | Tool | Version |
 |---|---|
-| [`Alpine Linux`](alpine-linux) | [`v3.21.2`](https://git.alpinelinux.org/aports/log/?h=v3.21.2)
+| [`Alpine Linux`](alpine-linux) | [`v3.21.3`](https://git.alpinelinux.org/aports/log/?h=v3.21.3)
 | [`Headscale`](headscale) | [`v0.25.0`](https://github.com/juanfont/headscale/releases/tag/v0.25.0) |
 | [`Headscale-Admin`](headscale-admin) | [`v0.25.0`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.25.0) |
 | [`Litestream`](litestream) | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
@@ -51,6 +51,12 @@ cat /data/noise_private.key
 Then set `HEADSCALE_NOISE_PRIVATE_KEY` to the value obtained above.
 
 Note that applying this will cause your application to restart, but afterwards no other change will be necessary.
+
+## Known to run on
+
+* Azure Container Apps
+* Fly.io
+* ??? Let us know!
 
 [headscale]: https://github.com/juanfont/headscale
 [litestream]: https://litestream.io/
