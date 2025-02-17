@@ -6,4 +6,4 @@ Latest tagged version.
 
 ## Reporting a Vulnerability
 
-tech@privacyinternational.org
+[tech@privacyinternational.org](mailto:tech@privacyinternational.org)
