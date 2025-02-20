@@ -43,7 +43,7 @@ log_error() {
 #   `true` if populated, otherwise `false`
 #######################################
 env_var_is_populated() {
-    [ -n "${!1}" ]
+	[ -n "${!1}" ]
 }
 
 #######################################
@@ -54,9 +54,9 @@ env_var_is_populated() {
 #   `true` if populated, otherwise `false`
 #######################################
 require_env_var() {
-    if ! env_var_is_populated "$1"; then
-        log_error "Environment variable '$1' is required"
-    fi
+	if ! env_var_is_populated "$1"; then
+		log_error "Environment variable '$1' is required"
+	fi
 }
 
 #######################################
@@ -82,7 +82,7 @@ validate_port() {
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-    export PUBLIC_LISTEN_PORT="${PUBLIC_LISTEN_PORT:-443}"
+	export PUBLIC_LISTEN_PORT="${PUBLIC_LISTEN_PORT:-443}"
 	validate_port "PUBLIC_LISTEN_PORT"
 }
 
@@ -92,28 +92,28 @@ check_public_listen_port() {
 #   `litestream_disabled`
 #######################################
 check_litestream_replica_url() {
-    if ! require_env_var "LITESTREAM_REPLICA_URL"; then
-        return
-    fi	
+	if ! require_env_var "LITESTREAM_REPLICA_URL"; then
+		return
+	fi	
 
-    case "$LITESTREAM_REPLICA_URL" in
-        DISABLED_I_KNOW_WHAT_IM_DOING)
-            log_info "Ephemeral server configuration enabled."
-            litestream_disabled=true
-            ;;
-        s3://*)
-            log_info "Using S3-Alike storage for Litestream."
-            require_env_var "LITESTREAM_ACCESS_KEY_ID"
-            require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
-            ;;
-        abs://*)
-            log_info "Using Azure Blob storage for Litestream."
-            require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
-            ;;
-        *)
-            log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
-            ;;
-    esac
+	case "$LITESTREAM_REPLICA_URL" in
+		DISABLED_I_KNOW_WHAT_IM_DOING)
+			log_info "Ephemeral server configuration enabled."
+			litestream_disabled=true
+			;;
+		s3://*)
+			log_info "Using S3-Alike storage for Litestream."
+			require_env_var "LITESTREAM_ACCESS_KEY_ID"
+			require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
+			;;
+		abs://*)
+			log_info "Using Azure Blob storage for Litestream."
+			require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
+			;;
+		*)
+			log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
+			;;
+	esac
 }
 
 #######################################
@@ -132,17 +132,17 @@ validate_oidc_settings() {
 # Set whether headscale should use Magic DNS
 #######################################
 set_magic_dns() {
-    export MAGIC_DNS="${MAGIC_DNS:-true}"
-    log_info "Using Magic DNS: '$MAGIC_DNS'"
+	export MAGIC_DNS="${MAGIC_DNS:-true}"
+	log_info "Using Magic DNS: '$MAGIC_DNS'"
 }
 
 #######################################
 # Set default headscale IP prefixes if not provided
 #######################################
 set_ip_prefixes() {
-    export IPV6_PREFIX="${IPV6_PREFIX:-fd7a:115c:a1e0::/48}"
-    export IPV4_PREFIX="${IPV4_PREFIX:-100.64.0.0/10}"
-    log_info "Using subnets IPV6: '$IPV6_PREFIX', IPV4: '$IPV4_PREFIX'"
+	export IPV6_PREFIX="${IPV6_PREFIX:-fd7a:115c:a1e0::/48}"
+	export IPV4_PREFIX="${IPV4_PREFIX:-100.64.0.0/10}"
+	log_info "Using subnets IPV6: '$IPV6_PREFIX', IPV4: '$IPV4_PREFIX'"
 }
 
 #######################################
@@ -153,15 +153,15 @@ set_ip_allocation() {
 
 	log_info "Using ${IP_ALLOCATION} IP allocation"
 
-    case "$IP_ALLOCATION" in
-        sequential)
-            ;;
-        random)
-            ;;
-        *)
-            log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
-            ;;
-    esac
+	case "$IP_ALLOCATION" in
+		sequential)
+			;;
+		random)
+			;;
+		*)
+			log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+			;;
+	esac
 }
 
 #######################################
@@ -190,9 +190,9 @@ check_required_environment_vars() {
 # Create Headscale configuration file
 #######################################
 create_headscale_config() {
-    local config_path="/etc/headscale/config.yaml"
+	local config_path="/etc/headscale/config.yaml"
 
-    log_info "Generating Headscale configuration file..."
+	log_info "Generating Headscale configuration file..."
 
 	if $caddy_disabled ; then
 		export HEADSCALE_LISTEN_ADDRESS="0.0.0.0"
@@ -200,35 +200,35 @@ create_headscale_config() {
 		export HEADSCALE_LISTEN_ADDRESS="127.0.0.1"
 	fi
 
-    sed -i \
-        -e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
-        -e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
-        -e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
-        -e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
-        -e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
-        -e "s@\$IP_ALLOCATION@$IP_ALLOCATION@" \
-        -e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
+	sed -i \
+		-e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
+		-e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
+		-e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
+		-e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
+		-e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
+		-e "s@\$IP_ALLOCATION@$IP_ALLOCATION@" \
+		-e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
 		-e "s@\$MAGIC_DNS@$MAGIC_DNS@" \
-        "$config_path" || log_error "Unable to generate Headscale configuration file"
+		"$config_path" || log_error "Unable to generate Headscale configuration file"
 }
 
 #######################################
 # Handle Noise private key
 #######################################
 reuse_or_create_noise_private_key() {
-    local key_path="/data/noise_private.key"
+	local key_path="/data/noise_private.key"
 
 	if [ -f "$key_path" ]; then
-        log_info "Using existing private Noise key on disk."
+		log_info "Using existing private Noise key on disk."
 		return
 	fi
 
-    if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
-        log_info "Using provided private Noise key from environment variable."
-        echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
-    else
-        log_info "Generating a new private Noise key."
-    fi
+	if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
+		log_info "Using provided private Noise key from environment variable."
+		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
+	else
+		log_info "Generating a new private Noise key."
+	fi
 }
 
 #######################################
@@ -242,7 +242,9 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		sed -iz "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n    key_id ${ACME_EAB_KEY_ID}\n    mac_key ${ACME_EAB_MAC_KEY}\n }@" $caddyfile || abort_config=1
+		sed -iz \
+		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
+		  $caddyfile || abort_config=1
 	else
 		log_info "No ACME EAB credentials provided"
 		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
@@ -259,7 +261,7 @@ check_cloudflare_dns_api_key() {
 		log_info "Using Cloudflare for ACME DNS Challenge."
 
 		sed -iz \
-		 "s@<<CLOUDFLARE_ACME>>@tls {\n    dns cloudflare $CF_API_TOKEN\n  }@" \
+		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
 		  $caddyfile || abort_config=1
 	else
 		log_info "Using HTTP authentication for ACME DNS Challenge"
