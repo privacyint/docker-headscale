@@ -6,7 +6,8 @@ set -e
 abort_config=false
 litestream_disabled=false
 cleartext_only=false
-caddyfile=/etc/caddy/Caddyfile 
+caddyfile_cleartext=/etc/caddy/Caddyfile-http
+caddyfile_https=/etc/caddy/Caddyfile-https
 
 #######################################
 # Log an informational message
@@ -243,10 +244,10 @@ check_zerossl_eab() {
 
 		sed -iz \
 		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
-		  $caddyfile || abort_config=1
+		  $caddyfile_https || abort_config=1
 	else
 		log_info "No ACME EAB credentials provided"
-		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
+		sed -i "s@<<EAB>>@@" $caddyfile_https || abort_config=1
 	fi
 }
 
@@ -259,10 +260,10 @@ check_cloudflare_dns_api_key() {
 
 		sed -iz \
 		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
-		  $caddyfile || abort_config=1
+		  $caddyfile_https || abort_config=1
 	else
 		log_info "Using HTTP authentication for ACME DNS Challenge"
-		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile || abort_config=1
+		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile_https || abort_config=1
 	fi
 }
 
@@ -311,8 +312,13 @@ run() {
 	check_config_files || log_error "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
-		log_info "Starting Caddy using our environment variables" && \
-		caddy start --config "/etc/caddy/Caddyfile"
+		log_info "Starting Caddy using our environment variables. HTTPS is ${cleartext_only:+disabled}."
+		
+		if $cleartext_only ; then
+			caddy start --config "$caddyfile_cleartext"
+		else
+			caddy start --config "$caddyfile_https"
+		fi
 
 		if ! $litestream_disabled ; then
 			log_info "Attempt to restore previous Headscale database if there's a replica" && \
