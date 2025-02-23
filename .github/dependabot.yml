@@ -9,3 +9,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily" # Check for updates daily
+    commit-message:
+      prefix: "deps"
+      include: "scope"
