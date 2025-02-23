@@ -196,12 +196,6 @@ create_headscale_config() {
 
 	log_info "Generating Headscale configuration file..."
 
-	if $caddy_disabled ; then
-		export HEADSCALE_LISTEN_ADDRESS="0.0.0.0"
-	else
-		export HEADSCALE_LISTEN_ADDRESS="127.0.0.1"
-	fi
-
 	sed -i \
 		-e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
 		-e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
@@ -273,7 +267,7 @@ check_cloudflare_dns_api_key() {
 check_caddy_specific_environment_variables() {
 	if env_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ] && cleartext_only=true
-		return
+		return		
 	fi
 
 	require_env_var "ACME_ISSUANCE_EMAIL"
