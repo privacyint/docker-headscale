@@ -323,8 +323,6 @@ run() {
 		else
 			headscale serve
 		fi
-
-		return
 	fi
 
 	log_error "Something went wrong."
