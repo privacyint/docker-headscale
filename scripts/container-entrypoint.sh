@@ -5,7 +5,7 @@ set -e
 # Global flags
 abort_config=false
 litestream_disabled=false
-caddy_disabled=false
+cleartext_only=false
 caddyfile=/etc/caddy/Caddyfile 
 
 #######################################
@@ -271,7 +271,7 @@ check_cloudflare_dns_api_key() {
 #######################################
 check_caddy_specific_environment_variables() {
 	if env_var_is_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_disabled=true
+		[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ] && cleartext_only=true
 		return
 	fi
 
@@ -311,10 +311,8 @@ run() {
 	check_config_files || log_error "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
-		if ! $caddy_disabled ; then
-			log_info "Starting Caddy using our environment variables" && \
-			caddy start --config "/etc/caddy/Caddyfile"
-		fi
+		log_info "Starting Caddy using our environment variables" && \
+		caddy start --config "/etc/caddy/Caddyfile"
 
 		if ! $litestream_disabled ; then
 			log_info "Attempt to restore previous Headscale database if there's a replica" && \
