@@ -6,6 +6,7 @@ set -e
 abort_config=false
 litestream_disabled=false
 caddy_disabled=false
+caddyfile=/etc/caddy/Caddyfile 
 
 #######################################
 # Log an informational message
@@ -235,8 +236,6 @@ reuse_or_create_noise_private_key() {
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
-	local caddyfile=/etc/caddy/Caddyfile 
-
 	if env_var_is_populated "ACME_EAB_KEY_ID" || env_var_is_populated "ACME_EAB_MAC_KEY"; then
 		log_info "We're using ACME EAB credentials. Check they're both populated."
 		require_env_var "ACME_EAB_KEY_ID"
@@ -255,8 +254,6 @@ check_zerossl_eab() {
 # Validate the Cloudflare API Key if provided and modify Caddyfile as needed
 #######################################
 check_cloudflare_dns_api_key() {
-	local caddyfile=/etc/caddy/Caddyfile 
-
 	if env_var_is_populated "CF_API_TOKEN" ; then
 		log_info "Using Cloudflare for ACME DNS Challenge."
 
