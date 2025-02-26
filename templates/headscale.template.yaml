@@ -16,7 +16,7 @@ server_url: https://$PUBLIC_SERVER_URL:$PUBLIC_LISTEN_PORT
 #
 # For production:
 # listen_addr: 0.0.0.0:8080
-listen_addr: $HEADSCALE_LISTEN_ADDRESS:8080
+listen_addr: 127.0.0.1:8080
 
 # Address to listen to /metrics, you may want
 # to keep this endpoint private to your internal
@@ -36,7 +36,7 @@ private_key_path: /data/private.key
 #
 # For production:
 # grpc_listen_addr: 0.0.0.0:50443
-grpc_listen_addr: $HEADSCALE_LISTEN_ADDRESS:50443
+grpc_listen_addr: 127.0.0.1:50443
 
 # Allow the gRPC admin interface to run in INSECURE
 # mode. This is not recommended as the traffic will

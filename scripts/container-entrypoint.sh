@@ -1,11 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
 
 # Global flags
 abort_config=false
 litestream_disabled=false
-caddy_disabled=false
+cleartext_only=false
+caddyfile_cleartext=/etc/caddy/Caddyfile-http
+caddyfile_https=/etc/caddy/Caddyfile-https
 
 #######################################
 # Log an informational message
@@ -194,12 +196,6 @@ create_headscale_config() {
 
 	log_info "Generating Headscale configuration file..."
 
-	if $caddy_disabled ; then
-		export HEADSCALE_LISTEN_ADDRESS="0.0.0.0"
-	else
-		export HEADSCALE_LISTEN_ADDRESS="127.0.0.1"
-	fi
-
 	sed -i \
 		-e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
 		-e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
@@ -235,8 +231,6 @@ reuse_or_create_noise_private_key() {
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
-	local caddyfile=/etc/caddy/Caddyfile 
-
 	if env_var_is_populated "ACME_EAB_KEY_ID" || env_var_is_populated "ACME_EAB_MAC_KEY"; then
 		log_info "We're using ACME EAB credentials. Check they're both populated."
 		require_env_var "ACME_EAB_KEY_ID"
@@ -244,10 +238,10 @@ check_zerossl_eab() {
 
 		sed -iz \
 		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
-		  $caddyfile || abort_config=1
+		  $caddyfile_https || abort_config=1
 	else
 		log_info "No ACME EAB credentials provided"
-		sed -i "s@<<EAB>>@@" $caddyfile || abort_config=1
+		sed -i "s@<<EAB>>@@" $caddyfile_https || abort_config=1
 	fi
 }
 
@@ -255,17 +249,15 @@ check_zerossl_eab() {
 # Validate the Cloudflare API Key if provided and modify Caddyfile as needed
 #######################################
 check_cloudflare_dns_api_key() {
-	local caddyfile=/etc/caddy/Caddyfile 
-
 	if env_var_is_populated "CF_API_TOKEN" ; then
 		log_info "Using Cloudflare for ACME DNS Challenge."
 
 		sed -iz \
 		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
-		  $caddyfile || abort_config=1
+		  $caddyfile_https || abort_config=1
 	else
 		log_info "Using HTTP authentication for ACME DNS Challenge"
-		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile || abort_config=1
+		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile_https || abort_config=1
 	fi
 }
 
@@ -274,8 +266,8 @@ check_cloudflare_dns_api_key() {
 #######################################
 check_caddy_specific_environment_variables() {
 	if env_var_is_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLED_I_KNOW_WHAT_IM_DOING" ] && caddy_disabled=true
-		return
+		[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ] && cleartext_only=true
+		return		
 	fi
 
 	require_env_var "ACME_ISSUANCE_EMAIL"
@@ -314,9 +306,12 @@ run() {
 	check_config_files || log_error "We don't have enough information to run our services."
 
 	if ! $abort_config ; then
-		if ! $caddy_disabled ; then
-			log_info "Starting Caddy using our environment variables" && \
-			caddy start --config "/etc/caddy/Caddyfile"
+		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" ] && echo "disabled" || echo "enabled")."
+
+		if $cleartext_only ; then
+			caddy start --config "$caddyfile_cleartext"
+		else
+			caddy start --config "$caddyfile_https"
 		fi
 
 		if ! $litestream_disabled ; then
@@ -328,8 +323,6 @@ run() {
 		else
 			headscale serve
 		fi
-
-		return
 	fi
 
 	log_error "Something went wrong."

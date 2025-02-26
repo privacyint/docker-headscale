@@ -1,5 +1,5 @@
 .vscode/
 *.env
-azure.toml
-headscale.yaml
-fly.toml
+*.toml
+*.yaml
+
