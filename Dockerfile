@@ -121,7 +121,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # copy configuration and templates
     COPY ./templates/headscale.template.yaml /etc/headscale/config.yaml
     COPY ./templates/litestream.template.yml /etc/litestream.yml
-    COPY ./templates/caddy.template.yaml /etc/caddy/Caddyfile
+    COPY ./templates/caddy.http.template.yaml /etc/caddy/Caddyfile-http
+    COPY ./templates/caddy.https.template.yaml /etc/caddy/Caddyfile-https
     COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
 
     ENTRYPOINT ["/container-entrypoint.sh"]

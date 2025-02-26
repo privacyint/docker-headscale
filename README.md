@@ -21,7 +21,7 @@ All development should be done against the `develop` branch, `main` is deemed "s
 
 ## Requirements
 
-* Cloudflare DNS for [ACME `DNS-01` authentication][dns-01-challenge] (Can be deliberately disabled to use [`HTTP-01` authentication][http-01-challenge] instead)
+* Cloudflare DNS for [ACME `DNS-01` authentication][dns-01-challenge] (Can be deliberately disabled to use [`HTTP-01` authentication][http-01-challenge] instead, or HTTPS can be disabled entirely if you plan to use an external termination point.)
 * S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled for full ephemerality)
 
 ## Installation
