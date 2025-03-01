@@ -51,9 +51,9 @@ jobs:
           docker exec headscale-container litestream version
           docker exec headscale-container caddy version
 
-      - name: Check if container is listening on port 443
+      - name: Check if container is listening on port 8008
         run: |
-          docker exec headscale-container sh -c "netstat -tuln | grep ':443 '"
+          docker exec headscale-container sh -c "netstat -tuln | grep ':8008 '"
 
       - name: Stop and remove container
         run: |
