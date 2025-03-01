@@ -1,0 +1,61 @@
+name: Deployment Checker with Smoke Tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      # Barebones, enough to get it up and listening
+      LITESTREAM_REPLICA_URL: "DISABLED_I_KNOW_WHAT_IM_DOING"
+      PUBLIC_SERVER_URL: "https://headscale.example.com"
+      HEADSCALE_DNS_CONFIG_BASE_DOMAIN: "example.com"
+      CADDY_FRONTEND: "DISABLE_HTTPS"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker image
+        run: |
+          docker build -t headscale:latest .
+
+      - name: Run container in detached mode
+        run: |
+          docker run -d --name headscale-container \
+            --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
+            --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
+            --env HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${{ env.HEADSCALE_DNS_CONFIG_BASE_DOMAIN }} \
+            --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
+            headscale:latest
+
+      - name: Run smoke tests
+        run: |
+          docker exec headscale-container headscale version
+          docker exec headscale-container litestream version
+          docker exec headscale-container caddy version
+
+      - name: Check if container is listening on port 8008
+        run: |
+          docker exec headscale-container sh -c "netstat -tuln | grep ':8008 '"
+
+      - name: Stop and remove container
+        run: |
+          docker stop headscale-container
+          docker rm headscale-container
