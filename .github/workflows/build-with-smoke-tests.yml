@@ -34,11 +34,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --build-arg LITESTREAM_REPLICA_URL=${LITESTREAM_REPLICA_URL} \
-                       --build-arg PUBLIC_SERVER_URL=${PUBLIC_SERVER_URL} \
-                       --build-arg HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${HEADSCALE_DNS_CONFIG_BASE_DOMAIN} \
-                       --build-arg CADDY_FRONTEND=${CADDY_FRONTEND} \
-                       -t headscale:latest .
+          docker build -t headscale:latest .
 
       - name: Run smoke tests
         run: |
