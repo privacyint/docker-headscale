@@ -45,6 +45,10 @@ jobs:
             --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
             headscale:latest
 
+      - name: Install iproute2 for ss command
+        run: |
+          docker exec headscale-container apk add --no-cache iproute2
+
       - name: Run smoke tests
         run: |
           docker exec headscale-container headscale version
@@ -53,7 +57,7 @@ jobs:
 
       - name: Check if container is listening on port 443
         run: |
-          docker exec headscale-container sh -c "netstat -tuln | grep ':443 '"
+          docker exec headscale-container sh -c "ss -tuln | grep ':443 '"
 
       - name: Stop and remove container
         run: |
