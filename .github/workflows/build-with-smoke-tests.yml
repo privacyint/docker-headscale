@@ -38,10 +38,30 @@ jobs:
 
       - name: Run smoke tests
         run: |
-          docker run --rm headscale:latest headscale version
-          docker run --rm headscale:latest litestream version
-          docker run --rm headscale:latest caddy version
+          docker run --rm \
+            --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
+            --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
+            --env HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${{ env.HEADSCALE_DNS_CONFIG_BASE_DOMAIN }} \
+            --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
+            headscale:latest headscale version
+          docker run --rm \
+            --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
+            --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
+            --env HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${{ env.HEADSCALE_DNS_CONFIG_BASE_DOMAIN }} \
+            --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
+            headscale:latest litestream version
+          docker run --rm \
+            --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
+            --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
+            --env HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${{ env.HEADSCALE_DNS_CONFIG_BASE_DOMAIN }} \
+            --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
+            headscale:latest caddy version
 
       - name: Check if container is listening on port 443
         run: |
-          docker run --rm headscale:latest sh -c "netstat -tuln | grep ':443 '"
+          docker run --rm \
+            --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
+            --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
+            --env HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${{ env.HEADSCALE_DNS_CONFIG_BASE_DOMAIN }} \
+            --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
+            headscale:latest sh -c "netstat -tuln | grep ':443 '"
