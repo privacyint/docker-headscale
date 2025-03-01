@@ -1,0 +1,51 @@
+name: Deployment Checker with Smoke Tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      # Barebones, enough to get it up and listening
+      LITESTREAM_REPLICA_URL: "DISABLED_I_KNOW_WHAT_IM_DOING"
+      PUBLIC_SERVER_URL: "https://headscale.example.com"
+      HEADSCALE_DNS_CONFIG_BASE_DOMAIN: "example.com"
+      CADDY_FRONTEND: "DISABLE_HTTPS"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker image
+        run: |
+          docker build --build-arg LITESTREAM_REPLICA_URL=${LITESTREAM_REPLICA_URL} \
+                       --build-arg PUBLIC_SERVER_URL=${PUBLIC_SERVER_URL} \
+                       --build-arg HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${HEADSCALE_DNS_CONFIG_BASE_DOMAIN} \
+                       --build-arg CADDY_FRONTEND=${CADDY_FRONTEND} \
+                       -t headscale:latest .
+
+      - name: Run smoke tests
+        run: |
+          docker run --rm headscale:latest headscale version
+          docker run --rm headscale:latest litestream version
+          docker run --rm headscale:latest caddy version
+
+      - name: Check if container is listening on port 443
+        run: |
+          docker run --rm headscale:latest sh -c "netstat -tuln | grep ':443 '"
