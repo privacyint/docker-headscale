@@ -52,5 +52,3 @@ jobs:
           containerAppName: headscale
           resourceGroup: Headscale
           imageToBuild: headscale.azurecr.io/headscale:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
