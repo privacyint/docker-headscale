@@ -2,20 +2,17 @@ name: Trigger auto deployment for headscale
 
 # When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
-  push:
-    branches: 
-      [ main ]
-    paths:
-    - '**'
-    - '.github/workflows/headscale-AutoDeployTrigger-8acf5b9c-5f33-43b6-acf4-3b95294ca951.yml'
-
+  workflow_run:
+    workflows: ["Build with Smoke Tests"]
+    types:
+      - completed
   # Allow manual trigger 
   workflow_dispatch:      
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     permissions: 
       id-token: write #This is required for requesting the OIDC JWT Token
       contents: read #Required when GH token is used to authenticate with private repo
