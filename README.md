@@ -55,7 +55,7 @@ Note that applying this will cause your application to restart, but afterwards n
 ## Known to run on
 
 * Azure Container Apps
-* Fly.io
+* [Fly.io][fly-io-instructions]
 * ??? Let us know!
 
 [headscale]: https://github.com/juanfont/headscale
@@ -66,3 +66,4 @@ Note that applying this will cause your application to restart, but afterwards n
 [http-01-challenge]: https://letsencrypt.org/docs/challenge-types/#http-01-challenge
 [headscale-usage]: https://headscale.net/stable/ref/remote-cli/#create-an-api-key
 [caddy]: https://caddyserver.com/
+[fly-io-instructions]: docs/backends/fly-io.md
