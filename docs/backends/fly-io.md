@@ -4,6 +4,20 @@ This guide will walk you through the steps to deploy a `docker-headscale` meshne
 
 Anything starting with a `$` is a placeholder value which will need to be replaced with real values from the commands.
 
+## Table of Contents
+
+- [Assumptions](#assumptions)
+- [Prerequisites](#prerequisites)
+- [Step 0: Pull the latest code version](#step-0-pull-the-latest-code-version)
+- [Step 1: Initialize Fly.io](#step-1-initialize-flyio)
+- [Step 2: Create persistent storage](#step-2-create-persistent-storage)
+- [Step 3: Allocate IP addresses](#step-3-allocate-ip-addresses)
+- [Step 4: Deploy an HTTPS certificate using Fly's CLI](#step-4-deploy-an-https-certificate-using-flys-cli)
+- [Step 5: Customise your configuration](#step-5-customise-your-configuration)
+- [Step 6: Deploy Your Application](#step-6-deploy-your-application)
+- [Step 7: Monitor Your Application](#step-7-monitor-your-application)
+- [Conclusion](#conclusion)
+
 ## Assumptions
 
 The assumptions made in this document are the following:
