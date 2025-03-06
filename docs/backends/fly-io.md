@@ -30,6 +30,12 @@ The assumptions made in this document are the following:
 
 Pull the latest tag from PI's `master` branch, and switch to the directory.
 
+```sh
+git clone https://github.com/privacyint/docker-headscale.git
+cd docker-headscale
+git checkout master
+```
+
 ## Step 1: Initialize Fly.io
 
 Log into Fly.io and create a new application.
