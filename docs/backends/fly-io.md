@@ -11,9 +11,13 @@ The assumptions made in this document are the following:
 - You control the DNS records of a domain
 - You have a Git client installed
 
+## Step 0: Pull the latest code version
+
+Pull the latest tag from PI's `master` branch, and switch to the directory.
+
 ## Step 1: Initialize Fly.io
 
-First, log in to Fly.io and create a new application.
+Log into Fly.io and create a new application.
 
 `<your-app-name>` may be anything, but must be unique to Fly.io.
 
