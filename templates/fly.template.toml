@@ -12,6 +12,8 @@ path = "/metrics"
 [env]
 CADDY_FRONTEND = "DISABLE_HTTPS"
 LITESTREAM_REPLICA_URL = "DISABLED_I_KNOW_WHAT_IM_DOING"
+PUBLIC_SERVER_URL = "$PUBLIC_SERVER_URL"
+HEADSCALE_DNS_CONFIG_BASE_DOMAIN =  "$HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 
 [[services]]
   internal_port = 8080
@@ -37,5 +39,5 @@ LITESTREAM_REPLICA_URL = "DISABLED_I_KNOW_WHAT_IM_DOING"
     timeout = "2s"
 
 [mounts]
-source = "$FLY_VOLUME"
+source = "hs_data"
 destination = "/data"
