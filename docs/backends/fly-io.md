@@ -35,7 +35,7 @@ Pull the latest tag from PI's `master` branch, and switch to the directory.
 
 Log into Fly.io and create a new application.
 
-`$yourAppName` may be anything, but must be unique to Fly.io.
+`$yourAppName` may be anything, but must be unique to Fly.io. You can instead use a randomly generated app name by using `--generate-name` in place of `$yourAppName`.
 
 ```sh
 flyctl auth login
@@ -45,8 +45,6 @@ flyctl apps create $yourAppName
 ## Step 2: Create persistent storage
 
 `$yourAppRegion` may be any Fly.io region. n.b. [How to find valid Fly regions](https://fly.io/docs/flyctl/platform-regions/)
-
-You can also use a randomly generated app name by using `--generate-name` in place of `--app $yourAppName`
 
 ```sh
 flyctl volumes create --app $yourAppName --region $yourAppRegion --size 1 hs_data
