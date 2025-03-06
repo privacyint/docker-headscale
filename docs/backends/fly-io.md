@@ -7,7 +7,6 @@ Anything starting with a `$` is a placeholder value which will need to be replac
 ## Table of Contents
 
 - [Assumptions](#assumptions)
-- [Prerequisites](#prerequisites)
 - [Step 0: Pull the latest code version](#step-0-pull-the-latest-code-version)
 - [Step 1: Initialize Fly.io](#step-1-initialize-flyio)
 - [Step 2: Create persistent storage](#step-2-create-persistent-storage)
