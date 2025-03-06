@@ -2,6 +2,8 @@
 
 This guide will walk you through the steps to deploy a `docker-headscale` meshnet on Fly.io.
 
+Anything starting with a `$` is a placeholder value which will need to be replaced with real values from the commands.
+
 ## Assumptions
 
 The assumptions made in this document are the following:
@@ -19,21 +21,21 @@ Pull the latest tag from PI's `master` branch, and switch to the directory.
 
 Log into Fly.io and create a new application.
 
-`<your-app-name>` may be anything, but must be unique to Fly.io.
+`$yourAppName` may be anything, but must be unique to Fly.io.
 
 ```sh
 flyctl auth login
-flyctl apps create <your-app-name>
+flyctl apps create $yourAppName
 ```
 
 ## Step 2: Create persistent storage
 
-`<your-app-region>` may be any Fly.io region. n.b. [How to find valid Fly regions](https://fly.io/docs/flyctl/platform-regions/)
+`$yourAppRegion` may be any Fly.io region. n.b. [How to find valid Fly regions](https://fly.io/docs/flyctl/platform-regions/)
 
-You can also use a randomly generated `app` name by using `--generate-name` in place of `--app <your-app-name>`
+You can also use a randomly generated app name by using `--generate-name` in place of `--app $yourAppName`
 
 ```sh
-flyctl volumes create --app <your-app-name> --region <your-app-region> --size 1 hs_data
+flyctl volumes create --app $yourAppName --region $yourAppRegion --size 1 hs_data
 ```
 
 ## Step 3: Allocate IP addresses
@@ -48,7 +50,7 @@ Add the above generated IP addresses to the required `A` and `AAAA` records.
 ## Step 4: Deploy an `HTTPS` certificate using Fly's CLI
 
 ```sh
-flyctl certs add <public-DNS-address>
+flyctl certs add $publicServerURL
 ```
 
 ## Step 5: Customise your configuration
@@ -56,7 +58,10 @@ flyctl certs add <public-DNS-address>
 Create a customised `fly.toml` configuration file in the root of your project from the template:
 
 ```sh
-FLY_APP=<your-app-name> PUBLIC_SERVER_URL=<public-DNS-address> HEADSCALE_DNS_CONFIG_BASE_DOMAIN=<tailnet-internal-domain> envsubst < templates/fly.template.toml > fly.toml
+export FLY_APP=$yourAppName
+export PUBLIC_SERVER_URL=$publicServerURL
+export HEADSCALE_DNS_CONFIG_BASE_DOMAIN=$tailnetInternalDomain
+envsubst < templates/fly.template.toml > fly.toml
 ```
 
 ## Step 6: Deploy Your Application
