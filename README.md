@@ -10,8 +10,7 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 | [`Headscale`][headscale] | [`v0.25.1`](https://github.com/juanfont/headscale/releases/tag/v0.25.1) |
 | [`Headscale-Admin`][headscale-admin] | [`v0.25.2`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.25.2) |
 | [`Litestream`][litestream] | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
-| [`Caddy`][caddy] | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
-
+| [`Caddy`][caddy] | [`v2.10.0-beta.2`](https://github.com/caddyserver/caddy/releases/tag/v2.10.0-beta.2) |
 
 ## Versioning
 
