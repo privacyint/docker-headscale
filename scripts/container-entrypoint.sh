@@ -253,7 +253,7 @@ check_cloudflare_dns_api_key() {
 		log_info "Using Cloudflare for ACME DNS Challenge."
 
 		sed -iz \
-		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
+		 "s@<<CLOUDFLARE_ACME>>@dns cloudflare $CF_API_TOKEN\n@" \
 		  $caddyfile_https || abort_config=1
 	else
 		log_info "Using HTTP authentication for ACME DNS Challenge"

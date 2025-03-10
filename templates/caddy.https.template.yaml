@@ -5,6 +5,8 @@
 
 	email {$ACME_ISSUANCE_EMAIL}
 
+	<<CLOUDFLARE_ACME>>
+
 	<<EAB>>
 }
 
@@ -19,6 +21,4 @@
 	handle {
 		reverse_proxy 127.0.0.1:8080
 	}
-
-	<<CLOUDFLARE_ACME>>
 }
