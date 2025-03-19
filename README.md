@@ -8,7 +8,7 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 |---|---|
 | [`Alpine Linux`][alpine-linux] | [`v3.21.3`](https://git.alpinelinux.org/aports/log/?h=v3.21.3)
 | [`Headscale`][headscale] | [`v0.25.1`](https://github.com/juanfont/headscale/releases/tag/v0.25.1) |
-| [`Headscale-Admin`][headscale-admin] | [`v0.25.2`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.25.2) |
+| [`Headscale-Admin`][headscale-admin] | [`v0.25.5`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.25.5) |
 | [`Litestream`][litestream] | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
 | [`Caddy`][caddy] | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
 
@@ -22,7 +22,7 @@ All development should be done against the `develop` branch, `main` is deemed "s
 ## Requirements
 
 * Cloudflare DNS for [ACME `DNS-01` authentication][dns-01-challenge] (Can be deliberately disabled to use [`HTTP-01` authentication][http-01-challenge] instead, or HTTPS can be disabled entirely if you plan to use an external termination point.)
-* S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled for full ephemerality)
+* S3(Alike)/Azure for [Litestream][litestream] (Can be deliberately disabled for full ephemerality, or if you plan to use persistent storage)
 
 ## Installation
 
@@ -55,7 +55,7 @@ Note that applying this will cause your application to restart, but afterwards n
 ## Known to run on
 
 * Azure Container Apps
-* Fly.io
+* [Fly.io][fly-io-instructions]
 * ??? Let us know!
 
 [headscale]: https://github.com/juanfont/headscale
@@ -66,3 +66,4 @@ Note that applying this will cause your application to restart, but afterwards n
 [http-01-challenge]: https://letsencrypt.org/docs/challenge-types/#http-01-challenge
 [headscale-usage]: https://headscale.net/stable/ref/remote-cli/#create-an-api-key
 [caddy]: https://caddyserver.com/
+[fly-io-instructions]: docs/backends/fly-io.md
