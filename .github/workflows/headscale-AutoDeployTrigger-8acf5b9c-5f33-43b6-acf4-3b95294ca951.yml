@@ -3,7 +3,7 @@ name: Trigger auto deployment for headscale
 # When this action will be executed
 on:
   workflow_run:
-    workflows: ["Build with Smoke Tests"]
+    workflows: ["Deployment Checker with Smoke Tests"]
     types:
       - completed
     branches:
