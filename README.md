@@ -62,7 +62,7 @@ Note that applying this will cause your application to restart, but afterwards n
 [caddy-wob]: https://caddyserver.com/
 [caddy-repo]: https://github.com/caddyserver/caddy
 [headscale-admin-wob]: https://github.com/GoodiesHQ/headscale-admin
-[headscale-admin-repo]: [headscale-admin-wob]
+[headscale-admin-repo]: https://github.com/GoodiesHQ/headscale-admin
 [headscale-wob]: https://headscale.net/
 [headscale-repo]: https://github.com/juanfont/headscale
 [litestream-wob]: https://litestream.io/
