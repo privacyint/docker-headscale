@@ -12,7 +12,6 @@ Deploy [Headscale][headscale] using a "serverless" immutable docker image with r
 | [`Litestream`][litestream] | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
 | [`Caddy`][caddy] | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
 
-
 ## Versioning
 
 Because of the mix of upstream tools included, this project will be tagged using semantic versioning - `YYYY.MM.REVISION`.
