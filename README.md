@@ -10,7 +10,7 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.25.1`](https://github.com/juanfont/headscale/releases/tag/v0.25.1) |
 | [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`v0.25.6`](https://github.com/GoodiesHQ/headscale-admin/releases/tag/v0.25.6) |
 | [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`v0.3.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) |
-| [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.9.1`](https://github.com/caddyserver/caddy/releases/tag/v2.9.1) |
+| [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.10.0`](https://github.com/caddyserver/caddy/releases/tag/v2.10.0) |
 
 ## Versioning
 
