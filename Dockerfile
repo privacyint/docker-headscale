@@ -124,5 +124,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY ./templates/caddy.http.template.yaml /etc/caddy/Caddyfile-http
     COPY ./templates/caddy.https.template.yaml /etc/caddy/Caddyfile-https
     COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
+    RUN chmod +x /container-entrypoint.sh
 
     ENTRYPOINT ["/container-entrypoint.sh"]
