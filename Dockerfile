@@ -12,7 +12,7 @@ ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a907794
 # Bump these every time there is a new release. No checksum needed.
 ARG CADDY_VERSION="2.10.0"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.22.0"
-ARG HEADSCALE_ADMIN_VERSION="0.25.6"
+ARG HEADSCALE_ADMIN_VERSION="dev"
 
 # ---
 # Tool download links
