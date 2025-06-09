@@ -16,6 +16,10 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 		file_server
 	}
 
+	handle /admin {
+		redirect /admin/
+	}
+
 	handle {
 		reverse_proxy 127.0.0.1:8080
 	}
