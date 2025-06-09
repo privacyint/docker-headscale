@@ -236,7 +236,7 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		sed -iz \
+		sed -i \
 		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
 		  $caddyfile_https || abort_config=1
 	else
@@ -252,7 +252,7 @@ check_cloudflare_dns_api_key() {
 	if env_var_is_populated "CF_API_TOKEN" ; then
 		log_info "Using Cloudflare for ACME DNS Challenge."
 
-		sed -iz \
+		sed -i \
 		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
 		  $caddyfile_https || abort_config=1
 	else
