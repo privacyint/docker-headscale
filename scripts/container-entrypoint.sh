@@ -17,7 +17,7 @@ caddyfile_https=/etc/caddy/Caddyfile-https
 #   Message to `STDOUT`
 #######################################
 log_info() {
-	echo "INFO: $1"
+    echo "$(date +"%Y-%m-%d %H:%M:%S") INFO: $1"
 }
 
 #######################################
@@ -32,7 +32,7 @@ log_info() {
 #   Message to `STDERR`
 #######################################
 log_error() {
-	echo >&2 "ERROR: $1"
+    echo >&2 "$(date +"%Y-%m-%d %H:%M:%S") ERROR: $1"
 	abort_config=true
 	false
 }
