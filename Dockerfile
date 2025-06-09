@@ -59,7 +59,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # - We need GNU sed
     # hadolint ignore=DL3018,SC2086
     RUN BUILD_DEPS="wget"; \
-        RUNTIME_DEPS="bash sed"; \
+        RUNTIME_DEPS="bash sed gettext"; \
         apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}; \
         apk add --no-cache ${RUNTIME_DEPS}
