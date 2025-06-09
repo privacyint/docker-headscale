@@ -28,7 +28,7 @@ log_info() {
 #   `abort_config`
 # Returns:
 #   `false`
-# Ouputs:
+# Outputs:
 #   Message to `STDERR`
 #######################################
 log_error() {
