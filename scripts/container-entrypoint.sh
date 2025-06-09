@@ -45,7 +45,12 @@ log_error() {
 #   `true` if populated, otherwise `false`
 #######################################
 env_var_is_populated() {
-	[ -n "${!1}" ]
+    # Only allow variable names with letters, numbers, and underscores, not starting with a number
+    if [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        [ -n "${!1-}" ]
+    else
+        log_error "Invalid environment variable name: '$1'"
+    fi
 }
 
 #######################################
