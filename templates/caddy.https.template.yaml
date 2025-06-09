@@ -3,12 +3,12 @@
 		root /data/caddy
 	}
 
-	email {$ACME_ISSUANCE_EMAIL}
+	email ${ACME_ISSUANCE_EMAIL}
 
 	<<EAB>>
 }
 
-{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {
+${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 	handle_path /admin* {
 		root * /admin-gui/admin
 		encode gzip zstd
