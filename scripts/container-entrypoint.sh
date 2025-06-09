@@ -292,9 +292,9 @@ check_config_files() {
 # Create required directories
 #######################################
 check_needed_directories() {
-	mkdir -p /var/run/headscale || return
-	mkdir -p /data/headscale || return
-	mkdir -p /data/caddy || return
+	mkdir -p /var/run/headscale || log_error "Unable to create /var/run/headscale directory."
+	mkdir -p /data/headscale || log_error "Unable to create /data/headscale directory."
+	mkdir -p /data/caddy || log_error "Unable to create /data/caddy directory."
 }
 
 #######################################
