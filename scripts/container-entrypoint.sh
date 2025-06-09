@@ -198,19 +198,14 @@ check_required_environment_vars() {
 #######################################
 create_headscale_config() {
 	local config_path="/etc/headscale/config.yaml"
+	local temp_config_path="/tmp/config.yaml"
 
 	log_info "Generating Headscale configuration file..."
 
-	sed -i \
-		-e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
-		-e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
-		-e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
-		-e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
-		-e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
-		-e "s@\$IP_ALLOCATION@$IP_ALLOCATION@" \
-		-e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
-		-e "s@\$MAGIC_DNS@$MAGIC_DNS@" \
-		"$config_path" || log_error "Unable to generate Headscale configuration file"
+	# shellcheck disable=SC2015 # We're not using this as in if condition, both could error out
+	envsubst < "$config_path" > "$temp_config_path" \
+		&& mv "$temp_config_path" "$config_path" \
+		|| log_error "Unable to generate Headscale configuration file"
 }
 
 #######################################
