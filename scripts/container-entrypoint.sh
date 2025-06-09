@@ -13,7 +13,7 @@ caddyfile_https=/etc/caddy/Caddyfile-https
 # Log an informational message
 # Arguments:
 #   `$1` - Message to log
-# Ouputs:
+# Outputs:
 #   Message to `STDOUT`
 #######################################
 log_info() {
