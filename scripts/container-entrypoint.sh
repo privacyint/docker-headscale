@@ -10,14 +10,23 @@ caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 
 #######################################
-# Log an informational message
+# Log a message
 # Arguments:
 #   `$1` - Message to log
 # Outputs:
 #   Message to `STDOUT`
 #######################################
+log() {
+	echo "$(date +"%Y-%m-%d %H:%M:%S") $1"
+}
+
+#######################################
+# Log an informational message
+# Arguments:
+#   `$1` - Message to log
+#######################################
 log_info() {
-    echo "$(date +"%Y-%m-%d %H:%M:%S") INFO: $1"
+    log "INFO: $1"
 }
 
 #######################################
@@ -28,11 +37,9 @@ log_info() {
 #   `abort_config`
 # Returns:
 #   `false`
-# Outputs:
-#   Message to `STDERR`
 #######################################
 log_error() {
-    echo >&2 "$(date +"%Y-%m-%d %H:%M:%S") ERROR: $1"
+    log >&2 "ERROR: $1"
 	abort_config=true
 	false
 }
