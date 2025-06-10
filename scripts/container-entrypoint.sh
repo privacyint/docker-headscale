@@ -343,9 +343,9 @@ check_needed_directories() {
 # Main logic
 #######################################
 run() {
-	check_needed_directories || log_error "Unable to create required configuration directories."
+	check_needed_directories
 
-	check_config_files || log_error "We don't have enough information to run our services."
+	check_config_files
 
 	if ! $abort_config ; then
 		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" ] && echo "disabled" || echo "enabled")."
