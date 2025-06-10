@@ -10,14 +10,27 @@ caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 
 #######################################
-# Log a message
+# Log with different levels
 # Arguments:
-#   `$1` - Message to log
-# Outputs:
-#   Message to `STDOUT`
+#   $1 - Log level (INFO, WARN, ERROR)
+#   $2 - Message to log
 #######################################
-log() {
-	echo "$(date +"%Y-%m-%d %H:%M:%S") $1"
+log_with_level() {
+    local level="$1"
+    local message="$2"
+    local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+    
+    case "$level" in
+        ERROR)
+            echo "[$timestamp] ERROR: $message" >&2
+            ;;
+        WARN)
+            echo "[$timestamp] WARN: $message" >&2
+            ;;
+        *)
+            echo "[$timestamp] INFO: $message"
+            ;;
+    esac
 }
 
 #######################################
@@ -26,7 +39,7 @@ log() {
 #   `$1` - Message to log
 #######################################
 log_info() {
-    log "INFO: $1"
+    log_with_level "INFO" "$1"
 }
 
 #######################################
@@ -39,7 +52,7 @@ log_info() {
 #   `false`
 #######################################
 log_error() {
-    log >&2 "ERROR: $1"
+    log_with_level "ERROR" "$1"
 	abort_config=true
 	false
 }
