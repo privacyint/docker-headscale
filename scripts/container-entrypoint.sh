@@ -372,7 +372,7 @@ run() {
 	fi
 
 	log_error "Something went wrong."
-	if [ -n "$DEBUG" ] ; then
+	if [ -n "${DEBUG:-}" ] ; then
 		log_info "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
