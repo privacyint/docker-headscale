@@ -389,9 +389,9 @@ run() {
 					log_warn "No replica found, or unable to restore database."
 
 				log_info "Starting Headscale using Litestream and our Environment Variables..."
-				litestream replicate -exec 'headscale serve'
+				exec litestream replicate -exec 'headscale serve'
 			else
-				headscale serve
+				exec headscale serve
 			fi
 		fi
 	fi
