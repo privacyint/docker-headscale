@@ -403,8 +403,7 @@ run() {
 		sleep infinity
 	fi
 
-	log_error "Exiting with code ${abort_config}"
-	exit "$abort_config"
+	exit 1
 }
 
 run
