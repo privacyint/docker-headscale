@@ -43,6 +43,15 @@ log_info() {
 }
 
 #######################################
+# Log a warning message
+# Arguments:
+#   `$1` - Message to log
+#######################################
+log_warn() {
+    log_with_level "WARN" "$1"
+}
+
+#######################################
 # Log an error message and set abort flag
 # Arguments:
 #   `$1` - Message to log
@@ -53,8 +62,8 @@ log_info() {
 #######################################
 log_error() {
     log_with_level "ERROR" "$1"
-	abort_config=true
-	false
+    abort_config=true
+    false
 }
 
 #######################################
