@@ -359,10 +359,11 @@ run() {
 		# Make sure Caddy started successfully before starting headscale
         if ! $abort_config ; then
 			if ! $litestream_disabled ; then
-				log_info "Attempt to restore previous Headscale database if there's a replica" && \
-				litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
-				\
-				log_info "Starting Headscale using Litestream and our Environment Variables..." && \
+				log_info "Attempt to restore previous Headscale database if there's a replica"
+				litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 ||
+					log_warn "No replica found, or unable to restore database."
+
+				log_info "Starting Headscale using Litestream and our Environment Variables..."
 				litestream replicate -exec 'headscale serve'
 			else
 				headscale serve
