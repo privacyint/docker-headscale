@@ -391,6 +391,7 @@ run() {
 				log_info "Starting Headscale using Litestream and our Environment Variables..."
 				exec litestream replicate -exec 'headscale serve'
 			else
+				log_info "Starting Headscale without Litestream"
 				exec headscale serve
 			fi
 		fi
