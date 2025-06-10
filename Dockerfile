@@ -117,12 +117,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # Remove build-time dependencies
     RUN apk del BuildTimeDeps
 
-    # Create non-root user for security
-    RUN addgroup -g 1001 -S headscale && \
-        adduser -u 1001 -S headscale -G headscale && \
-        mkdir -p /data /var/lib/headscale && \
-        chown -R headscale:headscale /data /var/lib/headscale /admin-gui
-    
     # ---
     # copy configuration and templates
     COPY ./templates/headscale.template.yaml /etc/headscale/config.yaml
@@ -130,8 +124,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY ./templates/caddy.http.template.yaml /etc/caddy/Caddyfile-http
     COPY ./templates/caddy.https.template.yaml /etc/caddy/Caddyfile-https
     COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
-    RUN chmod +x /container-entrypoint.sh && \
-        chown headscale:headscale /container-entrypoint.sh
+    RUN chmod +x /container-entrypoint.sh
 
-    USER headscale
     ENTRYPOINT ["/container-entrypoint.sh"]
