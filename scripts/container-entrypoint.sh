@@ -278,12 +278,18 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		sed -i \
+		if ! sed -i \
 		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
-		  $caddyfile_https || abort_config=1
+		  "$caddyfile_https"; then
+			log_error "Failed to modify Caddyfile with ACME EAB credentials"
+		fi
 	else
 		log_info "No ACME EAB credentials provided"
-		sed -i "s@<<EAB>>@@" $caddyfile_https || abort_config=1
+		if ! sed -i \
+		  "s@<<EAB>>@@" \
+		  "$caddyfile_https" ; then
+			log_error "Failed to modify Caddyfile to remove ACME EAB placeholder"
+		fi
 	fi
 }
 
@@ -291,16 +297,20 @@ check_zerossl_eab() {
 # Validate the Cloudflare API Key if provided and modify Caddyfile as needed
 #######################################
 check_cloudflare_dns_api_key() {
-	if env_var_is_populated "CF_API_TOKEN" ; then
-		log_info "Using Cloudflare for ACME DNS Challenge."
+    if env_var_is_populated "CF_API_TOKEN" ; then
+        log_info "Using Cloudflare for ACME DNS Challenge."
 
-		sed -i \
-		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
-		  $caddyfile_https || abort_config=1
-	else
-		log_info "Using HTTP authentication for ACME DNS Challenge"
-		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile_https || abort_config=1
-	fi
+        if ! sed -i \
+         "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
+          "$caddyfile_https"; then
+            log_error "Failed to configure Cloudflare DNS in Caddyfile"
+        fi
+    else
+        log_info "Using HTTP authentication for ACME DNS Challenge"
+        if ! sed -i "s@<<CLOUDFLARE_ACME>>@@" "$caddyfile_https"; then
+            log_error "Failed to remove Cloudflare placeholder from Caddyfile"
+        fi
+    fi
 }
 
 #######################################
