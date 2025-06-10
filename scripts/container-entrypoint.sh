@@ -351,19 +351,22 @@ run() {
 		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" ] && echo "disabled" || echo "enabled")."
 
 		if $cleartext_only ; then
-			caddy start --config "$caddyfile_cleartext"
+			caddy start --config "$caddyfile_cleartext" || log_error "Failed to start Caddy with cleartext config"
 		else
-			caddy start --config "$caddyfile_https"
+			caddy start --config "$caddyfile_https" || log_error "Failed to start Caddy with HTTPS config"
 		fi
 
-		if ! $litestream_disabled ; then
-			log_info "Attempt to restore previous Headscale database if there's a replica" && \
-			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
-			\
-			log_info "Starting Headscale using Litestream and our Environment Variables..." && \
-			litestream replicate -exec 'headscale serve'
-		else
-			headscale serve
+		# Make sure Caddy started successfully before starting headscale
+        if ! $abort_config ; then
+			if ! $litestream_disabled ; then
+				log_info "Attempt to restore previous Headscale database if there's a replica" && \
+				litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
+				\
+				log_info "Starting Headscale using Litestream and our Environment Variables..." && \
+				litestream replicate -exec 'headscale serve'
+			else
+				headscale serve
+			fi
 		fi
 	fi
 
