@@ -239,15 +239,28 @@ check_required_environment_vars() {
 # Create Headscale configuration file
 #######################################
 create_headscale_config() {
-	local config_path="/etc/headscale/config.yaml"
-	local temp_config_path="/tmp/config.yaml"
+    local config_path="/etc/headscale/config.yaml"
+    local temp_config_path
+    
+    temp_config_path=$(mktemp) || {
+        log_error "Unable to create temporary file"
+        return
+    }
 
-	log_info "Generating Headscale configuration file..."
+    log_info "Generating Headscale configuration file..."
 
-	# shellcheck disable=SC2015 # We're not using this as in if condition, both could error out
-	envsubst < "$config_path" > "$temp_config_path" \
-		&& mv "$temp_config_path" "$config_path" \
-		|| log_error "Unable to generate Headscale configuration file"
+    if envsubst < "$config_path" > "$temp_config_path"; then
+        chmod 600 "$temp_config_path"
+        if mv "$temp_config_path" "$config_path"; then
+            log_info "Headscale configuration file created successfully"
+        else
+            log_error "Unable to move Headscale configuration file"
+            rm -f "$temp_config_path"
+        fi
+    else
+        log_error "Unable to generate Headscale configuration file"
+        rm -f "$temp_config_path"
+    fi
 }
 
 #######################################
