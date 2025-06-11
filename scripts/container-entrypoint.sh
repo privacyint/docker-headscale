@@ -22,7 +22,7 @@ log_with_level() {
 
 	timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 
-    case "$level" in
+	case "${level^^}" in
         ERROR)
             echo "[$timestamp] ERROR: $message" >&2
             ;;
