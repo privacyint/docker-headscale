@@ -119,8 +119,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY ./templates/caddy.https.template.yaml /etc/caddy/Caddyfile-https
 
     # Copy and setup entrypoint script
-    COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
-    RUN chmod +x /container-entrypoint.sh
+    COPY --chmod=755 ./scripts/container-entrypoint.sh /container-entrypoint.sh
 
     # Default HTTPS port - override with $PUBLIC_LISTEN_PORT environment variable
     EXPOSE 443
