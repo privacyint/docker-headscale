@@ -128,4 +128,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY ./scripts/container-entrypoint.sh /container-entrypoint.sh
     RUN chmod +x /container-entrypoint.sh
 
+    # ---
+    # Note this is the default listening port and may be overridden at runtime by `$PUBLIC_LISTEN_PORT`
+    EXPOSE 443
+
     ENTRYPOINT ["/container-entrypoint.sh"]
