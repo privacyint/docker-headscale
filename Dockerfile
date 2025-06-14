@@ -73,7 +73,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
 
     # ---
     # Headscale
-    RUN { \
+    RUN set -ex; { \
             wget --retry-connrefused \
                  --waitretry=1 \
                  --read-timeout=20 \
@@ -81,8 +81,10 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
                  -t 0 \
                  -q \
                  -O headscale \
-                 ${HEADSCALE_DOWNLOAD_URL} \
-            ; \
+                 ${HEADSCALE_DOWNLOAD_URL} || { \
+                    echo "Failed to download Headscale from ${HEADSCALE_DOWNLOAD_URL}"; \
+                    exit 1; \
+                }; \
             echo "${HEADSCALE_SHA256} *headscale" | sha256sum -c - >/dev/null 2>&1; \
             chmod +x headscale; \
             mv headscale /usr/local/bin/; \
@@ -92,7 +94,7 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
         headscale version;
     
     # Litestream
-    RUN { \
+    RUN set -ex; { \
             wget --retry-connrefused \
                  --waitretry=1 \
                  --read-timeout=20 \
