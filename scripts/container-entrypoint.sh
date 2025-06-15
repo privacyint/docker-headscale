@@ -8,6 +8,8 @@ litestream_disabled=false
 cleartext_only=false
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
+ACME_EAB_BLOCK="" # Placeholder for ACME EAB block in Caddyfile
+CLOUDFLARE_ACME_BLOCK="" # Placeholder for Cloudflare ACME block in Caddyfile
 
 #######################################
 # Log with different levels
@@ -295,18 +297,14 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		if ! sed -i \
-		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
-		  "$caddyfile_https"; then
-			log_error "Failed to modify Caddyfile with ACME EAB credentials"
-		fi
+		export ACME_EAB_BLOCK="acme_ca https://acme.zerossl.com/v2/DV90
+        acme_eab {
+            key_id ${ACME_EAB_KEY_ID}
+            mac_key ${ACME_EAB_MAC_KEY}
+        }"
 	else
 		log_info "No ACME EAB credentials provided"
-		if ! sed -i \
-		  "s@<<EAB>>@@" \
-		  "$caddyfile_https" ; then
-			log_error "Failed to modify Caddyfile to remove ACME EAB placeholder"
-		fi
+        export ACME_EAB_BLOCK=""
 	fi
 }
 
@@ -316,17 +314,12 @@ check_zerossl_eab() {
 check_cloudflare_dns_api_key() {
     if env_var_is_populated "CF_API_TOKEN" ; then
         log_info "Using Cloudflare for ACME DNS Challenge."
-
-        if ! sed -i \
-         "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
-          "$caddyfile_https"; then
-            log_error "Failed to configure Cloudflare DNS in Caddyfile"
-        fi
+		export CLOUDFLARE_ACME_BLOCK="tls {
+			dns cloudflare ${CF_API_TOKEN}
+		}"
     else
         log_info "Using HTTP authentication for ACME DNS Challenge"
-        if ! sed -i "s@<<CLOUDFLARE_ACME>>@@" "$caddyfile_https"; then
-            log_error "Failed to remove Cloudflare placeholder from Caddyfile"
-        fi
+		export CLOUDFLARE_ACME_BLOCK=""
     fi
 }
 
@@ -345,12 +338,42 @@ check_caddy_specific_environment_variables() {
 }
 
 #######################################
+# Create Caddy HTTPS configuration file
+#######################################
+create_caddy_https_config() {
+	local config_path=${caddyfile_https}
+    local temp_config_path
+    
+    temp_config_path=$(mktemp) || {
+        log_error "Unable to create temporary file"
+        return
+    }
+
+    log_info "Adding ACME info to our Caddy config..."
+
+    if envsubst < "$config_path" > "$temp_config_path"; then
+        chmod 600 "$temp_config_path"
+        if mv "$temp_config_path" "$config_path"; then
+            log_info "Caddyfile created successfully"
+        else
+            log_error "Unable to move Caddyfile"
+            rm -f "$temp_config_path"
+        fi
+    else
+        log_error "Unable to generate Caddyfile"
+        rm -f "$temp_config_path"
+    fi
+}
+
+#######################################
 # Create our configuration files
 #######################################
 check_config_files() {
 	check_required_environment_vars
 
 	check_caddy_specific_environment_variables
+
+	create_caddy_https_config
 
 	create_headscale_config
 
