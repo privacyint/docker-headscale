@@ -8,6 +8,7 @@ litestream_disabled=false
 cleartext_only=false
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
+headscale_config="/etc/headscale/config.yaml"
 ACME_EAB_BLOCK="" # Placeholder for ACME EAB block in Caddyfile
 CLOUDFLARE_ACME_BLOCK="" # Placeholder for Cloudflare ACME block in Caddyfile
 
@@ -127,6 +128,42 @@ validate_port() {
 }
 
 #######################################
+# Generic configuration file creator with template substitution
+# Arguments:
+#   $1 - Target config file path
+#   $2 - Description for logging
+#   $3 - File permissions (optional, defaults to 600)
+#######################################
+create_config_from_template() {
+    local config_path="$1"
+    local description="$2"
+    local permissions="${3:-600}"
+    local temp_config_path
+    
+    temp_config_path=$(mktemp) || {
+        log_error "Unable to create temporary file for $description"
+		return
+    }
+
+    log_info "Generating $description..."
+
+    if envsubst < "$config_path" > "$temp_config_path"; then
+        chmod "$permissions" "$temp_config_path"
+        if mv "$temp_config_path" "$config_path"; then
+            log_info "$description created successfully"
+        else
+            log_error "Unable to move $description to final location"
+            rm -f "$temp_config_path"
+        fi
+    else
+        log_error "Unable to generate $description"
+        rm -f "$temp_config_path"
+    fi
+
+	return
+}
+
+#######################################
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
@@ -243,28 +280,7 @@ check_required_environment_vars() {
 # Create Headscale configuration file
 #######################################
 create_headscale_config() {
-    local config_path="/etc/headscale/config.yaml"
-    local temp_config_path
-    
-    temp_config_path=$(mktemp) || {
-        log_error "Unable to create temporary file"
-        return
-    }
-
-    log_info "Generating Headscale configuration file..."
-
-    if envsubst < "$config_path" > "$temp_config_path"; then
-        chmod 600 "$temp_config_path"
-        if mv "$temp_config_path" "$config_path"; then
-            log_info "Headscale configuration file created successfully"
-        else
-            log_error "Unable to move Headscale configuration file"
-            rm -f "$temp_config_path"
-        fi
-    else
-        log_error "Unable to generate Headscale configuration file"
-        rm -f "$temp_config_path"
-    fi
+	create_config_from_template "$headscale_config" "Headscale configuration file"
 }
 
 #######################################
@@ -341,28 +357,7 @@ check_caddy_specific_environment_variables() {
 # Create Caddy HTTPS configuration file
 #######################################
 create_caddy_https_config() {
-	local config_path=${caddyfile_https}
-    local temp_config_path
-    
-    temp_config_path=$(mktemp) || {
-        log_error "Unable to create temporary file"
-        return
-    }
-
-    log_info "Adding ACME info to our Caddy config..."
-
-    if envsubst < "$config_path" > "$temp_config_path"; then
-        chmod 600 "$temp_config_path"
-        if mv "$temp_config_path" "$config_path"; then
-            log_info "Caddyfile created successfully"
-        else
-            log_error "Unable to move Caddyfile"
-            rm -f "$temp_config_path"
-        fi
-    else
-        log_error "Unable to generate Caddyfile"
-        rm -f "$temp_config_path"
-    fi
+	create_config_from_template "$caddyfile_https" "Caddy HTTPS configuration file"
 }
 
 #######################################
