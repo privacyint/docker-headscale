@@ -3,12 +3,12 @@
 		root /data/caddy
 	}
 
-	email {$ACME_ISSUANCE_EMAIL}
+	email ${ACME_ISSUANCE_EMAIL}
 
-	<<EAB>>
+	${ACME_EAB_BLOCK}
 }
 
-{$PUBLIC_SERVER_URL}:{$PUBLIC_LISTEN_PORT} {
+${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 	handle_path /admin* {
 		root * /admin-gui/admin
 		encode gzip zstd
@@ -16,9 +16,13 @@
 		file_server
 	}
 
+	handle /admin {
+		redirect /admin/
+	}
+
 	handle {
 		reverse_proxy 127.0.0.1:8080
 	}
 
-	<<CLOUDFLARE_ACME>>
+	${CLOUDFLARE_ACME_BLOCK}
 }

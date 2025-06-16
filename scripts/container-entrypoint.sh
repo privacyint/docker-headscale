@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 # Global flags
 abort_config=false
@@ -8,16 +8,52 @@ litestream_disabled=false
 cleartext_only=false
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
+headscale_config="/etc/headscale/config.yaml"
+ACME_EAB_BLOCK="" # Placeholder for ACME EAB block in Caddyfile
+CLOUDFLARE_ACME_BLOCK="" # Placeholder for Cloudflare ACME block in Caddyfile
+
+#######################################
+# Log with different levels
+# Arguments:
+#   $1 - Log level (INFO, WARN, ERROR)
+#   $2 - Message to log
+#######################################
+log_with_level() {
+    local level="$1"
+    local message="$2"
+    local timestamp;
+
+	timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+
+	case "${level^^}" in
+        ERROR)
+            echo "[$timestamp] ERROR: $message" >&2
+            ;;
+        WARN)
+            echo "[$timestamp] WARN: $message" >&2
+            ;;
+        *)
+            echo "[$timestamp] INFO: $message"
+            ;;
+    esac
+}
 
 #######################################
 # Log an informational message
 # Arguments:
 #   `$1` - Message to log
-# Ouputs:
-#   Message to `STDOUT`
 #######################################
 log_info() {
-	echo "INFO: $1"
+    log_with_level "INFO" "$1"
+}
+
+#######################################
+# Log a warning message
+# Arguments:
+#   `$1` - Message to log
+#######################################
+log_warn() {
+    log_with_level "WARN" "$1"
 }
 
 #######################################
@@ -28,13 +64,11 @@ log_info() {
 #   `abort_config`
 # Returns:
 #   `false`
-# Ouputs:
-#   Message to `STDERR`
 #######################################
 log_error() {
-	echo >&2 "ERROR: $1"
-	abort_config=true
-	false
+    log_with_level "ERROR" "$1"
+    abort_config=true
+    false
 }
 
 #######################################
@@ -45,7 +79,12 @@ log_error() {
 #   `true` if populated, otherwise `false`
 #######################################
 env_var_is_populated() {
-	[ -n "${!1}" ]
+    # Only allow variable names with letters, numbers, and underscores, not starting with a number
+    if [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        [ -n "${!1-}" ]
+    else
+        log_error "Invalid environment variable name: '$1'"
+    fi
 }
 
 #######################################
@@ -69,15 +108,59 @@ require_env_var() {
 #   `true` if deemed valid, otherwise `false`
 #######################################
 validate_port() {
-	port="$1"
-	case "${!port}" in
-		'' | *[!0123456789]*) log_error "'$port' is not numeric." && return ;;
-		0*[!0]*) log_error "'$port' has a leading zero." && return ;;
-	esac
+    port="$1"
+    value="${!port}"
 
-	if [ "${!port}" -lt 1  ] || [ "${!port}" -gt 65535 ] ; then
-		log_error "'$port' must be a valid port within the range of 1-65535." && return
-	fi
+    # Make sure our port is numeric
+    if ! [[ "$value" =~ ^[0-9]+$ ]]; then
+        log_error "Port '$port' is not numeric." && return
+    fi
+
+    # Check no leading zeros (except for port '0')
+    if [[ "$value" =~ ^0[0-9]+$ ]]; then
+        log_error "Port '$port' has a leading zero." && return
+    fi
+
+    # Check port is within valid range
+    if [ "$value" -lt 1 ] || [ "$value" -gt 65535 ]; then
+        log_error "Port '$port' must be a valid port within the range of 1-65535." && return
+    fi
+}
+
+#######################################
+# Generic configuration file creator with template substitution
+# Arguments:
+#   $1 - Target config file path
+#   $2 - Description for logging
+#   $3 - File permissions (optional, defaults to 600)
+#######################################
+create_config_from_template() {
+    local config_path="$1"
+    local description="$2"
+    local permissions="${3:-600}"
+    local temp_config_path
+    
+    temp_config_path=$(mktemp) || {
+        log_error "Unable to create temporary file for $description"
+		return
+    }
+
+    log_info "Generating $description..."
+
+    if envsubst < "$config_path" > "$temp_config_path"; then
+        chmod "$permissions" "$temp_config_path"
+        if mv "$temp_config_path" "$config_path"; then
+            log_info "$description created successfully"
+        else
+            log_error "Unable to move $description to final location"
+            rm -f "$temp_config_path"
+        fi
+    else
+        log_error "Unable to generate $description"
+        rm -f "$temp_config_path"
+    fi
+
+	return
 }
 
 #######################################
@@ -197,20 +280,7 @@ check_required_environment_vars() {
 # Create Headscale configuration file
 #######################################
 create_headscale_config() {
-	local config_path="/etc/headscale/config.yaml"
-
-	log_info "Generating Headscale configuration file..."
-
-	sed -i \
-		-e "s@\$PUBLIC_SERVER_URL@$PUBLIC_SERVER_URL@" \
-		-e "s@\$HEADSCALE_LISTEN_ADDRESS@$HEADSCALE_LISTEN_ADDRESS@" \
-		-e "s@\$PUBLIC_LISTEN_PORT@$PUBLIC_LISTEN_PORT@" \
-		-e "s@\$IPV6_PREFIX@$IPV6_PREFIX@" \
-		-e "s@\$IPV4_PREFIX@$IPV4_PREFIX@" \
-		-e "s@\$IP_ALLOCATION@$IP_ALLOCATION@" \
-		-e "s@\$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@$HEADSCALE_DNS_CONFIG_BASE_DOMAIN@" \
-		-e "s@\$MAGIC_DNS@$MAGIC_DNS@" \
-		"$config_path" || log_error "Unable to generate Headscale configuration file"
+	create_config_from_template "$headscale_config" "Headscale configuration file"
 }
 
 #######################################
@@ -221,12 +291,14 @@ reuse_or_create_noise_private_key() {
 
 	if [ -f "$key_path" ]; then
 		log_info "Using existing private Noise key on disk."
+		chmod 600 "$key_path"
 		return
 	fi
 
 	if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
 		log_info "Using provided private Noise key from environment variable."
-		echo -n "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
+	    printf '%s' "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
+        chmod 600 "$key_path"
 	else
 		log_info "Generating a new private Noise key."
 	fi
@@ -241,12 +313,14 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		sed -iz \
-		  "s@<<EAB>>@acme_ca https://acme.zerossl.com/v2/DV90\nacme_eab {\n	key_id ${ACME_EAB_KEY_ID}\n	mac_key ${ACME_EAB_MAC_KEY}\n }@" \
-		  $caddyfile_https || abort_config=1
+		export ACME_EAB_BLOCK="acme_ca https://acme.zerossl.com/v2/DV90
+        acme_eab {
+            key_id ${ACME_EAB_KEY_ID}
+            mac_key ${ACME_EAB_MAC_KEY}
+        }"
 	else
 		log_info "No ACME EAB credentials provided"
-		sed -i "s@<<EAB>>@@" $caddyfile_https || abort_config=1
+        export ACME_EAB_BLOCK=""
 	fi
 }
 
@@ -254,16 +328,15 @@ check_zerossl_eab() {
 # Validate the Cloudflare API Key if provided and modify Caddyfile as needed
 #######################################
 check_cloudflare_dns_api_key() {
-	if env_var_is_populated "CF_API_TOKEN" ; then
-		log_info "Using Cloudflare for ACME DNS Challenge."
-
-		sed -iz \
-		 "s@<<CLOUDFLARE_ACME>>@tls {\n	dns cloudflare $CF_API_TOKEN\n  }@" \
-		  $caddyfile_https || abort_config=1
-	else
-		log_info "Using HTTP authentication for ACME DNS Challenge"
-		sed -i "s@<<CLOUDFLARE_ACME>>@@" $caddyfile_https || abort_config=1
-	fi
+    if env_var_is_populated "CF_API_TOKEN" ; then
+        log_info "Using Cloudflare for ACME DNS Challenge."
+		export CLOUDFLARE_ACME_BLOCK="tls {
+			dns cloudflare ${CF_API_TOKEN}
+		}"
+    else
+        log_info "Using HTTP authentication for ACME DNS Challenge"
+		export CLOUDFLARE_ACME_BLOCK=""
+    fi
 }
 
 #######################################
@@ -281,12 +354,21 @@ check_caddy_specific_environment_variables() {
 }
 
 #######################################
+# Create Caddy HTTPS configuration file
+#######################################
+create_caddy_https_config() {
+	create_config_from_template "$caddyfile_https" "Caddy HTTPS configuration file"
+}
+
+#######################################
 # Create our configuration files
 #######################################
 check_config_files() {
 	check_required_environment_vars
 
 	check_caddy_specific_environment_variables
+
+	create_caddy_https_config
 
 	create_headscale_config
 
@@ -297,48 +379,51 @@ check_config_files() {
 # Create required directories
 #######################################
 check_needed_directories() {
-	mkdir -p /var/run/headscale || return
-	mkdir -p /data/headscale || return
-	mkdir -p /data/caddy || return
+	mkdir -p /var/run/headscale || log_error "Unable to create /var/run/headscale directory."
+	mkdir -p /data/headscale || log_error "Unable to create /data/headscale directory."
+	mkdir -p /data/caddy || log_error "Unable to create /data/caddy directory."
 }
 
 #######################################
 # Main logic
 #######################################
 run() {
-	check_needed_directories || log_error "Unable to create required configuration directories."
+	check_needed_directories
 
-	check_config_files || log_error "We don't have enough information to run our services."
+	check_config_files
 
 	if ! $abort_config ; then
-		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" ] && echo "disabled" || echo "enabled")."
+		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" = true ] && echo "disabled" || echo "enabled")."
 
-		if $cleartext_only ; then
-			caddy start --config "$caddyfile_cleartext"
+		if [ "$cleartext_only" = true ] ; then
+			caddy start --config "$caddyfile_cleartext" || log_error "Failed to start Caddy with cleartext config"
 		else
-			caddy start --config "$caddyfile_https"
+			caddy start --config "$caddyfile_https" || log_error "Failed to start Caddy with HTTPS config"
 		fi
 
-		if ! $litestream_disabled ; then
-			log_info "Attempt to restore previous Headscale database if there's a replica" && \
-			litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 && \
-			\
-			log_info "Starting Headscale using Litestream and our Environment Variables..." && \
-			litestream replicate -exec 'headscale serve'
-		else
-			headscale serve
+		# Make sure Caddy started successfully before starting headscale
+        if ! $abort_config ; then
+			if [ "$litestream_disabled" = false ] ; then
+				log_info "Attempt to restore previous Headscale database if there's a replica"
+				litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 ||
+					log_warn "No replica found, or unable to restore database."
+
+				log_info "Starting Headscale using Litestream and our Environment Variables..."
+				exec litestream replicate -exec 'headscale serve'
+			else
+				log_info "Starting Headscale without Litestream"
+				exec headscale serve
+			fi
 		fi
 	fi
 
-	log_error "Something went wrong."
-	if [ -n "$DEBUG" ] ; then
+	if [ -n "${DEBUG:-}" ] ; then
 		log_info "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
 	fi
 
-	log_error "Exiting with code ${abort_config}"
-	exit "$abort_config"
+	exit 1
 }
 
 run
