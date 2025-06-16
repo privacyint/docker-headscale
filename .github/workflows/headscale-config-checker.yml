@@ -1,0 +1,53 @@
+name: Check for New (upstream) Headscale Config Options
+
+on:
+  pull_request:
+  push:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  check-missing-options:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version and download upstream config
+        run: |
+          VERSION=$(grep -oP 'HEADSCALE_VERSION=\K[^"]*' Dockerfile || echo "main")
+          curl -f -o upstream-config.yaml \
+            "https://raw.githubusercontent.com/juanfont/headscale/refs/tags/v${VERSION}/config-example.yaml"
+      
+      - name: Check for new options
+        id: check
+        run: |
+          diff --unchanged-line-format="" --old-line-format="" --new-line-format="+ %L" \
+            <(grep -E "^[[:space:]]*[^#].*:" templates/headscale.template.yaml | sort) \
+            <(grep -E "^[[:space:]]*[^#].*:" upstream-config.yaml | sort) \
+            > new-options.txt || true
+          
+          if [ -s new-options.txt ]; then
+            echo "has_missing=true" >> $GITHUB_OUTPUT
+            cat new-options.txt
+          else
+            echo "has_missing=false" >> $GITHUB_OUTPUT
+            echo "✅ No new options found"
+          fi
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.check.outputs.has_missing == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const newOptions = fs.readFileSync('new-options.txt', 'utf8');
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🆕 New Headscale Config Options\n\n\`\`\`diff\n${newOptions}\`\`\``
+            });
