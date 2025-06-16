@@ -17,9 +17,13 @@ jobs:
       
       - name: Get version and download upstream config
         run: |
-          VERSION=$(grep -oP 'HEADSCALE_VERSION=\K[^"]*' Dockerfile || echo "main")
+          VERSION=$(grep -oP 'HEADSCALE_VERSION=\K[^"]*' Dockerfile)
+          echo "Found version: $VERSION"
+          
           curl -f -o upstream-config.yaml \
             "https://raw.githubusercontent.com/juanfont/headscale/refs/tags/v${VERSION}/config-example.yaml"
+          
+          echo "Successfully downloaded upstream config"
       
       - name: Check for new options
         id: check
