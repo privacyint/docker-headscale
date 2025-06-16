@@ -379,7 +379,6 @@ oidc:
 #     # - S256: Use SHA256 hashed code verifier (default, recommended)
 #     method: S256
 
-
 # Logtail configuration
 # Logtail is Tailscales logging and auditing infrastructure, it allows the control panel
 # to instruct tailscale nodes to log their activity to a remote server.
