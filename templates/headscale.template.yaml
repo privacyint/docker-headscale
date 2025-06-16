@@ -18,10 +18,8 @@ server_url: https://$PUBLIC_SERVER_URL:$PUBLIC_LISTEN_PORT
 # listen_addr: 0.0.0.0:8080
 listen_addr: 127.0.0.1:8080
 
-# Address to listen to /metrics, you may want
-# to keep this endpoint private to your internal
-# network
-#
+# Address to listen to /metrics and /debug, you may want
+# to keep this endpoint private to your internal network
 metrics_listen_addr: 127.0.0.1:9090
 
 # Private key used to encrypt the traffic between headscale and Tailscale clients.
@@ -44,11 +42,12 @@ grpc_listen_addr: 127.0.0.1:50443
 # are doing.
 grpc_allow_insecure: false
 
-# The Noise section includes specific configuration for the TS2021 Noise protocol
+# The Noise section includes specific configuration for the
+# TS2021 Noise protocol
 noise:
-  # The Noise private key is used to encrypt the
-  # traffic between headscale and Tailscale clients when
-  # using the new Noise-based protocol.
+  # The Noise private key is used to encrypt the traffic between headscale and
+  # Tailscale clients when using the new Noise-based protocol. A missing key
+  # will be automatically generated.
   private_key_path: /data/noise_private.key
 
 # List of IP prefixes to allocate tailaddresses from.
@@ -169,7 +168,6 @@ database:
 
     # Enable WAL mode for SQLite. This is recommended for production environments.
     # https://www.sqlite.org/wal.html
-    # _DISABLE IF USING NFS_
     write_ahead_log: true
 
     # Maximum number of WAL file frames before the WAL file is automatically checkpointed.
@@ -236,7 +234,8 @@ log:
 
 ## Policy
 # headscale supports Tailscale's ACL policies.
-# Please have a look to their KB to better understand the concepts: https://tailscale.com/kb/1018/acls/
+# Please have a look to their KB to better
+# understand the concepts: https://tailscale.com/kb/1018/acls/
 policy:
   # The mode can be "file" or "database" that defines
   # where the ACL policies are stored and read from.
