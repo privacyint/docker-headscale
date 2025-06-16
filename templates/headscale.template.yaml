@@ -144,6 +144,8 @@ database:
   # Enable debug mode. This setting requires the log.level to be set to "debug" or "trace".
   debug: false
 
+  path: false  # DIFF_IGNORE
+
   # GORM configuration settings.
   gorm:
     # Enable prepared statements.
@@ -197,27 +199,27 @@ database:
 # TLS for a domain with Let's Encrypt.
 #
 # URL to ACME directory
-#acme_url: https://acme-v02.api.letsencrypt.org/directory
+#acme_url: https://acme-v02.api.letsencrypt.org/directory # DIFF_IGNORE
 
 # Email to register with ACME provider
-#acme_email: ""
+#acme_email: "" # DIFF_IGNORE
 
 # Domain name to request a TLS certificate for:
-#tls_letsencrypt_hostname: ""
+#tls_letsencrypt_hostname: "" # DIFF_IGNORE
 
 # Path to store certificates and metadata needed by
 # letsencrypt
 # For production:
-#tls_letsencrypt_cache_dir: /var/lib/headscale/cache
+#tls_letsencrypt_cache_dir: /var/lib/headscale/cache # DIFF_IGNORE
 
 # Type of ACME challenge to use, currently supported types:
 # HTTP-01 or TLS-ALPN-01
 # See: docs/ref/tls.md for more information
-#tls_letsencrypt_challenge_type: HTTP-01
+#tls_letsencrypt_challenge_type: HTTP-01 # DIFF_IGNORE
 # When HTTP-01 challenge is chosen, letsencrypt must set up a
 # verification endpoint, and it will be listening on:
 # :http = port 80
-#tls_letsencrypt_listen: ":http"
+#tls_letsencrypt_listen: ":http" # DIFF_IGNORE
 
 ## Use already defined certificates:
 tls_cert_path: ""
