@@ -28,17 +28,26 @@ jobs:
       - name: Check for new options
         id: check
         run: |
-          diff --unchanged-line-format="" --old-line-format="" --new-line-format="+ %L" \
-            <(grep -E "^[[:space:]]*[^#].*:" templates/headscale.template.yaml | sort) \
-            <(grep -E "^[[:space:]]*[^#].*:" upstream-config.yaml | sort) \
-            > new-options.txt || true
+          # Extract just the key structure, ignoring values
+          extract_structure() {
+            grep -E "^[[:space:]]*[^#].*:" "$1" | \
+            sed 's/:[[:space:]]*.*$//' | \
+            sort -u
+          }
+          
+          extract_structure "templates/headscale.template.yaml" > local-structure.txt
+          extract_structure "upstream-config.yaml" > upstream-structure.txt
+          
+          # Find truly missing keys
+          comm -23 upstream-structure.txt local-structure.txt > new-options.txt
           
           if [ -s new-options.txt ]; then
             echo "has_missing=true" >> $GITHUB_OUTPUT
+            echo "🆕 New configuration keys found:"
             cat new-options.txt
           else
             echo "has_missing=false" >> $GITHUB_OUTPUT
-            echo "✅ No new options found"
+            echo "✅ No new configuration keys found"
           fi
       
       - name: Comment on PR
