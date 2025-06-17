@@ -144,8 +144,6 @@ database:
   # Enable debug mode. This setting requires the log.level to be set to "debug" or "trace".
   debug: false
 
-  path: false  # DIFF_IGNORE
-
   # GORM configuration settings.
   gorm:
     # Enable prepared statements.
@@ -240,7 +238,7 @@ policy:
   mode: database
   # If the mode is set to "file", the path to a
   # HuJSON file containing ACL policies.
-#  path: ""
+#  path: "" # DIFF_IGNORE
 
 ## DNS
 #
