@@ -1,0 +1,98 @@
+name: Check for New (upstream) Headscale Config Options
+
+on:
+  pull_request:
+  push:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  check-missing-options:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version and download upstream config
+        run: |
+          VERSION=$(grep -oP 'HEADSCALE_VERSION="\K[^"]*' Dockerfile)
+          echo "Found version: $VERSION"
+          
+          curl -f -o upstream-config.yaml \
+            "https://raw.githubusercontent.com/juanfont/headscale/refs/tags/v${VERSION}/config-example.yaml"
+          
+          echo "Successfully downloaded upstream config"
+      
+      - name: Check for new options
+        id: check
+        run: |
+          # Simple approach: extract keys and apply ignores
+          extract_keys() {
+            grep -E "^[[:space:]]*[^#].*:" "$1" | \
+            sed 's/:[[:space:]]*.*$//' | \
+            sed 's/^[[:space:]]*//' | \
+            sort -u
+          }
+          
+          # Get list of keys to ignore from DIFF_IGNORE comments (including commented lines)
+          get_ignored_keys() {
+            grep "# DIFF_IGNORE" "$1" | \
+            sed -E 's/^[[:space:]]*#?[[:space:]]*//' | \
+            sed -E 's/:.*# DIFF_IGNORE.*$//' | \
+            sort -u
+          }
+          
+          echo "=== Getting ignored keys ==="
+          get_ignored_keys "templates/headscale.template.yaml" > ignored_keys.txt
+          echo "Keys to ignore:"
+          cat ignored_keys.txt
+          echo "=== End ignored keys ==="
+          
+          # Extract all keys
+          extract_keys "templates/headscale.template.yaml" > local_all_keys.txt
+          extract_keys "upstream-config.yaml" > upstream_all_keys.txt
+          
+          # Remove ignored keys from upstream
+          cp upstream_all_keys.txt upstream_filtered_keys.txt
+          while IFS= read -r ignore_key; do
+            if [ -n "$ignore_key" ]; then
+              grep -v "^${ignore_key}$" upstream_filtered_keys.txt > temp_filtered.txt
+              mv temp_filtered.txt upstream_filtered_keys.txt
+            fi
+          done < ignored_keys.txt
+          
+          # Find missing keys
+          comm -23 upstream_filtered_keys.txt local_all_keys.txt > new-options.txt
+          
+          echo "Final comparison:"
+          echo "Local keys: $(wc -l < local_all_keys.txt)"
+          echo "Upstream filtered keys: $(wc -l < upstream_filtered_keys.txt)"
+          
+          if [ -s new-options.txt ]; then
+            echo "has_missing=true" >> $GITHUB_OUTPUT
+            echo "🆕 New configuration keys found:"
+            cat new-options.txt
+          else
+            echo "has_missing=false" >> $GITHUB_OUTPUT
+            echo "✅ No new configuration keys found"
+          fi
+          
+          # Cleanup
+          rm -f ignored_keys.txt local_all_keys.txt upstream_all_keys.txt upstream_filtered_keys.txt temp_filtered.txt
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.check.outputs.has_missing == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const newOptions = fs.readFileSync('new-options.txt', 'utf8');
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🆕 New Headscale Config Options\n\n\`\`\`diff\n${newOptions.split('\n').map(line => line.trim() ? `+ ${line}` : '').filter(line => line).join('\n')}\`\`\``
+            });
