@@ -19,8 +19,8 @@ HEADSCALE_DNS_CONFIG_BASE_DOMAIN =  "$HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
   internal_port = 8080
   protocol = "tcp"
   [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
+    hard_limit = 250
+    soft_limit = 200
     type = "connections"
 
   [[services.ports]]
@@ -33,7 +33,7 @@ HEADSCALE_DNS_CONFIG_BASE_DOMAIN =  "$HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
     port = 443
 
   [[services.tcp_checks]]
-    grace_period = "1s"
+    grace_period = "15s"
     interval = "15s"
     restart_limit = 0
     timeout = "2s"
