@@ -432,11 +432,6 @@ configure_security_headers() {
         headers="$default_headers_string"
     fi
     
-    # Validate that we have some content after processing
-    if [ -z "$headers" ]; then
-        log_error "No valid security headers configured"
-    fi
-    
     # Build the header block for Caddy with precise formatting
     if [ -n "$headers" ]; then
         export SECURITY_HEADERS_BLOCK=$'\n\t\theader {\n'"${headers}"$'\t\t}'
