@@ -15,7 +15,7 @@ jobs:
       # Barebones, enough to get it up and listening
       LITESTREAM_REPLICA_URL: "DISABLED_I_KNOW_WHAT_IM_DOING"
       PUBLIC_SERVER_URL: "https://headscale.example.com"
-      HEADSCALE_DNS_CONFIG_BASE_DOMAIN: "example.com"
+      HEADSCALE_DNS_BASE_DOMAIN: "example.com"
       CADDY_FRONTEND: "DISABLE_HTTPS"
     steps:
       - name: Checkout code
@@ -44,7 +44,7 @@ jobs:
           docker run -d --name headscale-container \
             --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
             --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
-            --env HEADSCALE_DNS_CONFIG_BASE_DOMAIN=${{ env.HEADSCALE_DNS_CONFIG_BASE_DOMAIN }} \
+            --env HEADSCALE_DNS_BASE_DOMAIN=${{ env.HEADSCALE_DNS_BASE_DOMAIN }} \
             --env CADDY_FRONTEND=${{ env.CADDY_FRONTEND }} \
             headscale:latest
 

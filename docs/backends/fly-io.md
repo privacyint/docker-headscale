@@ -77,7 +77,7 @@ Create a customised `fly.toml` configuration file in the root of your project fr
 ```sh
 export FLY_APP=$yourAppName
 export PUBLIC_SERVER_URL=$publicServerURL
-export HEADSCALE_DNS_CONFIG_BASE_DOMAIN=$tailnetInternalDomain
+export HEADSCALE_DNS_BASE_DOMAIN=$tailnetInternalDomain
 envsubst < templates/fly.template.toml > fly.toml
 ```
 

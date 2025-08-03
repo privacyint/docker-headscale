@@ -309,7 +309,7 @@ set_ip_allocation() {
 #######################################
 check_headscale_env_vars() {
 	require_env_var "PUBLIC_SERVER_URL"
-	require_env_var "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
 	#This is for the v0.26.0 bump.
 	if env_var_is_populated "HEADSCALE_POLICY_V1" ; then
 		export HEADSCALE_POLICY_V1=1
@@ -551,7 +551,7 @@ check_config_files() {
 display_configuration_summary() {
 	log_info "=== Configuration Summary ==="
 	log_info "Server URL: $PUBLIC_SERVER_URL"
-	log_info "Tailnet Base Domain: $HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	log_info "Tailnet Base Domain: $HEADSCALE_DNS_BASE_DOMAIN"
 	log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
 	log_info "GOMAXPROCS: $GOMAXPROCS"
 	log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
