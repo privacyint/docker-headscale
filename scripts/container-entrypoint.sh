@@ -263,12 +263,6 @@ set_ip_allocation() {
 check_headscale_env_vars() {
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-	
-	# Validate PUBLIC_SERVER_URL format
-	if [[ ! "$PUBLIC_SERVER_URL" =~ ^https?://[a-zA-Z0-9.-]+$ ]]; then
-		log_error "Invalid 'PUBLIC_SERVER_URL' format. Must be http:// or https:// followed by domain name."
-	fi
-	
 	#This is for the v0.26.0 bump.
 	if env_var_is_populated "HEADSCALE_POLICY_V1" ; then
 		export HEADSCALE_POLICY_V1=1
