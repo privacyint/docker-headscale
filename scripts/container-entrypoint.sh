@@ -218,7 +218,15 @@ validate_oidc_settings() {
 #######################################
 set_magic_dns() {
 	export MAGIC_DNS="${MAGIC_DNS:-true}"
-	log_info "Using Magic DNS: '$MAGIC_DNS'"
+	
+	case "${MAGIC_DNS,,}" in
+		true|false)
+			log_info "Using Magic DNS: '$MAGIC_DNS'"
+			;;
+		*)
+			log_error "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
+			;;
+	esac
 }
 
 #######################################
