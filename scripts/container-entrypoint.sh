@@ -410,9 +410,15 @@ run() {
 		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" = true ] && echo "disabled" || echo "enabled")."
 
 		if [ "$cleartext_only" = true ] ; then
-			caddy start --config "$caddyfile_cleartext" || log_error "Failed to start Caddy with cleartext config"
+			caddy start --config "$caddyfile_cleartext" || {
+				log_error "Failed to start Caddy with cleartext config"
+				return
+			}
 		else
-			caddy start --config "$caddyfile_https" || log_error "Failed to start Caddy with HTTPS config"
+			caddy start --config "$caddyfile_https" || {
+				log_error "Failed to start Caddy with HTTPS config"
+				return
+			}
 		fi
 
 		# Make sure Caddy started successfully before starting headscale
