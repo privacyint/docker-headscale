@@ -431,6 +431,13 @@ create_caddy_https_config() {
 }
 
 #######################################
+# Create Caddy HTTP configuration file
+#######################################
+create_caddy_http_config() {
+	create_config_from_template "$caddyfile_cleartext" "Caddy HTTP configuration file"
+}
+
+#######################################
 # Create Headscale configuration file
 #######################################
 create_headscale_config() {
@@ -464,7 +471,13 @@ check_config_files() {
 
 	check_caddy_specific_environment_variables
 
+	# Ensure all template variables are exported for envsubst
+	export ACME_EAB_BLOCK
+	export CLOUDFLARE_ACME_BLOCK
+	export SECURITY_HEADERS_BLOCK
+
 	create_caddy_https_config
+	create_caddy_http_config
 
 	create_headscale_config
 
