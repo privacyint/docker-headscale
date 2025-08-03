@@ -9,9 +9,7 @@
 }
 
 ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
-	handle /admin {
-		redirect /admin/
-	}
+	redir /admin /admin/
 
 	handle_path /admin/* {
 		root * /admin-gui/admin
