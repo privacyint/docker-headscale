@@ -646,16 +646,17 @@ run() {
 
 	check_config_files
 
-	if ! $abort_config ; then
-		display_configuration_summary
-		
-		start_caddy_service
-
-		# Make sure Caddy started successfully before starting headscale
-        if ! $abort_config ; then
-			start_headscale_service
-		fi
+	if $abort_config ; then
+		log_error "Configuration validation failed. Exiting."
+		exit
 	fi
+
+	# Here we... here we... here we go!!!
+	display_configuration_summary
+
+	start_caddy_service
+
+	start_headscale_service
 
 	if [ -n "${DEBUG:-}" ] ; then
 		log_info "Sleeping so you can connect and debug"
