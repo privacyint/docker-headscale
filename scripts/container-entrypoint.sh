@@ -313,7 +313,7 @@ check_headscale_env_vars() {
 	#This is for the v0.26.0 bump.
 	if env_var_is_populated "HEADSCALE_POLICY_V1" ; then
 		export HEADSCALE_POLICY_V1=1
-		log_info "Using Headscale policy version 1. Please migrate and remove this variable."
+		log_warn "Using Headscale policy version 1. Please migrate and remove this variable."
 	fi
 }
 
