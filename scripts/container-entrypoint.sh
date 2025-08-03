@@ -171,6 +171,62 @@ check_public_listen_port() {
 }
 
 #######################################
+# Configure GOMAXPROCS for headscale to utilise available CPUs
+# Either set manually or auto-detected
+# Globals:
+#   `GOMAXPROCS`
+# Returns:
+#   `true` on success, `false` on error
+#######################################
+configure_gomaxprocs() {
+	if env_var_is_populated "GOMAXPROCS"; then
+		if [[ "$GOMAXPROCS" =~ ^[1-9][0-9]*$ ]]; then
+			export GOMAXPROCS
+		else
+			log_error "Invalid GOMAXPROCS value: '$GOMAXPROCS'. Must be a positive integer."
+		fi
+
+		return
+	fi
+
+	# Auto-detect available CPUs
+	local max_procs=""
+
+	# Try to read from cgroup v2 first (modern Docker/Kubernetes)
+	if [ -f "/sys/fs/cgroup/cpu.max" ]; then
+		local cpu_quota cpu_period
+		read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
+		if [ "$cpu_quota" != "max" ] && [ "$cpu_period" -gt 0 ]; then
+			max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
+		fi
+	fi
+
+	# Fallback to cgroup v1
+	if [ -z "$max_procs" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]; then
+		local quota period
+		quota=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
+		period=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
+		if [ "$quota" -gt 0 ] && [ "$period" -gt 0 ]; then
+			max_procs=$(( (quota + period - 1) / period ))
+		fi
+	fi
+
+	# Final fallback to nproc (system CPU count)
+	if [ -z "$max_procs" ] || [ "${max_procs:-0}" -lt 1 ]; then
+		max_procs=$(nproc 2>/dev/null || echo "2")
+	fi
+
+	# Ensure we have at least 1 and at most reasonable limit
+	if [ "${max_procs:-1}" -lt 1 ]; then
+		max_procs=1
+	elif [ "${max_procs:-1}" -gt 32 ]; then
+		max_procs=32
+	fi
+
+	export GOMAXPROCS="$max_procs"
+}
+
+#######################################
 # Validate Litestream replica URL
 # Globals:
 #   `litestream_disabled`
@@ -267,6 +323,7 @@ check_headscale_env_vars() {
 check_required_environment_vars() {
 	log_info "Checking required environment variables..."
 	check_public_listen_port
+	configure_gomaxprocs
 	check_litestream_replica_url
 	validate_oidc_settings
 	set_ip_prefixes
@@ -496,6 +553,7 @@ display_configuration_summary() {
 	log_info "Server URL: $PUBLIC_SERVER_URL"
 	log_info "Tailnet Base Domain: $HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
 	log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
+	log_info "GOMAXPROCS: $GOMAXPROCS"
 	log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
 	log_info "Litestream: $($litestream_disabled && echo "disabled" || echo "enabled")"
 	if ! $litestream_disabled; then
