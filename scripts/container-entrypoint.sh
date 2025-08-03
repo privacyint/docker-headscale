@@ -437,11 +437,9 @@ configure_security_headers() {
 check_caddy_specific_environment_variables() {
 	configure_security_headers || return
 	
-	fi
-	
-	if env_var_is_populated "CADDY_FRONTEND" ; then
-		[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ] && cleartext_only=true
-		return		
+	if env_var_is_populated "CADDY_FRONTEND" && [ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]; then
+		cleartext_only=true
+		return
 	fi
 
 	require_env_var "ACME_ISSUANCE_EMAIL"
