@@ -407,7 +407,7 @@ run() {
 		log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
 		log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
 		log_info "Litestream: $($litestream_disabled && echo "disabled" || echo "enabled")"
-		log_info "Magic DNS: $MAGIC_DNS"
+		log_info "Magic DNS: $($MAGIC_DNS && echo "enabled" || echo "disabled")"
 		log_info "IP Allocation: $IP_ALLOCATION"
 		log_info "IPv4 Prefix: $IPV4_PREFIX"
 		log_info "IPv6 Prefix: $IPV6_PREFIX"
