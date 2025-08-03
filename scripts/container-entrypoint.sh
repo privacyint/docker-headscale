@@ -407,7 +407,31 @@ run() {
 	check_config_files
 
 	if ! $abort_config ; then
-		log_info "Starting Caddy using our environment variables. HTTPS is $([ "$cleartext_only" = true ] && echo "disabled" || echo "enabled")."
+		log_info "=== Configuration Summary ==="
+		log_info "Server URL: $PUBLIC_SERVER_URL"
+		log_info "Tailnet Base Domain: $HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+		log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
+		log_info "HTTPS Mode: $([ "$cleartext_only" = true ] && echo "disabled" || echo "enabled")"
+		log_info "Litestream: $([ "$litestream_disabled" = true ] && echo "disabled" || echo "enabled")"
+		log_info "Magic DNS: $MAGIC_DNS"
+		log_info "IP Allocation: $IP_ALLOCATION"
+		log_info "IPv4 Prefix: $IPV4_PREFIX"
+		log_info "IPv6 Prefix: $IPV6_PREFIX"
+		if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
+			log_info "OIDC: enabled ($HEADSCALE_OIDC_ISSUER)"
+		else
+			log_info "OIDC: disabled"
+		fi
+		if ! $cleartext_only; then
+			if env_var_is_populated "CF_API_TOKEN"; then
+				log_info "DNS Challenge: Cloudflare"
+			else
+				log_info "DNS Challenge: HTTP-01"
+			fi
+		fi
+		log_info "=============================="
+		
+		log_info "Starting Caddy using our environment variables."
 
 		if $cleartext_only; then
 			caddy start --config "$caddyfile_cleartext" || {
