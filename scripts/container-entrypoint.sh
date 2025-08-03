@@ -432,31 +432,7 @@ configure_security_headers() {
         headers="$default_headers_string"
     fi
     
-    # Build the header block for Caddy with precise formatting
-    if [ -n "$headers" ]; then
-        export SECURITY_HEADERS_BLOCK=$'\n\t\theader {\n'"${headers}"$'\t\t}'
-    else
-        export SECURITY_HEADERS_BLOCK=""
-    fi
-    
-    # Log what we're using for transparency
-    case "${SECURITY_HEADERS:-DEFAULT}" in
-        "DEFAULT")
-            log_info "Using default security headers (${#default_headers[@]} headers)"
-            ;;
-        "MINIMAL")
-            log_info "Using minimal security headers (${#minimal_headers[@]} headers)"
-            ;;
-        *)
-            if [ "$headers" = "$default_headers_string" ]; then
-                log_info "Using default security headers (${#default_headers[@]} headers)"
-            else
-                log_info "Using custom security headers"
-            fi
-            ;;
-    esac
-
-    true
+    export SECURITY_HEADERS_BLOCK=$'\n\t\theader {\n'"${headers}"$'\t\t}'
 }
 
 #######################################
