@@ -11,6 +11,7 @@ caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
 ACME_EAB_BLOCK="" # Placeholder for ACME EAB block in Caddyfile
 CLOUDFLARE_ACME_BLOCK="" # Placeholder for Cloudflare ACME block in Caddyfile
+SECURITY_HEADERS_BLOCK="" # Placeholder for security headers block in Caddyfile
 
 #######################################
 # Log with different levels
@@ -306,9 +307,108 @@ check_cloudflare_dns_api_key() {
 }
 
 #######################################
+# Configure security headers for Caddy
+# Arguments:
+#   None
+# Environment Variables:
+#   SECURITY_HEADERS - Custom headers, "DEFAULT", "MINIMAL", or "DISABLED"
+# Globals:
+#   SECURITY_HEADERS_BLOCK - Exported Caddy header block
+# Returns:
+#   `true` on success, `false` on error
+#######################################
+configure_security_headers() {
+    # Modern security headers with sensible defaults
+    local default_headers=(
+        "X-Frame-Options \"DENY\""
+        "X-Content-Type-Options \"nosniff\""
+        "Referrer-Policy \"strict-origin-when-cross-origin\""
+        "X-XSS-Protection \"1; mode=block\""
+        "Permissions-Policy \"camera=(), microphone=(), geolocation=()\""
+        "Cross-Origin-Embedder-Policy \"require-corp\""
+        "Cross-Origin-Opener-Policy \"same-origin\""
+    )
+    
+    # Minimal security headers for compatibility
+    local minimal_headers=(
+        "X-Frame-Options \"DENY\""
+        "X-Content-Type-Options \"nosniff\""
+    )
+    
+    # Note: For documentation on security headers, see:
+    # - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+    # - https://owasp.org/www-project-secure-headers/
+    
+    # Convert arrays to multi-line strings for Caddy config
+    local default_headers_string
+    default_headers_string=$(printf '%s\n        ' "${default_headers[@]}")
+    
+    local minimal_headers_string
+    minimal_headers_string=$(printf '%s\n        ' "${minimal_headers[@]}")
+    
+    # Handle preset values
+    local headers
+    case "${SECURITY_HEADERS:-DEFAULT}" in
+        "DEFAULT")
+            headers="$default_headers_string"
+            ;;
+        "MINIMAL")
+            headers="$minimal_headers_string"
+            ;;
+        "DISABLED")
+            export SECURITY_HEADERS_BLOCK=""
+            log_warn "Security headers have been explicitly disabled"
+            return
+            ;;
+        *)
+            headers="$SECURITY_HEADERS"
+            ;;
+    esac
+    
+    # Basic validation: check if headers contain at least one valid header pattern
+    if ! [[ "$headers" =~ [A-Za-z-]+[[:space:]]+ ]]; then
+        log_warn "Invalid header format detected, falling back to defaults"
+        headers="$default_headers_string"
+    fi
+    
+    # Validate that we have some content after processing
+    if [ -z "$headers" ]; then
+        log_error "No valid security headers configured"
+    fi
+    
+    # Build the header block for Caddy
+    export SECURITY_HEADERS_BLOCK="header {
+        $headers
+    }"
+    
+    # Log what we're using for transparency
+    case "${SECURITY_HEADERS:-DEFAULT}" in
+        "DEFAULT")
+            log_info "Using default security headers (${#default_headers[@]} headers)"
+            ;;
+        "MINIMAL")
+            log_info "Using minimal security headers (${#minimal_headers[@]} headers)"
+            ;;
+        *)
+            if [ "$headers" = "$default_headers_string" ]; then
+                log_info "Using default security headers (${#default_headers[@]} headers)"
+            else
+                log_info "Using custom security headers"
+            fi
+            ;;
+    esac
+
+    true
+}
+
+#######################################
 # Validate Caddy-specific environment variables
 #######################################
 check_caddy_specific_environment_variables() {
+	if ! configure_security_headers; then
+		return
+	fi
+	
 	if env_var_is_populated "CADDY_FRONTEND" ; then
 		[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ] && cleartext_only=true
 		return		
@@ -409,6 +509,9 @@ display_configuration_summary() {
 			log_info "ACME EAB: disabled (Let's Encrypt)"
 		fi
 	fi
+	
+	log_info "Security Headers: $([ -n "$SECURITY_HEADERS_BLOCK" ] && echo "enabled" || echo "disabled")"
+	
 	log_info "=============================="
 }
 

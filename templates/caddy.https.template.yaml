@@ -16,16 +16,12 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 		encode gzip zstd
 		try_files {path}.html {path} index.html
 		file_server
-		header {
-			X-Frame-Options DENY
-			X-Content-Type-Options nosniff
-			Referrer-Policy strict-origin-when-cross-origin
-			X-XSS-Protection "1; mode=block"
-		}
+		${SECURITY_HEADERS_BLOCK}
 	}
 
 	handle {
 		reverse_proxy 127.0.0.1:8080
+		${SECURITY_HEADERS_BLOCK}
 	}
 
 	${CLOUDFLARE_ACME_BLOCK}
