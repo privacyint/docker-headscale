@@ -434,9 +434,9 @@ configure_security_headers() {
     fi
     
     # Build the header block for Caddy
-    export SECURITY_HEADERS_BLOCK="header {
-        $headers
-    }"
+    export SECURITY_HEADERS_BLOCK="		header {
+			$headers
+		}"
     
     # Log what we're using for transparency
     case "${SECURITY_HEADERS:-DEFAULT}" in
