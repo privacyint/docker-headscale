@@ -421,6 +421,13 @@ run() {
 			}
 		fi
 
+		# Verify Caddy is actually running
+		sleep 2
+		if ! pgrep caddy > /dev/null; then
+			log_error "Caddy failed to start properly"
+			return
+		fi
+
 		# Make sure Caddy started successfully before starting headscale
         if ! $abort_config ; then
 			if [ "$litestream_disabled" = false ] ; then
