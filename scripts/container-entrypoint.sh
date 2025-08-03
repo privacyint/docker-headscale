@@ -145,12 +145,10 @@ create_config_from_template() {
 		return
     }
 
-    log_info "Generating $description..."
-
     if envsubst < "$config_path" > "$temp_config_path"; then
         chmod "$permissions" "$temp_config_path"
         if mv "$temp_config_path" "$config_path"; then
-            log_info "$description created successfully"
+            return
         else
             log_error "Unable to move $description to final location"
             rm -f "$temp_config_path"
@@ -183,16 +181,13 @@ check_litestream_replica_url() {
 
 	case "$LITESTREAM_REPLICA_URL" in
 		DISABLED_I_KNOW_WHAT_IM_DOING)
-			log_info "Ephemeral server configuration enabled."
 			litestream_disabled=true
 			;;
 		s3://*)
-			log_info "Using S3-Alike storage for Litestream."
 			require_env_var "LITESTREAM_ACCESS_KEY_ID"
 			require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
 			;;
 		abs://*)
-			log_info "Using Azure Blob storage for Litestream."
 			require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
 			;;
 		*)
@@ -206,7 +201,6 @@ check_litestream_replica_url() {
 #######################################
 validate_oidc_settings() {
 	if env_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
-		log_info "We're using OIDC issuance from '$HEADSCALE_OIDC_ISSUER'"
 		require_env_var "HEADSCALE_OIDC_CLIENT_ID"
 		require_env_var "HEADSCALE_OIDC_CLIENT_SECRET"
 		env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
@@ -221,7 +215,6 @@ set_magic_dns() {
 	
 	case "${MAGIC_DNS,,}" in
 		true|false)
-			log_info "Using Magic DNS: '$MAGIC_DNS'"
 			;;
 		*)
 			log_error "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
@@ -235,7 +228,6 @@ set_magic_dns() {
 set_ip_prefixes() {
 	export IPV6_PREFIX="${IPV6_PREFIX:-fd7a:115c:a1e0::/48}"
 	export IPV4_PREFIX="${IPV4_PREFIX:-100.64.0.0/10}"
-	log_info "Using subnets IPV6: '$IPV6_PREFIX', IPV4: '$IPV4_PREFIX'"
 }
 
 #######################################
@@ -243,8 +235,6 @@ set_ip_prefixes() {
 #######################################
 set_ip_allocation() {
 	export IP_ALLOCATION="${IP_ALLOCATION:-sequential}"
-
-	log_info "Using ${IP_ALLOCATION} IP allocation"
 
 	case "$IP_ALLOCATION" in
 		sequential)
@@ -298,13 +288,11 @@ reuse_or_create_noise_private_key() {
 	local key_path="/data/noise_private.key"
 
 	if [ -f "$key_path" ]; then
-		log_info "Using existing private Noise key on disk."
 		chmod 600 "$key_path"
 		return
 	fi
 
 	if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
-		log_info "Using provided private Noise key from environment variable."
 	    printf '%s' "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
         chmod 600 "$key_path"
 	else
@@ -317,7 +305,6 @@ reuse_or_create_noise_private_key() {
 #######################################
 check_zerossl_eab() {
 	if env_var_is_populated "ACME_EAB_KEY_ID" || env_var_is_populated "ACME_EAB_MAC_KEY"; then
-		log_info "We're using ACME EAB credentials. Check they're both populated."
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
@@ -327,7 +314,6 @@ check_zerossl_eab() {
             mac_key ${ACME_EAB_MAC_KEY}
         }"
 	else
-		log_info "No ACME EAB credentials provided"
         export ACME_EAB_BLOCK=""
 	fi
 }
@@ -337,12 +323,10 @@ check_zerossl_eab() {
 #######################################
 check_cloudflare_dns_api_key() {
     if env_var_is_populated "CF_API_TOKEN" ; then
-        log_info "Using Cloudflare for ACME DNS Challenge."
 		export CLOUDFLARE_ACME_BLOCK="tls {
 			dns cloudflare ${CF_API_TOKEN}
 		}"
     else
-        log_info "Using HTTP authentication for ACME DNS Challenge"
 		export CLOUDFLARE_ACME_BLOCK=""
     fi
 }
@@ -407,6 +391,9 @@ run() {
 		log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
 		log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
 		log_info "Litestream: $($litestream_disabled && echo "disabled" || echo "enabled")"
+		if ! $litestream_disabled; then
+			log_info "Backup Destination: $LITESTREAM_REPLICA_URL"
+		fi
 		log_info "Magic DNS: $($MAGIC_DNS && echo "enabled" || echo "disabled")"
 		log_info "IP Allocation: $IP_ALLOCATION"
 		log_info "IPv4 Prefix: $IPV4_PREFIX"
@@ -421,6 +408,11 @@ run() {
 				log_info "DNS Challenge: Cloudflare"
 			else
 				log_info "DNS Challenge: HTTP-01"
+			fi
+			if env_var_is_populated "ACME_EAB_KEY_ID"; then
+				log_info "ACME EAB: enabled (ZeroSSL)"
+			else
+				log_info "ACME EAB: disabled (Let's Encrypt)"
 			fi
 		fi
 		log_info "=============================="
