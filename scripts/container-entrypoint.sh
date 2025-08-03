@@ -266,13 +266,9 @@ validate_oidc_settings() {
 set_magic_dns() {
 	export MAGIC_DNS="${MAGIC_DNS:-true}"
 	
-	case "${MAGIC_DNS,,}" in
-		true|false)
-			;;
-		*)
-			log_error "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
-			;;
-	esac
+	if [[ ! "${MAGIC_DNS,,}" =~ ^(true|false)$ ]]; then
+		log_error "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
+	fi
 }
 
 #######################################
@@ -289,15 +285,9 @@ set_ip_prefixes() {
 set_ip_allocation() {
 	export IP_ALLOCATION="${IP_ALLOCATION:-sequential}"
 
-	case "$IP_ALLOCATION" in
-		sequential)
-			;;
-		random)
-			;;
-		*)
-			log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
-			;;
-	esac
+	if [[ ! "$IP_ALLOCATION" =~ ^(sequential|random)$ ]]; then
+		log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+	fi
 }
 
 #######################################
