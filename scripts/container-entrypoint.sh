@@ -368,6 +368,43 @@ check_config_files() {
 }
 
 #######################################
+# Display configuration summary
+#######################################
+display_configuration_summary() {
+	log_info "=== Configuration Summary ==="
+	log_info "Server URL: $PUBLIC_SERVER_URL"
+	log_info "Tailnet Base Domain: $HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
+	log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
+	log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
+	log_info "Litestream: $($litestream_disabled && echo "disabled" || echo "enabled")"
+	if ! $litestream_disabled; then
+		log_info "Backup Destination: $LITESTREAM_REPLICA_URL"
+	fi
+	log_info "Magic DNS: $($MAGIC_DNS && echo "enabled" || echo "disabled")"
+	log_info "IP Allocation: $IP_ALLOCATION"
+	log_info "IPv4 Prefix: $IPV4_PREFIX"
+	log_info "IPv6 Prefix: $IPV6_PREFIX"
+	if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
+		log_info "OIDC: enabled ($HEADSCALE_OIDC_ISSUER)"
+	else
+		log_info "OIDC: disabled"
+	fi
+	if ! $cleartext_only; then
+		if env_var_is_populated "CF_API_TOKEN"; then
+			log_info "DNS Challenge: Cloudflare"
+		else
+			log_info "DNS Challenge: HTTP-01"
+		fi
+		if env_var_is_populated "ACME_EAB_KEY_ID"; then
+			log_info "ACME EAB: enabled (ZeroSSL)"
+		else
+			log_info "ACME EAB: disabled (Let's Encrypt)"
+		fi
+	fi
+	log_info "=============================="
+}
+
+#######################################
 # Create required directories
 #######################################
 check_needed_directories() {
@@ -385,37 +422,7 @@ run() {
 	check_config_files
 
 	if ! $abort_config ; then
-		log_info "=== Configuration Summary ==="
-		log_info "Server URL: $PUBLIC_SERVER_URL"
-		log_info "Tailnet Base Domain: $HEADSCALE_DNS_CONFIG_BASE_DOMAIN"
-		log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
-		log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
-		log_info "Litestream: $($litestream_disabled && echo "disabled" || echo "enabled")"
-		if ! $litestream_disabled; then
-			log_info "Backup Destination: $LITESTREAM_REPLICA_URL"
-		fi
-		log_info "Magic DNS: $($MAGIC_DNS && echo "enabled" || echo "disabled")"
-		log_info "IP Allocation: $IP_ALLOCATION"
-		log_info "IPv4 Prefix: $IPV4_PREFIX"
-		log_info "IPv6 Prefix: $IPV6_PREFIX"
-		if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
-			log_info "OIDC: enabled ($HEADSCALE_OIDC_ISSUER)"
-		else
-			log_info "OIDC: disabled"
-		fi
-		if ! $cleartext_only; then
-			if env_var_is_populated "CF_API_TOKEN"; then
-				log_info "DNS Challenge: Cloudflare"
-			else
-				log_info "DNS Challenge: HTTP-01"
-			fi
-			if env_var_is_populated "ACME_EAB_KEY_ID"; then
-				log_info "ACME EAB: enabled (ZeroSSL)"
-			else
-				log_info "ACME EAB: disabled (Let's Encrypt)"
-			fi
-		fi
-		log_info "=============================="
+		display_configuration_summary
 		
 		log_info "Starting Caddy using our environment variables."
 
