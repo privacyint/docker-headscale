@@ -107,21 +107,20 @@ require_env_var() {
 #   `true` if deemed valid, otherwise `false`
 #######################################
 validate_port() {
-    port="$1"
-    value="${!port}"
+    local port="$1"
 
     # Make sure our port is numeric
-    if ! [[ "$value" =~ ^[0-9]+$ ]]; then
+    if ! [[ "${!port}" =~ ^[0-9]+$ ]]; then
         log_error "Port '$port' is not numeric." && return
     fi
 
     # Check no leading zeros (except for port '0')
-    if [[ "$value" =~ ^0[0-9]+$ ]]; then
+    if [[ "${!port}" =~ ^0[0-9]+$ ]]; then
         log_error "Port '$port' has a leading zero." && return
     fi
 
     # Check port is within valid range
-    if [ "$value" -lt 1 ] || [ "$value" -gt 65535 ]; then
+    if [ "${!port}" -lt 1 ] || [ "${!port}" -gt 65535 ]; then
         log_error "Port '$port' must be a valid port within the range of 1-65535." && return
     fi
 }
