@@ -179,48 +179,48 @@ check_public_listen_port() {
 #   `true` on success, `false` on error
 #######################################
 configure_gomaxprocs() {
-	if env_var_is_populated "GOMAXPROCS"; then
-		if [[ "$GOMAXPROCS" =~ ^[1-9][0-9]*$ ]]; then
-			export GOMAXPROCS
-		else
-			log_error "Invalid GOMAXPROCS value: '$GOMAXPROCS'. Must be a positive integer."
-		fi
-
-		return
-	fi
-
-	# Auto-detect available CPUs
 	local max_procs=""
+	
+	if env_var_is_populated "GOMAXPROCS"; then
+		if ! [[ "$GOMAXPROCS" =~ ^[1-9][0-9]*$ ]]; then
+			log_error "Invalid GOMAXPROCS value: '$GOMAXPROCS'. Must be a positive integer."
+			return
+		fi
+		max_procs="$GOMAXPROCS"
+	else
+		# Auto-detect available CPUs
+		# Try to read from cgroup v2 first (modern Docker/Kubernetes)
+		if [ -f "/sys/fs/cgroup/cpu.max" ]; then
+			local cpu_quota cpu_period
+			read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
+			if [ "$cpu_quota" != "max" ] && [ "$cpu_period" -gt 0 ]; then
+				max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
+			fi
+		fi
 
-	# Try to read from cgroup v2 first (modern Docker/Kubernetes)
-	if [ -f "/sys/fs/cgroup/cpu.max" ]; then
-		local cpu_quota cpu_period
-		read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
-		if [ "$cpu_quota" != "max" ] && [ "$cpu_period" -gt 0 ]; then
-			max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
+		# Fallback to cgroup v1
+		if [ -z "$max_procs" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]; then
+			local quota period
+			quota=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
+			period=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
+			if [ "$quota" -gt 0 ] && [ "$period" -gt 0 ]; then
+				max_procs=$(( (quota + period - 1) / period ))
+			fi
+		fi
+
+		# Final fallback to nproc (system CPU count)
+		if [ -z "$max_procs" ] || [ "${max_procs:-0}" -lt 1 ]; then
+			max_procs=$(nproc 2>/dev/null || echo "2")
 		fi
 	fi
 
-	# Fallback to cgroup v1
-	if [ -z "$max_procs" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]; then
-		local quota period
-		quota=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
-		period=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
-		if [ "$quota" -gt 0 ] && [ "$period" -gt 0 ]; then
-			max_procs=$(( (quota + period - 1) / period ))
-		fi
-	fi
-
-	# Final fallback to nproc (system CPU count)
-	if [ -z "$max_procs" ] || [ "${max_procs:-0}" -lt 1 ]; then
-		max_procs=$(nproc 2>/dev/null || echo "2")
-	fi
-
-	# Ensure we have at least 1 and at most reasonable limit
+	# Clamp GOMAXPROCS to a safe range
 	if [ "${max_procs:-1}" -lt 1 ]; then
 		max_procs=1
+		log_warn "GOMAXPROCS was below minimum, clamped to 1"
 	elif [ "${max_procs:-1}" -gt 32 ]; then
 		max_procs=32
+		log_warn "GOMAXPROCS was above maximum, clamped to 32"
 	fi
 
 	export GOMAXPROCS="$max_procs"
