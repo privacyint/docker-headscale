@@ -124,4 +124,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # Default HTTPS port - override with $PUBLIC_LISTEN_PORT environment variable
     EXPOSE 443
 
+    # Health check to ensure services are running
+    HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+        CMD headscale version && caddy version || exit 1
+
     ENTRYPOINT ["/container-entrypoint.sh"]
