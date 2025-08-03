@@ -296,7 +296,7 @@ reuse_or_create_noise_private_key() {
 	    printf '%s' "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
         chmod 600 "$key_path"
 	else
-		log_info "Generating a new private Noise key."
+		log_info "Generating new Noise private key - existing clients will need to re-authenticate"
 	fi
 }
 
