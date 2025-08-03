@@ -96,9 +96,7 @@ env_var_is_populated() {
 #   `true` if populated, otherwise `false`
 #######################################
 require_env_var() {
-	if ! env_var_is_populated "$1"; then
-		log_error "Environment variable '$1' is required"
-	fi
+	env_var_is_populated "$1" || log_error "Environment variable '$1' is required"
 }
 
 #######################################
@@ -232,9 +230,7 @@ configure_gomaxprocs() {
 #   `litestream_disabled`
 #######################################
 check_litestream_replica_url() {
-	if ! require_env_var "LITESTREAM_REPLICA_URL"; then
-		return
-	fi	
+	require_env_var "LITESTREAM_REPLICA_URL" || return
 
 	case "$LITESTREAM_REPLICA_URL" in
 		DISABLED_I_KNOW_WHAT_IM_DOING)
@@ -439,8 +435,8 @@ configure_security_headers() {
 # Validate Caddy-specific environment variables
 #######################################
 check_caddy_specific_environment_variables() {
-	if ! configure_security_headers; then
-		return
+	configure_security_headers || return
+	
 	fi
 	
 	if env_var_is_populated "CADDY_FRONTEND" ; then
