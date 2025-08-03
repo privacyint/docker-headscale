@@ -15,13 +15,11 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 		root * /admin-gui/admin
 		encode gzip zstd
 		try_files {path}.html {path} index.html
-		file_server
-${SECURITY_HEADERS_BLOCK}
+		file_server${SECURITY_HEADERS_BLOCK}
 	}
 
 	handle {
-		reverse_proxy 127.0.0.1:8080
-${SECURITY_HEADERS_BLOCK}
+		reverse_proxy 127.0.0.1:8080${SECURITY_HEADERS_BLOCK}
 	}
 
 	${CLOUDFLARE_ACME_BLOCK}

@@ -396,12 +396,16 @@ configure_security_headers() {
     # - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
     # - https://owasp.org/www-project-secure-headers/
     
-    # Convert arrays to multi-line strings for Caddy config
-    local default_headers_string
-    default_headers_string=$(printf '%s\n        ' "${default_headers[@]}")
+    # Convert arrays to multi-line strings for Caddy config with exact formatting
+    local default_headers_string=""
+    for header in "${default_headers[@]}"; do
+        default_headers_string+=$'\t\t\t'"${header}"$'\n'
+    done
     
-    local minimal_headers_string
-    minimal_headers_string=$(printf '%s\n        ' "${minimal_headers[@]}")
+    local minimal_headers_string=""
+    for header in "${minimal_headers[@]}"; do
+        minimal_headers_string+=$'\t\t\t'"${header}"$'\n'
+    done
     
     # Handle preset values
     local headers
@@ -433,10 +437,12 @@ configure_security_headers() {
         log_error "No valid security headers configured"
     fi
     
-    # Build the header block for Caddy
-    export SECURITY_HEADERS_BLOCK="		header {
-			$headers
-		}"
+    # Build the header block for Caddy with precise formatting
+    if [ -n "$headers" ]; then
+        export SECURITY_HEADERS_BLOCK=$'\n\t\theader {\n'"${headers}"$'\t\t}'
+    else
+        export SECURITY_HEADERS_BLOCK=""
+    fi
     
     # Log what we're using for transparency
     case "${SECURITY_HEADERS:-DEFAULT}" in
