@@ -16,7 +16,7 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 	handle_path /admin/* {
 		root * /admin-gui/admin
 		encode gzip zstd
-		try_files {path}.html {path}
+		try_files {path}.html {path} index.html
 		file_server
 	}
 	}
