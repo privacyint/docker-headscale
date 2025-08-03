@@ -275,32 +275,6 @@ check_required_environment_vars() {
 }
 
 #######################################
-# Create Headscale configuration file
-#######################################
-create_headscale_config() {
-	create_config_from_template "$headscale_config" "Headscale configuration file"
-}
-
-#######################################
-# Handle Noise private key
-#######################################
-reuse_or_create_noise_private_key() {
-	local key_path="/data/noise_private.key"
-
-	if [ -f "$key_path" ]; then
-		chmod 600 "$key_path"
-		return
-	fi
-
-	if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
-	    printf '%s' "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
-        chmod 600 "$key_path"
-	else
-		log_info "Generating new Noise private key - existing clients will need to re-authenticate"
-	fi
-}
-
-#######################################
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
@@ -346,10 +320,40 @@ check_caddy_specific_environment_variables() {
 }
 
 #######################################
+# CONFIGURATION CREATION FUNCTIONS  
+#######################################
+
+#######################################
 # Create Caddy HTTPS configuration file
 #######################################
 create_caddy_https_config() {
 	create_config_from_template "$caddyfile_https" "Caddy HTTPS configuration file"
+}
+
+#######################################
+# Create Headscale configuration file
+#######################################
+create_headscale_config() {
+	create_config_from_template "$headscale_config" "Headscale configuration file"
+}
+
+#######################################
+# Handle Noise private key
+#######################################
+reuse_or_create_noise_private_key() {
+	local key_path="/data/noise_private.key"
+
+	if [ -f "$key_path" ]; then
+		chmod 600 "$key_path"
+		return
+	fi
+
+	if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
+	    printf '%s' "$HEADSCALE_NOISE_PRIVATE_KEY" > "$key_path"
+        chmod 600 "$key_path"
+	else
+		log_info "Generating new Noise private key - existing clients will need to re-authenticate"
+	fi
 }
 
 #######################################
@@ -366,6 +370,10 @@ check_config_files() {
 
 	reuse_or_create_noise_private_key
 }
+
+#######################################
+# SERVICE MANAGEMENT FUNCTIONS
+#######################################
 
 #######################################
 # Display configuration summary
@@ -405,6 +413,49 @@ display_configuration_summary() {
 }
 
 #######################################
+# Start Caddy service
+#######################################
+start_caddy_service() {
+	log_info "Starting Caddy using our environment variables."
+
+	if $cleartext_only; then
+		caddy start --config "$caddyfile_cleartext" || {
+			log_error "Failed to start Caddy with cleartext config"
+			return
+		}
+	else
+		caddy start --config "$caddyfile_https" || {
+			log_error "Failed to start Caddy with HTTPS config"
+			return
+		}
+	fi
+
+	# Verify Caddy is actually running
+	sleep 2
+	if ! pgrep caddy > /dev/null; then
+		log_error "Caddy failed to start properly"
+		return
+	fi
+}
+
+#######################################
+# Start Headscale service
+#######################################
+start_headscale_service() {
+	if ! $litestream_disabled; then
+		log_info "Attempt to restore previous Headscale database if there's a replica"
+		litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 ||
+			log_warn "No replica found, or unable to restore database."
+
+		log_info "Starting Headscale using Litestream and our Environment Variables..."
+		exec litestream replicate -exec 'headscale serve'
+	else
+		log_info "Starting Headscale without Litestream"
+		exec headscale serve
+	fi
+}
+
+#######################################
 # Create required directories
 #######################################
 check_needed_directories() {
@@ -424,40 +475,11 @@ run() {
 	if ! $abort_config ; then
 		display_configuration_summary
 		
-		log_info "Starting Caddy using our environment variables."
-
-		if $cleartext_only; then
-			caddy start --config "$caddyfile_cleartext" || {
-				log_error "Failed to start Caddy with cleartext config"
-				return
-			}
-		else
-			caddy start --config "$caddyfile_https" || {
-				log_error "Failed to start Caddy with HTTPS config"
-				return
-			}
-		fi
-
-		# Verify Caddy is actually running
-		sleep 2
-		if ! pgrep caddy > /dev/null; then
-			log_error "Caddy failed to start properly"
-			return
-		fi
+		start_caddy_service
 
 		# Make sure Caddy started successfully before starting headscale
         if ! $abort_config ; then
-			if ! $litestream_disabled; then
-				log_info "Attempt to restore previous Headscale database if there's a replica"
-				litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 ||
-					log_warn "No replica found, or unable to restore database."
-
-				log_info "Starting Headscale using Litestream and our Environment Variables..."
-				exec litestream replicate -exec 'headscale serve'
-			else
-				log_info "Starting Headscale without Litestream"
-				exec headscale serve
-			fi
+			start_headscale_service
 		fi
 	fi
 
