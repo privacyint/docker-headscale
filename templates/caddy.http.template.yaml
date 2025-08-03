@@ -16,6 +16,12 @@
 		encode gzip zstd
 		try_files {path}.html {path} index.html
 		file_server
+		header {
+			X-Frame-Options DENY
+			X-Content-Type-Options nosniff
+			Referrer-Policy strict-origin-when-cross-origin
+			X-XSS-Protection "1; mode=block"
+		}
 	}
 
 	handle {
