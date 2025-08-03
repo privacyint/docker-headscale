@@ -51,10 +51,9 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # Upgrade system and install various dependencies
     # - BusyBox's wget isn't reliable enough
     # - I'm gonna need a better shell
-    # - We need GNU sed
     # hadolint ignore=DL3018,SC2086
     RUN BUILD_DEPS="wget"; \
-        RUNTIME_DEPS="bash sed gettext"; \
+        RUNTIME_DEPS="bash gettext"; \
         apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}; \
         apk add --no-cache ${RUNTIME_DEPS}
