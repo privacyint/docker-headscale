@@ -99,6 +99,20 @@ require_env_var() {
 	env_var_is_populated "$1" || log_error "Environment variable '$1' is required"
 }
 
+########################################
+# Create a directory if it doesn't exist
+# Arguments:
+#   $1 - Directory path
+# Returns:
+#   `true` on success, `false` on error
+########################################
+create_directory_if_not_exists() {
+	local dir="$1"
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || log_error "Unable to create directory '$dir'."
+	fi
+}
+
 #######################################
 # Validate a port number
 # Arguments:
@@ -444,6 +458,15 @@ check_caddy_specific_environment_variables() {
 #######################################
 
 #######################################
+# Create required directories
+#######################################
+check_needed_directories() {
+	create_directory_if_not_exists "/var/run/headscale"
+	create_directory_if_not_exists "/data/headscale"
+	create_directory_if_not_exists "/data/caddy"
+}
+
+#######################################
 # Create Caddy HTTPS configuration file
 #######################################
 create_caddy_https_config() {
@@ -590,29 +613,6 @@ start_headscale_service() {
 		log_info "Starting Headscale without Litestream"
 		exec headscale serve
 	fi
-}
-
-########################################
-# Create a directory if it doesn't exist
-# Arguments:
-#   $1 - Directory path
-# Returns:
-#   `true` on success, `false` on error
-########################################
-create_directory_if_not_exists() {
-	local dir="$1"
-	if [ ! -d "$dir" ]; then
-		mkdir -p "$dir" || log_error "Unable to create directory '$dir'."
-	fi
-}
-
-#######################################
-# Create required directories
-#######################################
-check_needed_directories() {
-	create_directory_if_not_exists "/var/run/headscale"
-	create_directory_if_not_exists "/data/headscale"
-	create_directory_if_not_exists "/data/caddy"
 }
 
 #######################################
