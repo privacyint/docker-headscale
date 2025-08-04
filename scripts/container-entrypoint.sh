@@ -592,13 +592,27 @@ start_headscale_service() {
 	fi
 }
 
+########################################
+# Create a directory if it doesn't exist
+# Arguments:
+#   $1 - Directory path
+# Returns:
+#   `true` on success, `false` on error
+########################################
+create_directory_if_not_exists() {
+	local dir="$1"
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || log_error "Unable to create directory '$dir'."
+	fi
+}
+
 #######################################
 # Create required directories
 #######################################
 check_needed_directories() {
-	mkdir -p /var/run/headscale || log_error "Unable to create /var/run/headscale directory."
-	mkdir -p /data/headscale || log_error "Unable to create /data/headscale directory."
-	mkdir -p /data/caddy || log_error "Unable to create /data/caddy directory."
+	create_directory_if_not_exists "/var/run/headscale"
+	create_directory_if_not_exists "/data/headscale"
+	create_directory_if_not_exists "/data/caddy"
 }
 
 #######################################
