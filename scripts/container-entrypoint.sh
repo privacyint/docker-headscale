@@ -113,6 +113,31 @@ create_directory_if_not_exists() {
 	fi
 }
 
+########################################
+# Log enabled/disabled status for configuration summary
+# Arguments:
+#   $1 - Feature name
+#   $2 - Boolean condition (true/false)
+#   $3 - Optional additional info when enabled
+#   $4 - Optional: "warn" to use log_warn when disabled, otherwise uses log_info
+########################################
+log_feature_status() {
+	local feature="$1"
+	local condition="$2"
+	local extra_info="${3:-}"
+	local warn_on_false="${4:-}"
+	
+	if $condition; then
+		log_info "$feature: enabled${extra_info:+ ($extra_info)}"
+	else
+		if [[ "$warn_on_false" == "warn" ]]; then
+			log_warn "$feature: disabled"
+		else
+			log_info "$feature: disabled"
+		fi
+	fi
+}
+
 #######################################
 # Validate a port number
 # Arguments:
@@ -540,20 +565,17 @@ display_configuration_summary() {
 	log_info "Tailnet Base Domain: $HEADSCALE_DNS_BASE_DOMAIN"
 	log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
 	log_info "GOMAXPROCS: $GOMAXPROCS"
-	log_info "HTTPS Mode: $($cleartext_only && echo "disabled" || echo "enabled")"
-	log_info "Litestream: $($litestream_disabled && echo "disabled" || echo "enabled")"
-	if ! $litestream_disabled; then
-		log_info "Backup Destination: $LITESTREAM_REPLICA_URL"
-	fi
-	log_info "Magic DNS: $($MAGIC_DNS && echo "enabled" || echo "disabled")"
+
+	log_feature_status "HTTPS Mode" "$($cleartext_only && echo false || echo true)" "" "warn"
+	log_feature_status "Litestream" "$($litestream_disabled && echo false || echo true)" "$LITESTREAM_REPLICA_URL" "warn"
+	log_feature_status "Magic DNS" "$MAGIC_DNS"
+
 	log_info "IP Allocation: $IP_ALLOCATION"
 	log_info "IPv4 Prefix: $IPV4_PREFIX"
 	log_info "IPv6 Prefix: $IPV6_PREFIX"
-	if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
-		log_info "OIDC: enabled ($HEADSCALE_OIDC_ISSUER)"
-	else
-		log_info "OIDC: disabled"
-	fi
+
+	log_feature_status "OIDC" "$(env_var_is_populated "HEADSCALE_OIDC_ISSUER" && echo true || echo false)" "${HEADSCALE_OIDC_ISSUER:-}"
+
 	if ! $cleartext_only; then
 		if env_var_is_populated "CF_API_TOKEN"; then
 			log_info "DNS Challenge: Cloudflare"
