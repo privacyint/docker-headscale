@@ -114,6 +114,31 @@ create_directory_if_not_exists() {
 }
 
 ########################################
+# Check environment variable is set, or default (and optionally validate with regex - now you have two problems)
+# Arguments:
+#   $1 - Variable name
+#   $2 - Default value
+#   $3 - Validation regex pattern (optional)
+#   $4 - Error message for invalid values (optional)
+########################################
+check_env_var_or_set_default() {
+	local var_name="$1"
+	local default_value="$2"
+	local pattern="${3:-}"
+	local error_msg="${4:-}"
+	
+	# Set default value using indirect expansion
+	if [[ -z "${!var_name:-}" ]]; then
+		export "$var_name"="$default_value"
+	fi
+	
+	# Validate with regex if pattern provided
+	if [[ -n "$pattern" && ! "${!var_name}" =~ $pattern ]]; then
+		log_error "${error_msg:-"Invalid '$var_name' value: '${!var_name}'"}"
+	fi
+}
+
+########################################
 # Log enabled/disabled status for configuration summary
 # Arguments:
 #   $1 - Feature name
@@ -205,7 +230,7 @@ create_config_from_template() {
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-	export PUBLIC_LISTEN_PORT="${PUBLIC_LISTEN_PORT:-443}"
+	check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "443"
 	validate_port "PUBLIC_LISTEN_PORT"
 }
 
@@ -305,30 +330,22 @@ validate_oidc_settings() {
 # Set whether headscale should use Magic DNS
 #######################################
 set_magic_dns() {
-	export MAGIC_DNS="${MAGIC_DNS:-true}"
-	
-	if [[ ! "${MAGIC_DNS,,}" =~ ^(true|false)$ ]]; then
-		log_error "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
-	fi
+	check_env_var_or_set_default "MAGIC_DNS" "true" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 }
 
 #######################################
 # Set default headscale IP prefixes if not provided
 #######################################
 set_ip_prefixes() {
-	export IPV6_PREFIX="${IPV6_PREFIX:-fd7a:115c:a1e0::/48}"
-	export IPV4_PREFIX="${IPV4_PREFIX:-100.64.0.0/10}"
+	check_env_var_or_set_default "IPV6_PREFIX" "fd7a:115c:a1e0::/48"
+	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
 }
 
 #######################################
 # Set default headscale IP allocation if not provided, check it's valid
 #######################################
 set_ip_allocation() {
-	export IP_ALLOCATION="${IP_ALLOCATION:-sequential}"
-
-	if [[ ! "$IP_ALLOCATION" =~ ^(sequential|random)$ ]]; then
-		log_error "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
-	fi
+	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
 }
 
 #######################################
