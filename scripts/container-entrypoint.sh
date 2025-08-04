@@ -5,7 +5,7 @@ set -euo pipefail
 # Global flags
 abort_config=false
 litestream_disabled=false
-cleartext_only=false
+https_enabled=true
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
@@ -469,7 +469,7 @@ check_caddy_specific_environment_variables() {
 	configure_security_headers || return
 	
 	if env_var_is_populated "CADDY_FRONTEND" && [ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]; then
-		cleartext_only=true
+		https_enabled=false
 		return
 	fi
 
@@ -566,7 +566,7 @@ display_configuration_summary() {
 	log_info "Public Listening Port: $PUBLIC_LISTEN_PORT"
 	log_info "GOMAXPROCS: $GOMAXPROCS"
 
-	log_feature_status "HTTPS Mode" "$($cleartext_only && echo false || echo true)" "" "warn"
+	log_feature_status "HTTPS Mode" "$https_enabled" "" "warn"
 	log_feature_status "Litestream" "$($litestream_disabled && echo false || echo true)" "$LITESTREAM_REPLICA_URL" "warn"
 	log_feature_status "Magic DNS" "$MAGIC_DNS"
 
@@ -576,16 +576,16 @@ display_configuration_summary() {
 
 	log_feature_status "OIDC" "$(env_var_is_populated "HEADSCALE_OIDC_ISSUER" && echo true || echo false)" "${HEADSCALE_OIDC_ISSUER:-}"
 
-	if ! $cleartext_only; then
+	if $https_enabled; then
 		if env_var_is_populated "CF_API_TOKEN"; then
 			log_info "DNS Challenge: Cloudflare"
 		else
 			log_info "DNS Challenge: HTTP-01"
 		fi
 		if env_var_is_populated "ACME_EAB_KEY_ID"; then
-			log_info "ACME EAB: enabled (ZeroSSL)"
+			log_feature_status "ACME EAB" true "ZeroSSL"
 		else
-			log_info "ACME EAB: disabled (Let's Encrypt)"
+			log_feature_status "ACME EAB" false "Let's Encrypt"
 		fi
 	fi
 	
@@ -600,14 +600,14 @@ display_configuration_summary() {
 start_caddy_service() {
 	log_info "Starting Caddy using our environment variables."
 
-	if $cleartext_only; then
-		caddy start --config "$caddyfile_cleartext" || {
-			log_error "Failed to start Caddy with cleartext config"
+	if $https_enabled; then
+		caddy start --config "$caddyfile_https" || {
+			log_error "Failed to start Caddy with HTTPS config"
 			return
 		}
 	else
-		caddy start --config "$caddyfile_https" || {
-			log_error "Failed to start Caddy with HTTPS config"
+		caddy start --config "$caddyfile_cleartext" || {
+			log_error "Failed to start Caddy with cleartext config"
 			return
 		}
 	fi
