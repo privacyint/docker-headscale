@@ -591,7 +591,7 @@ display_configuration_summary() {
 	log_info "IPv4 Prefix: $IPV4_PREFIX"
 	log_info "IPv6 Prefix: $IPV6_PREFIX"
 
-	log_feature_status "OIDC" "$(env_var_is_populated "HEADSCALE_OIDC_ISSUER" && echo true || echo false)" "${HEADSCALE_OIDC_ISSUER:-}"
+	log_feature_status "OIDC" "$(env_var_is_populated "HEADSCALE_OIDC_ISSUER")" "${HEADSCALE_OIDC_ISSUER:-}"
 
 	if $https_enabled; then
 		if env_var_is_populated "CF_API_TOKEN"; then
@@ -606,7 +606,7 @@ display_configuration_summary() {
 		fi
 	fi
 
-	log_feature_status "Security Headers" "$([[ -n "$SECURITY_HEADERS_BLOCK" ]] && echo true || echo false)" "${SECURITY_HEADERS:-DEFAULT}" "warn"
+	log_feature_status "Security Headers" "$([[ -n "$SECURITY_HEADERS_BLOCK" ]])" "${SECURITY_HEADERS:-DEFAULT}" "warn"
 
 	log_info "=============================="
 }
