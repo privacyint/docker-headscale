@@ -437,21 +437,25 @@ configure_security_headers() {
     )
     
 	# Note: For documentation on security headers, see:
-    # - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
-    # - https://owasp.org/www-project-secure-headers/
-    
-    # Convert arrays to multi-line strings for Caddy config with exact formatting
-    local default_headers_string=""
-    for header in "${default_headers[@]}"; do
-        default_headers_string+=$'\t\t\t'"${header}"$'\n'
-    done
-    
-    local minimal_headers_string=""
-    for header in "${minimal_headers[@]}"; do
-        minimal_headers_string+=$'\t\t\t'"${header}"$'\n'
-    done
-    
-    # Handle preset values
+	# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+	# - https://owasp.org/www-project-secure-headers/
+	
+	# Helper function to convert array to multi-line string for Caddy config
+	array_to_caddy_block() {
+		local -n headers_array=$1
+		local result=""
+		for header in "${headers_array[@]}"; do
+			result+=$'\t\t\t'"${header}"$'\n'
+		done
+		echo "$result"
+	}
+	
+	# Convert arrays to multi-line strings for Caddy config with exact formatting
+	local default_headers_string minimal_headers_string
+	default_headers_string=$(array_to_caddy_block default_headers)
+	minimal_headers_string=$(array_to_caddy_block minimal_headers)
+	
+	# Handle preset values
     local headers
     case "${SECURITY_HEADERS:-DEFAULT}" in
         "DEFAULT")
