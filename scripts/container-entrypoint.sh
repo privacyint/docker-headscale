@@ -503,9 +503,15 @@ check_caddy_specific_environment_variables() {
 # Create required directories
 #######################################
 check_needed_directories() {
-	create_directory_if_not_exists "/var/run/headscale"
-	create_directory_if_not_exists "/data/headscale"
-	create_directory_if_not_exists "/data/caddy"
+	local directories=(
+		"/var/run/headscale"
+		"/data/headscale"
+		"/data/caddy"
+	)
+	
+	for dir in "${directories[@]}"; do
+		create_directory_if_not_exists "$dir"
+	done
 }
 
 #######################################
@@ -557,9 +563,14 @@ check_config_files() {
 	check_caddy_specific_environment_variables
 
 	# Ensure all template variables are exported for envsubst
-	export ACME_EAB_BLOCK
-	export CLOUDFLARE_ACME_BLOCK
-	export SECURITY_HEADERS_BLOCK
+	local template_vars=(
+		"ACME_EAB_BLOCK"
+		"CLOUDFLARE_ACME_BLOCK"
+		"SECURITY_HEADERS_BLOCK"
+	)
+	for var in "${template_vars[@]}"; do
+		export "$var"
+	done
 
 	create_caddy_https_config
 	create_caddy_http_config
