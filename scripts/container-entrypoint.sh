@@ -588,9 +588,9 @@ display_configuration_summary() {
 			log_feature_status "ACME EAB" false "Let's Encrypt"
 		fi
 	fi
-	
-	log_info "Security Headers: $([ -n "$SECURITY_HEADERS_BLOCK" ] && echo "enabled" || echo "disabled")"
-	
+
+	log_feature_status "Security Headers" "$([[ -n "$SECURITY_HEADERS_BLOCK" ]] && echo true || echo false)" "${SECURITY_HEADERS:-DEFAULT}" "warn"
+
 	log_info "=============================="
 }
 
