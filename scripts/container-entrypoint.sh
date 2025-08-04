@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Global flags
 abort_config=false
-litestream_disabled=false
+litestream_enabled=true
 https_enabled=true
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
@@ -268,14 +268,14 @@ configure_gomaxprocs() {
 #######################################
 # Validate Litestream replica URL
 # Globals:
-#   `litestream_disabled`
+#   `litestream_enabled`
 #######################################
 check_litestream_replica_url() {
 	require_env_var "LITESTREAM_REPLICA_URL" || return
 
 	case "$LITESTREAM_REPLICA_URL" in
 		DISABLED_I_KNOW_WHAT_IM_DOING)
-			litestream_disabled=true
+			litestream_enabled=false
 			;;
 		s3://*)
 			require_env_var "LITESTREAM_ACCESS_KEY_ID"
@@ -567,7 +567,7 @@ display_configuration_summary() {
 	log_info "GOMAXPROCS: $GOMAXPROCS"
 
 	log_feature_status "HTTPS Mode" "$https_enabled" "" "warn"
-	log_feature_status "Litestream" "$($litestream_disabled && echo false || echo true)" "$LITESTREAM_REPLICA_URL" "warn"
+	log_feature_status "Litestream" "$litestream_enabled" "$LITESTREAM_REPLICA_URL" "warn"
 	log_feature_status "Magic DNS" "$MAGIC_DNS"
 
 	log_info "IP Allocation: $IP_ALLOCATION"
@@ -624,7 +624,7 @@ start_caddy_service() {
 # Start Headscale service
 #######################################
 start_headscale_service() {
-	if ! $litestream_disabled; then
+	if $litestream_enabled; then
 		log_info "Attempt to restore previous Headscale database if there's a replica"
 		litestream restore -if-db-not-exists -if-replica-exists /data/headscale.sqlite3 ||
 			log_warn "No replica found, or unable to restore database."
