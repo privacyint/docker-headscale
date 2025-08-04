@@ -103,8 +103,8 @@ require_env_var() {
 # Create a directory if it doesn't exist
 # Arguments:
 #   $1 - Directory path
-# Returns:
-#   `true` on success, `false` on error
+# Side Effects:
+#   Calls log_error and sets abort_config=true on failure
 ########################################
 create_directory_if_not_exists() {
 	local dir="$1"
@@ -436,7 +436,7 @@ configure_security_headers() {
         "X-Content-Type-Options \"nosniff\""
     )
     
-    # Note: For documentation on security headers, see:
+	# Note: For documentation on security headers, see:
     # - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
     # - https://owasp.org/www-project-secure-headers/
     
