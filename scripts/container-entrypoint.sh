@@ -573,7 +573,7 @@ check_config_files() {
 		"SECURITY_HEADERS_BLOCK"
 	)
 	for var in "${template_vars[@]}"; do
-		export "$var"
+		export "$var=${!var}"
 	done
 
 	create_caddy_https_config
