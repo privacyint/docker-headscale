@@ -12,9 +12,11 @@ https_enabled=true
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
-ACME_EAB_BLOCK="" # Placeholder for ACME EAB block in Caddyfile
-CLOUDFLARE_ACME_BLOCK="" # Placeholder for Cloudflare ACME block in Caddyfile
-SECURITY_HEADERS_BLOCK="" # Placeholder for security headers block in Caddyfile
+
+# Caddyfile block placeholders
+ACME_EAB_BLOCK=""
+CLOUDFLARE_ACME_BLOCK=""
+SECURITY_HEADERS_BLOCK=""
 
 #######################################
 # Log with different levels
