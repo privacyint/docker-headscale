@@ -82,7 +82,7 @@ log_error() {
 env_var_is_populated() {
     # Only allow variable names with letters, numbers, and underscores, not starting with a number
     if [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-        [ -n "${!1-}" ]
+        [[ -n "${!1-}" ]]
     else
         log_error "Invalid environment variable name: '$1'"
     fi
@@ -108,7 +108,7 @@ require_env_var() {
 ########################################
 create_directory_if_not_exists() {
 	local dir="$1"
-	if [ ! -d "$dir" ]; then
+	if [[ ! -d "$dir" ]]; then
 		mkdir -p "$dir" || log_error "Unable to create directory '$dir'."
 	fi
 }
@@ -186,7 +186,7 @@ validate_port() {
     fi
 
     # Check port is within valid range
-    if [ "${!port}" -lt 1 ] || [ "${!port}" -gt 65535 ]; then
+    if [[ "${!port}" -lt 1 ]] || [[ "${!port}" -gt 65535 ]]; then
         log_error "Port '$port' must be a valid port within the range of 1-65535."
         return
     fi
@@ -254,35 +254,35 @@ configure_gomaxprocs() {
 	else
 		# Auto-detect available CPUs
 		# Try to read from cgroup v2 first (modern Docker/Kubernetes)
-		if [ -f "/sys/fs/cgroup/cpu.max" ]; then
+		if [[ -f "/sys/fs/cgroup/cpu.max" ]]; then
 			local cpu_quota cpu_period
 			read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
-			if [ "$cpu_quota" != "max" ] && [ "$cpu_period" -gt 0 ]; then
+			if [[ "$cpu_quota" != "max" ]] && [[ "$cpu_period" -gt 0 ]]; then
 				max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
 			fi
 		fi
 
 		# Fallback to cgroup v1
-		if [ -z "$max_procs" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ] && [ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]; then
+		if [[ -z "$max_procs" ]] && [[ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ]] && [[ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]]; then
 			local quota period
 			quota=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
 			period=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
-			if [ "$quota" -gt 0 ] && [ "$period" -gt 0 ]; then
+			if [[ "$quota" -gt 0 ]] && [[ "$period" -gt 0 ]]; then
 				max_procs=$(( (quota + period - 1) / period ))
 			fi
 		fi
 
 		# Final fallback to nproc (system CPU count)
-		if [ -z "$max_procs" ] || [ "${max_procs:-0}" -lt 1 ]; then
+		if [[ -z "$max_procs" ]] || [[ "${max_procs:-0}" -lt 1 ]]; then
 			max_procs=$(nproc 2>/dev/null || echo "2")
 		fi
 	fi
 
 	# Clamp GOMAXPROCS to a safe range
-	if [ "${max_procs:-1}" -lt 1 ]; then
+	if [[ "${max_procs:-1}" -lt 1 ]]; then
 		max_procs=1
 		log_warn "GOMAXPROCS was below minimum, clamped to 1"
-	elif [ "${max_procs:-1}" -gt 32 ]; then
+	elif [[ "${max_procs:-1}" -gt 32 ]]; then
 		max_procs=32
 		log_warn "GOMAXPROCS was above maximum, clamped to 32"
 	fi
@@ -490,7 +490,7 @@ configure_security_headers() {
 check_caddy_specific_environment_variables() {
 	configure_security_headers
 	
-	if env_var_is_populated "CADDY_FRONTEND" && [ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]; then
+	if env_var_is_populated "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
 		return
 	fi
@@ -546,7 +546,7 @@ create_headscale_config() {
 reuse_or_create_noise_private_key() {
 	local key_path="/data/noise_private.key"
 
-	if [ -f "$key_path" ]; then
+	if [[ -f "$key_path" ]]; then
 		chmod 600 "$key_path"
 		return
 	fi
@@ -693,7 +693,7 @@ run() {
 
 	start_headscale_service
 
-	if [ -n "${DEBUG:-}" ] ; then
+	if [[ -n "${DEBUG:-}" ]] ; then
 		log_info "Sleeping so you can connect and debug"
 		# Allow us to start a terminal in the container for debugging
 		sleep infinity
