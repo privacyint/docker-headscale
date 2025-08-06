@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# shellcheck disable=SC2310  # Functions in our if conditions disable set -e by design
+
 set -euo pipefail
 
 # Global flags
