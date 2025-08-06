@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # shellcheck disable=SC2310  # Functions in our if conditions disable set -e by design
+# shellcheck disable=SC2154  # Environment variables provided at runtime, error checking is done in functions
 
 set -euo pipefail
 
