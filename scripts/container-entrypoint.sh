@@ -322,7 +322,6 @@ validate_oidc_settings() {
 	if env_var_is_populated "HEADSCALE_OIDC_ISSUER" ; then
 		require_env_var "HEADSCALE_OIDC_CLIENT_ID"
 		require_env_var "HEADSCALE_OIDC_CLIENT_SECRET"
-		env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT" # Useful, not required
 	fi
 }
 
@@ -606,7 +605,10 @@ display_configuration_summary() {
 	log_info "IPv4 Prefix: $IPV4_PREFIX"
 	log_info "IPv6 Prefix: $IPV6_PREFIX"
 
-	log_feature_status "OIDC" "$(env_var_is_populated "HEADSCALE_OIDC_ISSUER")" "${HEADSCALE_OIDC_ISSUER:-}"
+	if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
+		log_feature_status "OIDC" true "${HEADSCALE_OIDC_ISSUER}"
+		log_feature_status "OIDC Domain Hint" "$(env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT")" "${HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT:-}"
+	fi
 
 	if $https_enabled; then
 		if env_var_is_populated "CF_API_TOKEN"; then
