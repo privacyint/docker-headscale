@@ -612,7 +612,11 @@ display_configuration_summary() {
 
 	if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
 		log_feature_status "OIDC" true "${HEADSCALE_OIDC_ISSUER}"
-		log_feature_status "OIDC Domain Hint" "$(env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT")" "${HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT:-}"
+		if env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"; then
+			log_feature_status "OIDC Domain Hint" true "${HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT}"
+		else
+			log_feature_status "OIDC Domain Hint" false ""
+		fi
 	fi
 
 	if ${https_enabled}; then
@@ -628,7 +632,11 @@ display_configuration_summary() {
 		fi
 	fi
 
-	log_feature_status "Security Headers" "$([[ -n "${SECURITY_HEADERS_BLOCK}" ]])" "${SECURITY_HEADERS:-DEFAULT}" "warn"
+	if [[ -n "${SECURITY_HEADERS_BLOCK}" ]]; then
+		log_feature_status "Security Headers" true "${SECURITY_HEADERS:-DEFAULT}"
+	else
+		log_feature_status "Security Headers" false "" "warn"
+	fi
 
 	log_info "=============================="
 }
