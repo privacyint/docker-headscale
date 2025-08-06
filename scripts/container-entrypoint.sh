@@ -249,7 +249,7 @@ check_public_listen_port() {
 #######################################
 configure_gomaxprocs() {
 	local max_procs=""
-	
+
 	if env_var_is_populated "GOMAXPROCS"; then
 		if ! [[ "${GOMAXPROCS}" =~ ^[1-9][0-9]*$ ]]; then
 			log_error "Invalid GOMAXPROCS value: '${GOMAXPROCS}'. Must be a positive integer."
