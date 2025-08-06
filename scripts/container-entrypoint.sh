@@ -419,6 +419,7 @@ check_cloudflare_dns_api_key() {
 #######################################
 configure_security_headers() {
     # Modern security headers with sensible defaults
+    # shellcheck disable=SC2034  # Used via nameref in array_to_caddy_block
     local default_headers=(
         "X-Frame-Options \"DENY\""
         "X-Content-Type-Options \"nosniff\""
@@ -430,6 +431,7 @@ configure_security_headers() {
     )
     
     # Minimal security headers for compatibility
+    # shellcheck disable=SC2034  # Used via nameref in array_to_caddy_block
     local minimal_headers=(
         "X-Frame-Options \"DENY\""
         "X-Content-Type-Options \"nosniff\""
