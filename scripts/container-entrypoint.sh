@@ -249,10 +249,11 @@ autodetect_gomaxprocs() {
 
 	# Try to read from cgroup v2 first (modern Docker/Kubernetes)
 	if [[ -f "/sys/fs/cgroup/cpu.max" ]]; then
-		local cpu_quota cpu_period
-		read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
-		if [[ "${cpu_quota}" != "max" ]] && [[ "${cpu_period}" -gt 0 ]]; then
-			max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
+		local cpu_quota="" cpu_period=""
+		if read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max 2>/dev/null; then
+			if [[ "${cpu_quota}" != "max" ]] && [[ "${cpu_period}" =~ ^[0-9]+$ ]] && [[ "${cpu_period}" -gt 0 ]]; then
+				max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
+			fi
 		fi
 	fi
 
