@@ -300,15 +300,15 @@ configure_gomaxprocs() {
 check_litestream_replica_url() {
 	require_env_var "LITESTREAM_REPLICA_URL" || return
 
-	case "${LITESTREAM_REPLICA_URL}" in
+	case "${LITESTREAM_REPLICA_URL^^}" in
 		DISABLED_I_KNOW_WHAT_IM_DOING)
 			litestream_enabled=false
 			;;
-		s3://*)
+		S3://*)
 			require_env_var "LITESTREAM_ACCESS_KEY_ID"
 			require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
 			;;
-		abs://*)
+		ABS://*)
 			require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
 			;;
 		*)
