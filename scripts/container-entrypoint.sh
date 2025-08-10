@@ -13,7 +13,7 @@ caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
 
-# Caddyfile block placeholders
+# Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
 CLOUDFLARE_ACME_BLOCK=""
 SECURITY_HEADERS_BLOCK=""
@@ -333,28 +333,6 @@ validate_oidc_settings() {
 }
 
 #######################################
-# Set whether headscale should use Magic DNS
-#######################################
-set_magic_dns() {
-	check_env_var_or_set_default "MAGIC_DNS" "true" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
-}
-
-#######################################
-# Set default headscale IP prefixes if not provided
-#######################################
-set_ip_prefixes() {
-	check_env_var_or_set_default "IPV6_PREFIX" "fd7a:115c:a1e0::/48"
-	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
-}
-
-#######################################
-# Set default headscale IP allocation if not provided, check it's valid
-#######################################
-set_ip_allocation() {
-	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
-}
-
-#######################################
 # Validate headscale-specific environment variables
 #######################################
 check_headscale_env_vars() {
@@ -376,10 +354,10 @@ check_headscale_environment_vars() {
 	configure_gomaxprocs
 	check_litestream_replica_url
 	validate_oidc_settings
-	set_ip_prefixes
-	set_ip_allocation
-	set_magic_dns
-	check_headscale_env_vars
+	check_env_var_or_set_default "MAGIC_DNS" "true" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
+	check_env_var_or_set_default "IPV6_PREFIX" "fd7a:115c:a1e0::/48"
+	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
+	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
 }
 
 #######################################
@@ -527,27 +505,6 @@ check_needed_directories() {
 }
 
 #######################################
-# Create Caddy HTTPS configuration file
-#######################################
-create_caddy_https_config() {
-	create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
-}
-
-#######################################
-# Create Caddy HTTP configuration file
-#######################################
-create_caddy_http_config() {
-	create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
-}
-
-#######################################
-# Create Headscale configuration file
-#######################################
-create_headscale_config() {
-	create_config_from_template "${headscale_config}" "Headscale configuration file"
-}
-
-#######################################
 # Handle Noise private key
 #######################################
 reuse_or_create_noise_private_key() {
@@ -584,10 +541,13 @@ check_config_files() {
 		export "${var}=${!var}"
 	done
 
-	create_caddy_https_config
-	create_caddy_http_config
+	create_config_from_template "${headscale_config}" "Headscale configuration file"
 
-	create_headscale_config
+	if ${https_enabled}; then
+		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
+	else
+		create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
+	fi
 
 	reuse_or_create_noise_private_key
 }
