@@ -237,47 +237,38 @@ check_public_listen_port() {
 }
 
 #######################################
-# Configure GOMAXPROCS for headscale to utilise available CPUs
-# Either set manually or auto-detected
+# Autodetect GOMAXPROCS settings
+# Attempts to read CPU limits from cgroup v2 or v1, falling back to nproc
+# If no limits are found, defaults to 2
+# If the detected value is below 1 or above 32, it will be clamped to that range
 # Globals:
 #   `GOMAXPROCS`
-# Returns:
-#   `true` on success, `false` on error
 #######################################
-configure_gomaxprocs() {
+autodetect_gomaxprocs() {
 	local max_procs=""
 
-	if env_var_is_populated "GOMAXPROCS"; then
-		if ! [[ "${GOMAXPROCS}" =~ ^[1-9][0-9]*$ ]]; then
-			log_error "Invalid GOMAXPROCS value: '${GOMAXPROCS}'. Must be a positive integer."
-			return
+	# Try to read from cgroup v2 first (modern Docker/Kubernetes)
+	if [[ -f "/sys/fs/cgroup/cpu.max" ]]; then
+		local cpu_quota cpu_period
+		read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
+		if [[ "${cpu_quota}" != "max" ]] && [[ "${cpu_period}" -gt 0 ]]; then
+			max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
 		fi
-		max_procs="${GOMAXPROCS}"
-	else
-		# Auto-detect available CPUs
-		# Try to read from cgroup v2 first (modern Docker/Kubernetes)
-		if [[ -f "/sys/fs/cgroup/cpu.max" ]]; then
-			local cpu_quota cpu_period
-			read -r cpu_quota cpu_period < /sys/fs/cgroup/cpu.max
-			if [[ "${cpu_quota}" != "max" ]] && [[ "${cpu_period}" -gt 0 ]]; then
-				max_procs=$(( (cpu_quota + cpu_period - 1) / cpu_period ))
-			fi
-		fi
+	fi
 
-		# Fallback to cgroup v1
-		if [[ -z "${max_procs}" ]] && [[ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ]] && [[ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]]; then
-			local quota period
-			quota=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
-			period=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
-			if [[ "${quota}" -gt 0 ]] && [[ "${period}" -gt 0 ]]; then
-				max_procs=$(( (quota + period - 1) / period ))
-			fi
+	# Fallback to cgroup v1
+	if [[ -z "${max_procs}" ]] && [[ -f "/sys/fs/cgroup/cpu/cpu.cfs_quota_us" ]] && [[ -f "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ]]; then
+		local quota period
+		quota=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
+		period=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
+		if [[ "${quota}" -gt 0 ]] && [[ "${period}" -gt 0 ]]; then
+			max_procs=$(( (quota + period - 1) / period ))
 		fi
+	fi
 
-		# Final fallback to nproc (system CPU count)
-		if [[ -z "${max_procs}" ]] || [[ "${max_procs:-0}" -lt 1 ]]; then
-			max_procs=$(nproc 2>/dev/null || echo "2")
-		fi
+	# Final fallback to nproc (system CPU count)
+	if [[ -z "${max_procs}" ]] || [[ "${max_procs:-0}" -lt 1 ]]; then
+		max_procs=$(nproc 2>/dev/null || echo "2")
 	fi
 
 	# Clamp GOMAXPROCS to a safe range
@@ -288,8 +279,22 @@ configure_gomaxprocs() {
 		max_procs=32
 		log_warn "GOMAXPROCS was above maximum, clamped to 32"
 	fi
+}
 
-	export GOMAXPROCS="${max_procs}"
+#######################################
+# Configure GOMAXPROCS for headscale to utilise available CPUs
+# Either set manually or auto-detected
+# Globals:
+#   `GOMAXPROCS`
+# Returns:
+#   `true` on success, `false` on error
+#######################################
+configure_gomaxprocs() {
+	if env_var_is_populated "GOMAXPROCS"; then
+		check_env_var_or_set_default "GOMAXPROCS" "1" "^[1-9][0-9]*$" "Invalid 'GOMAXPROCS'. Must be a positive integer."
+	else
+		autodetect_gomaxprocs
+	fi
 }
 
 #######################################
