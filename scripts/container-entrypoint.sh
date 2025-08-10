@@ -333,19 +333,6 @@ validate_oidc_settings() {
 }
 
 #######################################
-# Validate headscale-specific environment variables
-#######################################
-check_headscale_env_vars() {
-	require_env_var "PUBLIC_SERVER_URL"
-	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
-	#This is for the v0.26.0 bump.
-	if env_var_is_populated "HEADSCALE_POLICY_V1" ; then
-		export HEADSCALE_POLICY_V1=1
-		log_warn "Using Headscale policy version 1. Please migrate and remove this variable."
-	fi
-}
-
-#######################################
 # Perform all Headscale environment variable checks
 #######################################
 check_headscale_environment_vars() {
@@ -358,6 +345,13 @@ check_headscale_environment_vars() {
 	check_env_var_or_set_default "IPV6_PREFIX" "fd7a:115c:a1e0::/48"
 	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
 	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+	require_env_var "PUBLIC_SERVER_URL"
+	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
+	#This is for the v0.26.0 bump.
+	if env_var_is_populated "HEADSCALE_POLICY_V1" ; then
+		export HEADSCALE_POLICY_V1=1
+		log_warn "Using Headscale policy version 1. Please migrate and remove this variable."
+	fi
 }
 
 #######################################
