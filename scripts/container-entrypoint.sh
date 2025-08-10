@@ -368,10 +368,10 @@ check_headscale_env_vars() {
 }
 
 #######################################
-# Perform all required environment variable checks
+# Perform all Headscale environment variable checks
 #######################################
-check_required_environment_vars() {
-	log_info "Checking required environment variables..."
+check_headscale_environment_vars() {
+	log_info "Checking Headscale environment variables..."
 	check_public_listen_port
 	configure_gomaxprocs
 	check_litestream_replica_url
@@ -570,7 +570,7 @@ reuse_or_create_noise_private_key() {
 # Create our configuration files
 #######################################
 check_config_files() {
-	check_required_environment_vars
+	check_headscale_environment_vars
 
 	check_caddy_specific_environment_variables
 
