@@ -536,6 +536,11 @@ check_config_files() {
 		"ACME_EAB_BLOCK"
 		"CLOUDFLARE_ACME_BLOCK"
 		"SECURITY_HEADERS_BLOCK"
+		"PUBLIC_LISTEN_PORT"
+		"MAGIC_DNS"
+		"IPV6_PREFIX"
+		"IPV4_PREFIX"
+		"IP_ALLOCATION"
 	)
 	for var in "${template_vars[@]}"; do
 		export "${var}=${!var}"
