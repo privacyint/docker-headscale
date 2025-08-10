@@ -280,6 +280,9 @@ autodetect_gomaxprocs() {
 		max_procs=32
 		log_warn "GOMAXPROCS was above maximum, clamped to 32"
 	fi
+
+	export GOMAXPROCS="${max_procs}"
+	log_info "Auto-detected GOMAXPROCS=${max_procs}"
 }
 
 #######################################
