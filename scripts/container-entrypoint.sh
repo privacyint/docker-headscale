@@ -492,9 +492,9 @@ configure_security_headers() {
 }
 
 #######################################
-# Validate Caddy-specific environment variables
+# Validate Caddy environment variables
 #######################################
-check_caddy_specific_environment_variables() {
+check_caddy_environment_variables() {
 	configure_security_headers
 	
 	if env_var_is_populated "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
@@ -572,7 +572,7 @@ reuse_or_create_noise_private_key() {
 check_config_files() {
 	check_headscale_environment_vars
 
-	check_caddy_specific_environment_variables
+	check_caddy_environment_variables
 
 	# Ensure all template variables are exported for envsubst
 	local template_vars=(
