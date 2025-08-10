@@ -181,19 +181,16 @@ validate_port() {
     # Make sure our port is numeric
     if ! [[ "${!port}" =~ ^[0-9]+$ ]]; then
         log_error "Port '${port}' is not numeric."
-        return
     fi
 
     # Check no leading zeros (except for port '0')
     if [[ "${!port}" =~ ^0[0-9]+$ ]]; then
         log_error "Port '${port}' has a leading zero."
-        return
     fi
 
     # Check port is within valid range
     if [[ "${!port}" -lt 1 ]] || [[ "${!port}" -gt 65535 ]]; then
         log_error "Port '${port}' must be a valid port within the range of 1-65535."
-        return
     fi
 }
 
