@@ -707,14 +707,6 @@ run() {
 	start_caddy_service
 
 	start_headscale_service
-
-	if [[ -n "${DEBUG:-}" ]] ; then
-		log_info "Sleeping so you can connect and debug"
-		# Allow us to start a terminal in the container for debugging
-		sleep infinity
-	fi
-
-	exit 1
 }
 
 run
