@@ -475,7 +475,7 @@ configure_security_headers() {
 #######################################
 check_caddy_environment_variables() {
 	configure_security_headers
-	
+
 	if env_var_is_populated "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
 		return
