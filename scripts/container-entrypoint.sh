@@ -330,8 +330,11 @@ check_litestream_replica_url() {
 # Validate OIDC settings
 #######################################
 validate_oidc_settings() {
-	env_var_is_populated "HEADSCALE_OIDC_ISSUER" || return
-	# If OIDC is enabled, we require these variables
+	if ! env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
+		log_info "OIDC is not enabled, skipping OIDC validation."
+		return
+	fi
+
 	require_env_var "HEADSCALE_OIDC_CLIENT_ID"
 	require_env_var "HEADSCALE_OIDC_CLIENT_SECRET"
 }
