@@ -340,6 +340,32 @@ validate_oidc_settings() {
 }
 
 #######################################
+# Validate extra DNS records settings
+#######################################
+validate_extra_records() {
+    check_env_var_or_set_default "HEADSCALE_EXTRA_RECORDS_PATH" "/data/headscale/extra-records.json"
+
+    # Ensure the directory exists
+    local records_dir
+    records_dir=$(dirname "${HEADSCALE_EXTRA_RECORDS_PATH}")
+    create_directory_if_not_exists "${records_dir}"
+
+    # Create empty JSON file if it doesn't exist
+    if [[ ! -f "${HEADSCALE_EXTRA_RECORDS_PATH}" ]]; then
+        if ! echo '[]' > "${HEADSCALE_EXTRA_RECORDS_PATH}"; then
+            log_error "Unable to create extra records file at '${HEADSCALE_EXTRA_RECORDS_PATH}'"
+            return
+        fi
+        log_info "Created empty extra records file at '${HEADSCALE_EXTRA_RECORDS_PATH}'"
+    fi
+
+    # Validate it's readable
+    if [[ ! -r "${HEADSCALE_EXTRA_RECORDS_PATH}" ]]; then
+        log_error "Extra records file '${HEADSCALE_EXTRA_RECORDS_PATH}' is not readable"
+    fi
+}
+
+#######################################
 # Perform all Headscale environment variable checks
 #######################################
 check_headscale_environment_vars() {
@@ -348,6 +374,7 @@ check_headscale_environment_vars() {
 	configure_gomaxprocs
 	check_litestream_replica_url
 	validate_oidc_settings
+	validate_extra_records
 	check_env_var_or_set_default "MAGIC_DNS" "true" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	check_env_var_or_set_default "IPV6_PREFIX" "fd7a:115c:a1e0::/48"
 	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
@@ -542,6 +569,7 @@ check_config_files() {
 		"IPV6_PREFIX"
 		"IPV4_PREFIX"
 		"IP_ALLOCATION"
+		"HEADSCALE_EXTRA_RECORDS_PATH"
 	)
 	for var in "${template_vars[@]}"; do
 		export "${var}=${!var}"
