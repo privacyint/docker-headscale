@@ -305,7 +305,7 @@ dns:
   # Extra DNS records
   # so far only A and AAAA records are supported (on the tailscale side)
   # See: docs/ref/dns.md
-  #extra_records: []
+  #extra_records: [] # DIFF_IGNORE
   #   - name: "grafana.myvpn.example.com"
   #     type: "A"
   #     value: "100.64.0.3"
@@ -315,7 +315,7 @@ dns:
   #
   # Alternatively, extra DNS records can be loaded from a JSON file.
   # Headscale processes this file on each change.
-  extra_records_path: $HEADSCALE_EXTRA_RECORDS_PATH
+  extra_records_path: $HEADSCALE_EXTRA_RECORDS_PATH # DIFF_IGNORE
 
 # Unix socket used for the CLI to connect without authentication
 # Note: for production you will want to set this to something like:
