@@ -65,6 +65,9 @@ jobs:
             fi
           done < ignored_keys.txt
           
+          # Ensure upstream filtered file is sorted/unique for comm
+          sort -u upstream_filtered_keys.txt -o upstream_filtered_keys.txt
+
           # Find missing keys
           comm -23 upstream_filtered_keys.txt local_all_keys.txt > new-options.txt
           
