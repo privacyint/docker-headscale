@@ -18,6 +18,7 @@ public_listen_port_default=443
 headscale_extra_records_path_default="/data/headscale/extra-records.json"
 headscale_magic_dns_default="true"
 headscale_ipv6_prefix_default="fd7a:115c:a1e0::/48"
+headscale_ipv4_prefix_default="100.64.0.0/10"
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -383,7 +384,7 @@ check_headscale_environment_vars() {
 	validate_extra_records
 	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
-	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
+	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
 	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
