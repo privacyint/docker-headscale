@@ -87,19 +87,22 @@ log_error() {
 }
 
 #######################################
-# Check if an environment variable is populated
+# Check if an environment variable is defined. This explicitly includes `null` and `empty string`.
 # Arguments:
 #   $1 - Variable name
 # Returns:
 #   `true` if populated, otherwise `false`
 #######################################
 env_var_is_populated() {
-    # Only allow variable names with letters, numbers, and underscores, not starting with a number
-    if [[ "${1}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-        [[ -n "${!1-}" ]]
-    else
-        log_error "Invalid environment variable name: '${1}'"
-    fi
+	# Only allow variable names with letters, numbers, and underscores, not starting with a number
+	if ! [[ "${1}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+		log_error "Invalid environment variable name: '${1}'"
+		return
+	fi
+
+	# Consider a variable defined if it is set in the environment, even if the value is an empty string.
+	# ${param+word} expands to 'word' when the parameter is set (even if null), otherwise empty.
+	[[ "${!1+set}" == "set" ]]
 }
 
 #######################################
