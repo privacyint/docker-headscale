@@ -16,6 +16,7 @@ headscale_config="/etc/headscale/config.yaml"
 # Defaults used throughout the script
 public_listen_port_default=443
 headscale_extra_records_path_default="/data/headscale/extra-records.json"
+headscale_magic_dns_default="true"
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -379,7 +380,7 @@ check_headscale_environment_vars() {
 	check_litestream_replica_url
 	validate_oidc_settings
 	validate_extra_records
-	check_env_var_or_set_default "MAGIC_DNS" "true" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
+	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	check_env_var_or_set_default "IPV6_PREFIX" "fd7a:115c:a1e0::/48"
 	check_env_var_or_set_default "IPV4_PREFIX" "100.64.0.0/10"
 	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
