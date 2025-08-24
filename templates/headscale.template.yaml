@@ -274,7 +274,7 @@ dns:
 
   # Whether to use the local DNS settings of a node or override the local DNS
   # settings (default) and force the use of Headscale's DNS configuration.
-  override_local_dns: true
+  override_local_dns: $HEADSCALE_OVERRIDE_LOCAL_DNS
 
   # List of DNS servers to expose to clients.
   nameservers:
