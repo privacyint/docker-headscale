@@ -15,6 +15,7 @@ headscale_config="/etc/headscale/config.yaml"
 
 # Defaults used throughout the script
 public_listen_port_default=443
+headscale_extra_records_path_default="/data/headscale/extra-records.json"
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -346,7 +347,7 @@ validate_oidc_settings() {
 # Validate extra DNS records settings
 #######################################
 validate_extra_records() {
-    check_env_var_or_set_default "HEADSCALE_EXTRA_RECORDS_PATH" "/data/headscale/extra-records.json"
+    check_env_var_or_set_default "HEADSCALE_EXTRA_RECORDS_PATH" "${headscale_extra_records_path_default}"
 
     # Ensure the directory exists
     local records_dir
