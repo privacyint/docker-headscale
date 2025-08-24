@@ -19,6 +19,7 @@ headscale_extra_records_path_default="/data/headscale/extra-records.json"
 headscale_magic_dns_default="true"
 headscale_ipv6_prefix_default="fd7a:115c:a1e0::/48"
 headscale_ipv4_prefix_default="100.64.0.0/10"
+headscale_ip_allocation_default="sequential"
 headscale_gomaxprocs_default=1
 
 # Caddyfile block placeholders 
@@ -386,7 +387,7 @@ check_headscale_environment_vars() {
 	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
 	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
-	check_env_var_or_set_default "IP_ALLOCATION" "sequential" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+	check_env_var_or_set_default "IP_ALLOCATION" "${headscale_ip_allocation_default}" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
 	#This is for the v0.26.0 bump.
