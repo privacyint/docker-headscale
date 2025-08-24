@@ -13,6 +13,9 @@ caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
 
+# Defaults used throughout the script
+public_listen_port_default=443
+
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
 CLOUDFLARE_ACME_BLOCK=""
@@ -232,7 +235,7 @@ create_config_from_template() {
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-	check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "443"
+	check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_default}"
 	validate_port "PUBLIC_LISTEN_PORT"
 }
 
