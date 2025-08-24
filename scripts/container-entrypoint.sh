@@ -91,9 +91,9 @@ log_error() {
 # Arguments:
 #   $1 - Variable name
 # Returns:
-#   `true` if populated, otherwise `false`
+#   `true` if defined, otherwise `false`
 #######################################
-env_var_is_populated() {
+env_var_is_defined() {
 	# Only allow variable names with letters, numbers, and underscores, not starting with a number
 	if ! [[ "${1}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
 		log_error "Invalid environment variable name: '${1}'"
@@ -113,7 +113,7 @@ env_var_is_populated() {
 #   `true` if populated, otherwise `false`
 #######################################
 require_env_var() {
-	env_var_is_populated "${1}" || log_error "Environment variable '${1}' is required"
+	env_var_is_defined "${1}" || log_error "Environment variable '${1}' is required"
 }
 
 ########################################
@@ -145,7 +145,7 @@ check_env_var_or_set_default() {
 	local error_msg="${4:-}"
 	
 	# Set default value if variable is not populated
-	if ! env_var_is_populated "${var_name}"; then
+	if ! env_var_is_defined "${var_name}"; then
 		export "${var_name}"="${default_value}"
 	fi
 	
@@ -306,7 +306,7 @@ autodetect_gomaxprocs() {
 #   `true` on success, `false` on error
 #######################################
 configure_gomaxprocs() {
-	if env_var_is_populated "GOMAXPROCS"; then
+	if env_var_is_defined "GOMAXPROCS"; then
 		check_env_var_or_set_default "GOMAXPROCS" "${headscale_gomaxprocs_default}" "^[1-9][0-9]*$" "Invalid 'GOMAXPROCS'. Must be a positive integer."
 	else
 		autodetect_gomaxprocs
@@ -342,7 +342,7 @@ check_litestream_replica_url() {
 # Validate OIDC settings
 #######################################
 validate_oidc_settings() {
-	if ! env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
+	if ! env_var_is_defined "HEADSCALE_OIDC_ISSUER"; then
 		log_info "OIDC is not enabled, skipping OIDC validation."
 		return
 	fi
@@ -394,7 +394,7 @@ check_headscale_environment_vars() {
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
 	#This is for the v0.26.0 bump.
-	if env_var_is_populated "HEADSCALE_POLICY_V1" ; then
+	if env_var_is_defined "HEADSCALE_POLICY_V1" ; then
 		export HEADSCALE_POLICY_V1=1
 		log_warn "Using Headscale policy version 1. Please migrate and remove this variable."
 	fi
@@ -427,7 +427,7 @@ create_headscale_config() {
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
-	if env_var_is_populated "ACME_EAB_KEY_ID" || env_var_is_populated "ACME_EAB_MAC_KEY"; then
+	if env_var_is_defined "ACME_EAB_KEY_ID" || env_var_is_defined "ACME_EAB_MAC_KEY"; then
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
@@ -450,7 +450,7 @@ EOF
 # Validate the Cloudflare API Key if provided and modify Caddyfile as needed
 #######################################
 check_cloudflare_dns_api_key() {
-    if env_var_is_populated "CF_API_TOKEN" ; then
+    if env_var_is_defined "CF_API_TOKEN" ; then
 		export CLOUDFLARE_ACME_BLOCK="tls {
 			dns cloudflare ${CF_API_TOKEN}
 		}"
@@ -543,7 +543,7 @@ configure_security_headers() {
 check_caddy_environment_variables() {
 	configure_security_headers
 
-	if env_var_is_populated "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
+	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
 		return
 	fi
@@ -583,7 +583,7 @@ reuse_or_create_noise_private_key() {
 		return
 	fi
 
-	if env_var_is_populated "HEADSCALE_NOISE_PRIVATE_KEY"; then
+	if env_var_is_defined "HEADSCALE_NOISE_PRIVATE_KEY"; then
 	    printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
         chmod 600 "${key_path}"
 	else
@@ -632,9 +632,9 @@ display_configuration_summary() {
 	log_info "IPv4 Prefix: ${IPV4_PREFIX}"
 	log_info "IPv6 Prefix: ${IPV6_PREFIX}"
 
-	if env_var_is_populated "HEADSCALE_OIDC_ISSUER"; then
+	if env_var_is_defined "HEADSCALE_OIDC_ISSUER"; then
 		log_feature_status "OIDC" true "${HEADSCALE_OIDC_ISSUER}"
-		if env_var_is_populated "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"; then
+		if env_var_is_defined "HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT"; then
 			log_feature_status "OIDC Domain Hint" true "${HEADSCALE_OIDC_EXTRA_PARAMS_DOMAIN_HINT}"
 		else
 			log_feature_status "OIDC Domain Hint" false ""
@@ -642,12 +642,12 @@ display_configuration_summary() {
 	fi
 
 	if ${https_enabled}; then
-		if env_var_is_populated "CF_API_TOKEN"; then
+		if env_var_is_defined "CF_API_TOKEN"; then
 			log_info "DNS Challenge: Cloudflare"
 		else
 			log_info "DNS Challenge: HTTP-01"
 		fi
-		if env_var_is_populated "ACME_EAB_KEY_ID"; then
+		if env_var_is_defined "ACME_EAB_KEY_ID"; then
 			log_feature_status "ACME EAB" true "ZeroSSL"
 		else
 			log_feature_status "ACME EAB" false "Let's Encrypt"
