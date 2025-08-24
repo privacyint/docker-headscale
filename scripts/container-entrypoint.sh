@@ -428,13 +428,18 @@ check_zerossl_eab() {
 		require_env_var "ACME_EAB_KEY_ID"
 		require_env_var "ACME_EAB_MAC_KEY"
 
-		export ACME_EAB_BLOCK="acme_ca https://acme.zerossl.com/v2/DV90
-        acme_eab {
-            key_id ${ACME_EAB_KEY_ID}
-            mac_key ${ACME_EAB_MAC_KEY}
-        }"
+		# Use a heredoc to avoid accidental quoting/escaping issues and preserve formatting
+		ACME_EAB_BLOCK=$(cat <<EOF
+acme_ca https://acme.zerossl.com/v2/DV90
+acme_eab {
+	key_id ${ACME_EAB_KEY_ID}
+	mac_key ${ACME_EAB_MAC_KEY}
+}
+EOF
+)
+		export ACME_EAB_BLOCK
 	else
-        export ACME_EAB_BLOCK=""
+		export ACME_EAB_BLOCK=""
 	fi
 }
 
