@@ -424,6 +424,17 @@ create_headscale_config() {
 }
 
 #######################################
+# Create our Caddyfile
+#######################################
+create_caddyfile() {
+	if ${https_enabled}; then
+		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
+	else
+		create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
+	fi
+}
+
+#######################################
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
@@ -601,11 +612,7 @@ check_config_files() {
 
 	create_headscale_config
 
-	if ${https_enabled}; then
-		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
-	else
-		create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
-	fi
+	create_caddyfile
 
 	reuse_or_create_noise_private_key
 }
