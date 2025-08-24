@@ -398,6 +398,29 @@ check_headscale_environment_vars() {
 }
 
 #######################################
+# Create our Headscale configuration file
+#######################################
+create_headscale_config() {
+	# Ensure all template variables are exported for envsubst
+	local template_vars=(
+		"ACME_EAB_BLOCK"
+		"CLOUDFLARE_ACME_BLOCK"
+		"SECURITY_HEADERS_BLOCK"
+		"PUBLIC_LISTEN_PORT"
+		"MAGIC_DNS"
+		"IPV6_PREFIX"
+		"IPV4_PREFIX"
+		"IP_ALLOCATION"
+		"HEADSCALE_EXTRA_RECORDS_PATH"
+	)
+	for var in "${template_vars[@]}"; do
+		export "${var}=${!var}"
+	done
+
+	create_config_from_template "${headscale_config}" "Headscale configuration file"
+}
+
+#######################################
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
@@ -568,23 +591,7 @@ check_config_files() {
 
 	check_caddy_environment_variables
 
-	# Ensure all template variables are exported for envsubst
-	local template_vars=(
-		"ACME_EAB_BLOCK"
-		"CLOUDFLARE_ACME_BLOCK"
-		"SECURITY_HEADERS_BLOCK"
-		"PUBLIC_LISTEN_PORT"
-		"MAGIC_DNS"
-		"IPV6_PREFIX"
-		"IPV4_PREFIX"
-		"IP_ALLOCATION"
-		"HEADSCALE_EXTRA_RECORDS_PATH"
-	)
-	for var in "${template_vars[@]}"; do
-		export "${var}=${!var}"
-	done
-
-	create_config_from_template "${headscale_config}" "Headscale configuration file"
+	create_headscale_config
 
 	if ${https_enabled}; then
 		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
