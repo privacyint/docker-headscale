@@ -19,6 +19,7 @@ headscale_extra_records_path_default="/data/headscale/extra-records.json"
 headscale_magic_dns_default="true"
 headscale_ipv6_prefix_default="fd7a:115c:a1e0::/48"
 headscale_ipv4_prefix_default="100.64.0.0/10"
+headscale_gomaxprocs_default=1
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -302,7 +303,7 @@ autodetect_gomaxprocs() {
 #######################################
 configure_gomaxprocs() {
 	if env_var_is_populated "GOMAXPROCS"; then
-		check_env_var_or_set_default "GOMAXPROCS" "1" "^[1-9][0-9]*$" "Invalid 'GOMAXPROCS'. Must be a positive integer."
+		check_env_var_or_set_default "GOMAXPROCS" "${headscale_gomaxprocs_default}" "^[1-9][0-9]*$" "Invalid 'GOMAXPROCS'. Must be a positive integer."
 	else
 		autodetect_gomaxprocs
 	fi
