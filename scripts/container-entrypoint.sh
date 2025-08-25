@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-# Minimal associative array of helper scripts
+# Helper scripts
 declare helper_scripts=(
 	"defaults.sh"
 	"logging.sh"
