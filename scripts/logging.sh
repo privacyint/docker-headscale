@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# shellcheck disable=SC2034 # This is a helper file
+
 #######################################
 # Log with different levels
 # Arguments:
