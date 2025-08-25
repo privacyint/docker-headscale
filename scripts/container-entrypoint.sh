@@ -519,8 +519,8 @@ run() {
 
 helpers_dir="$(dirname "${BASH_SOURCE[0]}")"
 
-for key in "${!helper_scripts[@]}"; do
-	helper="${helpers_dir}/${helper_scripts[$key]}"
+for helper_script in "${helper_scripts[@]}"; do
+    helper="${helpers_dir}/${helper_script}"
 	if [[ -r "${helper}" ]]; then
 		# shellcheck source=/dev/null
 		source "${helper}"
