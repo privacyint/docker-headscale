@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-# Minimal associative array of helper scripts (edit to add names)
+# Minimal associative array of helper scripts
 declare helper_scripts=(
 	"logging.sh"
 	"variables-check.sh"
