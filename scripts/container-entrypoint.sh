@@ -177,11 +177,6 @@ check_headscale_environment_vars() {
 	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
-	#This is for the v0.26.0 bump.
-	if env_var_is_defined "HEADSCALE_POLICY_V1" ; then
-		export HEADSCALE_POLICY_V1=1
-		log_warn "Using Headscale policy version 1. Please migrate and remove this variable."
-	fi
 }
 
 #######################################
