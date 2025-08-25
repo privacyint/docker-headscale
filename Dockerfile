@@ -118,8 +118,8 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY ./templates/Caddyfile-http.template /etc/caddy/Caddyfile-http
     COPY ./templates/Caddyfile-https.template /etc/caddy/Caddyfile-https
 
-    # Copy and setup entrypoint script
-    COPY --chmod=755 ./scripts/container-entrypoint.sh /container-entrypoint.sh
+    # Copy and setup scripts into a safe bin directory
+    COPY --chmod=755 ./scripts/ /usr/local/bin/
 
     # Default HTTPS port - override with $PUBLIC_LISTEN_PORT environment variable
     EXPOSE 443
@@ -128,4 +128,4 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
         CMD headscale version && caddy version || exit 1
 
-    ENTRYPOINT ["/container-entrypoint.sh"]
+    ENTRYPOINT ["/usr/local/bin/container-entrypoint.sh"]

@@ -5,240 +5,23 @@
 
 set -euo pipefail
 
+# Helper scripts
+declare helper_scripts=(
+	"defaults.sh"
+	"logging.sh"
+	"variables-check.sh"
+	"file-operations.sh"
+)
+
 # Global flags
 abort_config=false
 litestream_enabled=true
 https_enabled=true
-caddyfile_cleartext=/etc/caddy/Caddyfile-http
-caddyfile_https=/etc/caddy/Caddyfile-https
-headscale_config="/etc/headscale/config.yaml"
-
-# Defaults used throughout the script
-public_listen_port_default=443
-headscale_extra_records_path_default="/data/headscale/extra-records.json"
-headscale_magic_dns_default="true"
-headscale_ipv6_prefix_default="fd7a:115c:a1e0::/48"
-headscale_ipv4_prefix_default="100.64.0.0/10"
-headscale_ip_allocation_default="sequential"
-headscale_gomaxprocs_default=1
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
 CLOUDFLARE_ACME_BLOCK=""
 SECURITY_HEADERS_BLOCK=""
-
-#######################################
-# Log with different levels
-# Arguments:
-#   $1 - Log level (INFO, WARN, ERROR)
-#   $2 - Message to log
-#######################################
-log_with_level() {
-    local level="${1}"
-    local message="${2}"
-    local timestamp;
-
-	timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-
-	case "${level^^}" in
-        ERROR)
-            echo "[${timestamp}] ERROR: ${message}" >&2
-            ;;
-        WARN)
-            echo "[${timestamp}] WARN: ${message}" >&2
-            ;;
-        *)
-            echo "[${timestamp}] INFO: ${message}"
-            ;;
-    esac
-}
-
-#######################################
-# Log an informational message
-# Arguments:
-#   `$1` - Message to log
-#######################################
-log_info() {
-    log_with_level "INFO" "${1}"
-}
-
-#######################################
-# Log a warning message
-# Arguments:
-#   `$1` - Message to log
-#######################################
-log_warn() {
-    log_with_level "WARN" "${1}"
-}
-
-#######################################
-# Log an error message and set abort flag
-# Arguments:
-#   `$1` - Message to log
-# Globals:
-#   `abort_config`
-# Returns:
-#   `false`
-#######################################
-log_error() {
-    log_with_level "ERROR" "${1}"
-    abort_config=true
-    false
-}
-
-#######################################
-# Check if an environment variable is defined. This explicitly includes `null` and `empty string`.
-# Arguments:
-#   $1 - Variable name
-# Returns:
-#   `true` if defined, otherwise `false`
-#######################################
-env_var_is_defined() {
-	# Only allow variable names with letters, numbers, and underscores, not starting with a number
-	if ! [[ "${1}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-		log_error "Invalid environment variable name: '${1}'"
-		return
-	fi
-
-	# Consider a variable defined if it is set in the environment, even if the value is an empty string.
-	# ${param+word} expands to 'word' when the parameter is set (even if null), otherwise empty.
-	[[ "${!1+set}" == "set" ]]
-}
-
-#######################################
-# Ensure an environment variable is populated
-# Arguments:
-#   $1 - Variable name
-# Returns:
-#   `true` if populated, otherwise `false`
-#######################################
-require_env_var() {
-	env_var_is_defined "${1}" || log_error "Environment variable '${1}' is required"
-}
-
-########################################
-# Create a directory if it doesn't exist
-# Arguments:
-#   $1 - Directory path
-# Side Effects:
-#   Calls log_error and sets abort_config=true on failure
-########################################
-create_directory_if_not_exists() {
-	local dir="${1}"
-	if [[ ! -d "${dir}" ]]; then
-		mkdir -p "${dir}" || log_error "Unable to create directory '${dir}'."
-	fi
-}
-
-########################################
-# Check environment variable is set, or default (and optionally validate with regex - now you have two problems)
-# Arguments:
-#   $1 - Variable name
-#   $2 - Default value
-#   $3 - Validation regex pattern (optional)
-#   $4 - Error message for invalid values (optional)
-########################################
-check_env_var_or_set_default() {
-	local var_name="${1}"
-	local default_value="${2}"
-	local pattern="${3:-}"
-	local error_msg="${4:-}"
-	
-	# Set default value if variable is not populated
-	if ! env_var_is_defined "${var_name}"; then
-		export "${var_name}"="${default_value}"
-	fi
-	
-	# Validate with regex if pattern provided
-	if [[ -n "${pattern}" && ! "${!var_name}" =~ ${pattern} ]]; then
-		log_error "${error_msg:-"Invalid '${var_name}' value: '${!var_name}'"}"
-	fi
-}
-
-########################################
-# Log enabled/disabled status for configuration summary
-# Arguments:
-#   $1 - Feature name
-#   $2 - Boolean condition (true/false)
-#   $3 - Optional additional info when enabled
-#   $4 - Optional: "warn" to use log_warn when disabled, otherwise uses log_info
-########################################
-log_feature_status() {
-	local feature="${1}"
-	local condition="${2}"
-	local extra_info="${3:-}"
-	local warn_on_false="${4:-}"
-	
-	if ${condition}; then
-		log_info "${feature}: enabled${extra_info:+ (${extra_info})}"
-	else
-		if [[ "${warn_on_false}" == "warn" ]]; then
-			log_warn "${feature}: disabled"
-		else
-			log_info "${feature}: disabled"
-		fi
-	fi
-}
-
-#######################################
-# Validate a port number
-# Arguments:
-#   $1 - Variable name containing the port
-# Returns:
-#   `true` if deemed valid, otherwise `false`
-#######################################
-validate_port() {
-    local port="${1}"
-
-    # Make sure our port is numeric
-    if ! [[ "${!port}" =~ ^[0-9]+$ ]]; then
-        log_error "Port '${port}' is not numeric."
-    fi
-
-    # Check no leading zeros (except for port '0')
-    if [[ "${!port}" =~ ^0[0-9]+$ ]]; then
-        log_error "Port '${port}' has a leading zero."
-    fi
-
-    # Check port is within valid range
-    if [[ "${!port}" -lt 1 ]] || [[ "${!port}" -gt 65535 ]]; then
-        log_error "Port '${port}' must be a valid port within the range of 1-65535."
-    fi
-}
-
-#######################################
-# Generic configuration file creator with template substitution
-# Arguments:
-#   $1 - Target config file path
-#   $2 - Description for logging
-#   $3 - File permissions (optional, defaults to 600)
-#######################################
-create_config_from_template() {
-    local config_path="${1}"
-    local description="${2}"
-    local permissions="${3:-600}"
-    local temp_config_path
-    
-    temp_config_path=$(mktemp) || {
-        log_error "Unable to create temporary file for ${description}"
-		return
-    }
-
-    if envsubst < "${config_path}" > "${temp_config_path}"; then
-        chmod "${permissions}" "${temp_config_path}"
-        if mv "${temp_config_path}" "${config_path}"; then
-            return
-        else
-            log_error "Unable to move ${description} to final location"
-            rm -f "${temp_config_path}"
-        fi
-    else
-        log_error "Unable to generate ${description}"
-        rm -f "${temp_config_path}"
-    fi
-
-	return
-}
 
 #######################################
 # Set default or validate PUBLIC_LISTEN_PORT
@@ -733,5 +516,18 @@ run() {
 
 	start_headscale_service
 }
+
+helpers_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+for helper_script in "${helper_scripts[@]}"; do
+    helper="${helpers_dir}/${helper_script}"
+	if [[ -r "${helper}" ]]; then
+		# shellcheck source=/dev/null
+		source "${helper}"
+	else
+		echo "Missing helper file: ${helper}" >&2
+		exit 1
+	fi
+done
 
 run
