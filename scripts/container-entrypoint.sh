@@ -36,31 +36,6 @@ create_directory_if_not_exists() {
 	fi
 }
 
-########################################
-# Log enabled/disabled status for configuration summary
-# Arguments:
-#   $1 - Feature name
-#   $2 - Boolean condition (true/false)
-#   $3 - Optional additional info when enabled
-#   $4 - Optional: "warn" to use log_warn when disabled, otherwise uses log_info
-########################################
-log_feature_status() {
-	local feature="${1}"
-	local condition="${2}"
-	local extra_info="${3:-}"
-	local warn_on_false="${4:-}"
-	
-	if ${condition}; then
-		log_info "${feature}: enabled${extra_info:+ (${extra_info})}"
-	else
-		if [[ "${warn_on_false}" == "warn" ]]; then
-			log_warn "${feature}: disabled"
-		else
-			log_info "${feature}: disabled"
-		fi
-	fi
-}
-
 #######################################
 # Generic configuration file creator with template substitution
 # Arguments:
