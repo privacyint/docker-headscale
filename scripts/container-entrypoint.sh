@@ -5,14 +5,11 @@
 
 set -euo pipefail
 
-helper="$(dirname "${BASH_SOURCE[0]}")/logging.sh"
-if [[ -r "${helper}" ]]; then
-	# shellcheck source=/dev/null
-	source "${helper}"
-else
-	echo "Missing helper file: ${helper}" >&2
-	exit 1
-fi
+# Minimal associative array of helper scripts (edit to add names)
+declare helper_scripts=(
+	"logging.sh"
+	"variables-check.sh"
+)
 
 # Global flags
 abort_config=false
@@ -36,36 +33,6 @@ ACME_EAB_BLOCK=""
 CLOUDFLARE_ACME_BLOCK=""
 SECURITY_HEADERS_BLOCK=""
 
-#######################################
-# Check if an environment variable is defined. This explicitly includes `null` and `empty string`.
-# Arguments:
-#   $1 - Variable name
-# Returns:
-#   `true` if defined, otherwise `false`
-#######################################
-env_var_is_defined() {
-	# Only allow variable names with letters, numbers, and underscores, not starting with a number
-	if ! [[ "${1}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-		log_error "Invalid environment variable name: '${1}'"
-		return
-	fi
-
-	# Consider a variable defined if it is set in the environment, even if the value is an empty string.
-	# ${param+word} expands to 'word' when the parameter is set (even if null), otherwise empty.
-	[[ "${!1+set}" == "set" ]]
-}
-
-#######################################
-# Ensure an environment variable is populated
-# Arguments:
-#   $1 - Variable name
-# Returns:
-#   `true` if populated, otherwise `false`
-#######################################
-require_env_var() {
-	env_var_is_defined "${1}" || log_error "Environment variable '${1}' is required"
-}
-
 ########################################
 # Create a directory if it doesn't exist
 # Arguments:
@@ -77,31 +44,6 @@ create_directory_if_not_exists() {
 	local dir="${1}"
 	if [[ ! -d "${dir}" ]]; then
 		mkdir -p "${dir}" || log_error "Unable to create directory '${dir}'."
-	fi
-}
-
-########################################
-# Check environment variable is set, or default (and optionally validate with regex - now you have two problems)
-# Arguments:
-#   $1 - Variable name
-#   $2 - Default value
-#   $3 - Validation regex pattern (optional)
-#   $4 - Error message for invalid values (optional)
-########################################
-check_env_var_or_set_default() {
-	local var_name="${1}"
-	local default_value="${2}"
-	local pattern="${3:-}"
-	local error_msg="${4:-}"
-	
-	# Set default value if variable is not populated
-	if ! env_var_is_defined "${var_name}"; then
-		export "${var_name}"="${default_value}"
-	fi
-	
-	# Validate with regex if pattern provided
-	if [[ -n "${pattern}" && ! "${!var_name}" =~ ${pattern} ]]; then
-		log_error "${error_msg:-"Invalid '${var_name}' value: '${!var_name}'"}"
 	fi
 }
 
@@ -128,32 +70,6 @@ log_feature_status() {
 			log_info "${feature}: disabled"
 		fi
 	fi
-}
-
-#######################################
-# Validate a port number
-# Arguments:
-#   $1 - Variable name containing the port
-# Returns:
-#   `true` if deemed valid, otherwise `false`
-#######################################
-validate_port() {
-    local port="${1}"
-
-    # Make sure our port is numeric
-    if ! [[ "${!port}" =~ ^[0-9]+$ ]]; then
-        log_error "Port '${port}' is not numeric."
-    fi
-
-    # Check no leading zeros (except for port '0')
-    if [[ "${!port}" =~ ^0[0-9]+$ ]]; then
-        log_error "Port '${port}' has a leading zero."
-    fi
-
-    # Check port is within valid range
-    if [[ "${!port}" -lt 1 ]] || [[ "${!port}" -gt 65535 ]]; then
-        log_error "Port '${port}' must be a valid port within the range of 1-65535."
-    fi
 }
 
 #######################################
@@ -683,5 +599,18 @@ run() {
 
 	start_headscale_service
 }
+
+helpers_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+for key in "${!helper_scripts[@]}"; do
+	helper="${helpers_dir}/${helper_scripts[$key]}"
+	if [[ -r "${helper}" ]]; then
+		# shellcheck source=/dev/null
+		source "${helper}"
+	else
+		echo "Missing helper file: ${helper}" >&2
+		exit 1
+	fi
+done
 
 run
