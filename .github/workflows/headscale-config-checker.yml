@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-    
+      issues: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
       
@@ -35,7 +37,7 @@ jobs:
             sed 's/^[[:space:]]*//' | \
             sort -u
           }
-          
+
           # Get list of keys to ignore from DIFF_IGNORE comments (including commented lines)
           get_ignored_keys() {
             grep "# DIFF_IGNORE" "$1" | \
@@ -43,33 +45,40 @@ jobs:
             sed -E 's/:.*# DIFF_IGNORE.*$//' | \
             sort -u
           }
-          
+
           echo "=== Getting ignored keys ==="
           get_ignored_keys "templates/headscale.template.yaml" > ignored_keys.txt
           echo "Keys to ignore:"
           cat ignored_keys.txt
           echo "=== End ignored keys ==="
-          
+
           # Extract all keys
           extract_keys "templates/headscale.template.yaml" > local_all_keys.txt
           extract_keys "upstream-config.yaml" > upstream_all_keys.txt
-          
-          # Remove ignored keys from upstream
-          cp upstream_all_keys.txt upstream_filtered_keys.txt
+
+          # Normalize keys (strip optional leading '#' and surrounding spaces) and sort-unique
+          sed -E 's/^[[:space:]]*#?[[:space:]]*//' upstream_all_keys.txt | sed 's/[[:space:]]*$//' | sort -u > upstream_all_keys_norm.txt
+          sed -E 's/^[[:space:]]*#?[[:space:]]*//' local_all_keys.txt | sed 's/[[:space:]]*$//' | sort -u > local_all_keys_norm.txt
+
+          # Remove ignored keys from upstream (operate on normalized list)
+          cp upstream_all_keys_norm.txt upstream_filtered_keys.txt
           while IFS= read -r ignore_key; do
             if [ -n "$ignore_key" ]; then
               grep -v "^${ignore_key}$" upstream_filtered_keys.txt > temp_filtered.txt
               mv temp_filtered.txt upstream_filtered_keys.txt
             fi
           done < ignored_keys.txt
-          
-          # Find missing keys
-          comm -23 upstream_filtered_keys.txt local_all_keys.txt > new-options.txt
-          
+
+          # Ensure upstream filtered file is sorted/unique for comm
+          sort -u upstream_filtered_keys.txt -o upstream_filtered_keys.txt
+
+          # Find missing keys using normalized local list
+          comm -23 upstream_filtered_keys.txt local_all_keys_norm.txt > new-options.txt
+
           echo "Final comparison:"
-          echo "Local keys: $(wc -l < local_all_keys.txt)"
+          echo "Local keys: $(wc -l < local_all_keys_norm.txt)"
           echo "Upstream filtered keys: $(wc -l < upstream_filtered_keys.txt)"
-          
+
           if [ -s new-options.txt ]; then
             echo "has_missing=true" >> $GITHUB_OUTPUT
             echo "🆕 New configuration keys found:"
@@ -78,9 +87,9 @@ jobs:
             echo "has_missing=false" >> $GITHUB_OUTPUT
             echo "✅ No new configuration keys found"
           fi
-          
+
           # Cleanup
-          rm -f ignored_keys.txt local_all_keys.txt upstream_all_keys.txt upstream_filtered_keys.txt temp_filtered.txt
+          rm -f ignored_keys.txt local_all_keys.txt upstream_all_keys.txt upstream_filtered_keys.txt temp_filtered.txt upstream_all_keys_norm.txt local_all_keys_norm.txt
       
       - name: Comment on PR
         if: github.event_name == 'pull_request' && steps.check.outputs.has_missing == 'true'
