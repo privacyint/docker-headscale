@@ -7,8 +7,8 @@
 ARG HEADSCALE_VERSION="0.26.1"
 ARG HEADSCALE_SHA256="5012577e6fc5d4234aab7b4be0d6e271ea1a4ec38521a8aa472f80ea1fe81cba"
 
-ARG LITESTREAM_VERSION="0.3.13"
-ARG LITESTREAM_SHA256="eb75a3de5cab03875cdae9f5f539e6aedadd66607003d9b1e7a9077948818ba0"
+ARG LITESTREAM_VERSION="0.5.0"
+ARG LITESTREAM_SHA256="e650ffb2f0fdf80a6f704171c4b9da828823c0308ce11c2b7b1c89fbe3560671"
 
 # No checksum needed for these tools, we pull from official images
 ARG CADDY_VERSION="2.10.2"
@@ -18,7 +18,7 @@ ARG HEADSCALE_ADMIN_VERSION="0.26.0"
 # github download links
 # These should never need adjusting unless the URIs change
 ARG HEADSCALE_DOWNLOAD_URL="https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_linux_amd64"
-ARG LITESTREAM_DOWNLOAD_URL="https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-v${LITESTREAM_VERSION}-linux-amd64.tar.gz"
+ARG LITESTREAM_DOWNLOAD_URL="https://github.com/benbjohnson/litestream/releases/download/v${LITESTREAM_VERSION}/litestream-${LITESTREAM_VERSION}-linux-x86_64.tar.gz"
 
 ###################
 # BUILD PROCESS
