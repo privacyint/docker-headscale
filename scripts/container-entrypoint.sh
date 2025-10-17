@@ -184,17 +184,20 @@ check_headscale_environment_vars() {
 #######################################
 create_headscale_config() {
 	# Ensure all template variables are exported for envsubst
-	local template_vars=(
-		"ACME_EAB_BLOCK"
-		"CLOUDFLARE_ACME_BLOCK"
-		"SECURITY_HEADERS_BLOCK"
-		"PUBLIC_LISTEN_PORT"
-		"MAGIC_DNS"
-		"IPV6_PREFIX"
-		"IPV4_PREFIX"
-		"IP_ALLOCATION"
-		"HEADSCALE_EXTRA_RECORDS_PATH"
-	)
+    local template_vars=(
+        "ACME_EAB_BLOCK"
+        "CLOUDFLARE_ACME_BLOCK"
+        "SECURITY_HEADERS_BLOCK"
+        "PUBLIC_SERVER_URL"
+        "PUBLIC_LISTEN_PORT"
+        "HEADSCALE_DNS_BASE_DOMAIN"
+        "HEADSCALE_OVERRIDE_LOCAL_DNS"
+        "MAGIC_DNS"
+        "IPV6_PREFIX"
+        "IPV4_PREFIX"
+        "IP_ALLOCATION"
+        "HEADSCALE_EXTRA_RECORDS_PATH"
+    )
 	for var in "${template_vars[@]}"; do
 		export "${var}=${!var}"
 	done
@@ -394,7 +397,10 @@ check_config_files() {
 		"ACME_EAB_BLOCK"
 		"CLOUDFLARE_ACME_BLOCK"
 		"SECURITY_HEADERS_BLOCK"
+		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
+		"HEADSCALE_DNS_BASE_DOMAIN"
+		"HEADSCALE_OVERRIDE_LOCAL_DNS"
 		"MAGIC_DNS"
 		"IPV6_PREFIX"
 		"IPV4_PREFIX"
