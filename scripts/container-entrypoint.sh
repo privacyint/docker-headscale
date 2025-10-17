@@ -411,6 +411,8 @@ check_config_files() {
 		export "${var}=${!var}"
 	done
 
+	create_headscale_config
+
 	create_caddyfile
 
 	reuse_or_create_noise_private_key
