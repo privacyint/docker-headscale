@@ -183,6 +183,25 @@ check_headscale_environment_vars() {
 # Create our Headscale configuration file
 #######################################
 create_headscale_config() {
+	# Ensure all template variables are exported for envsubst
+    local template_vars=(
+        "ACME_EAB_BLOCK"
+        "CLOUDFLARE_ACME_BLOCK"
+        "SECURITY_HEADERS_BLOCK"
+        "PUBLIC_SERVER_URL"
+        "PUBLIC_LISTEN_PORT"
+        "HEADSCALE_DNS_BASE_DOMAIN"
+        "HEADSCALE_OVERRIDE_LOCAL_DNS"
+        "MAGIC_DNS"
+        "IPV6_PREFIX"
+        "IPV4_PREFIX"
+        "IP_ALLOCATION"
+        "HEADSCALE_EXTRA_RECORDS_PATH"
+    )
+	for var in "${template_vars[@]}"; do
+		export "${var}=${!var}"
+	done
+
 	create_config_from_template "${headscale_config}" "Headscale configuration file"
 }
 
@@ -372,6 +391,25 @@ check_config_files() {
 	check_headscale_environment_vars
 
 	check_caddy_environment_variables
+
+	# Ensure all template variables are exported for envsubst
+	local template_vars=(
+		"ACME_EAB_BLOCK"
+		"CLOUDFLARE_ACME_BLOCK"
+		"SECURITY_HEADERS_BLOCK"
+		"PUBLIC_SERVER_URL"
+		"PUBLIC_LISTEN_PORT"
+		"HEADSCALE_DNS_BASE_DOMAIN"
+		"HEADSCALE_OVERRIDE_LOCAL_DNS"
+		"MAGIC_DNS"
+		"IPV6_PREFIX"
+		"IPV4_PREFIX"
+		"IP_ALLOCATION"
+		"HEADSCALE_EXTRA_RECORDS_PATH"
+	)
+	for var in "${template_vars[@]}"; do
+		export "${var}=${!var}"
+	done
 
 	create_headscale_config
 

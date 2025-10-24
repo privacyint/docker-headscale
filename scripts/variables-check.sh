@@ -31,7 +31,7 @@ require_env_var() {
 }
 
 ########################################
-# Check environment variable is set, or default, and export it (and optionally validate with regex - now you have two problems)
+# Check environment variable is set, or default (and optionally validate with regex - now you have two problems)
 # Arguments:
 #   $1 - Variable name
 #   $2 - Default value
@@ -48,9 +48,6 @@ check_env_var_or_set_default() {
 	if ! env_var_is_defined "${var_name}"; then
 		export "${var_name}"="${default_value}"
 	fi
-	
-	# Ensure it's exported
-	declare -x "$var_name"
 	
 	# Validate with regex if pattern provided
 	if [[ -n "${pattern}" && ! "${!var_name}" =~ ${pattern} ]]; then
