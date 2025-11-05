@@ -170,17 +170,13 @@ check_headscale_environment_vars() {
 	check_litestream_replica_url
 	validate_oidc_settings
 	validate_extra_records
-	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
-	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
-	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
+	check_env_var_or_set_default "HEADSCALE_OVERRIDE_LOCAL_DNS" "true" "^(true|false)$" "Invalid 'HEADSCALE_OVERRIDE_LOCAL_DNS'. Must be 'true' (default) or 'false'."
 	check_env_var_or_set_default "IP_ALLOCATION" "${headscale_ip_allocation_default}" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
+	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
+	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
-	#This is for the v0.26.0 bump.
-	if env_var_is_defined "HEADSCALE_POLICY_V1" ; then
-		export HEADSCALE_POLICY_V1=1
-		log_warn "Using Headscale policy version 1. Please migrate and remove this variable."
-	fi
 }
 
 #######################################
@@ -188,17 +184,20 @@ check_headscale_environment_vars() {
 #######################################
 create_headscale_config() {
 	# Ensure all template variables are exported for envsubst
-	local template_vars=(
-		"ACME_EAB_BLOCK"
-		"CLOUDFLARE_ACME_BLOCK"
-		"SECURITY_HEADERS_BLOCK"
-		"PUBLIC_LISTEN_PORT"
-		"MAGIC_DNS"
-		"IPV6_PREFIX"
-		"IPV4_PREFIX"
-		"IP_ALLOCATION"
-		"HEADSCALE_EXTRA_RECORDS_PATH"
-	)
+    local template_vars=(
+        "ACME_EAB_BLOCK"
+        "CLOUDFLARE_ACME_BLOCK"
+        "SECURITY_HEADERS_BLOCK"
+        "PUBLIC_SERVER_URL"
+        "PUBLIC_LISTEN_PORT"
+        "HEADSCALE_DNS_BASE_DOMAIN"
+        "HEADSCALE_OVERRIDE_LOCAL_DNS"
+        "MAGIC_DNS"
+        "IPV6_PREFIX"
+        "IPV4_PREFIX"
+        "IP_ALLOCATION"
+        "HEADSCALE_EXTRA_RECORDS_PATH"
+    )
 	for var in "${template_vars[@]}"; do
 		export "${var}=${!var}"
 	done
@@ -392,6 +391,25 @@ check_config_files() {
 	check_headscale_environment_vars
 
 	check_caddy_environment_variables
+
+	# Ensure all template variables are exported for envsubst
+	local template_vars=(
+		"ACME_EAB_BLOCK"
+		"CLOUDFLARE_ACME_BLOCK"
+		"SECURITY_HEADERS_BLOCK"
+		"PUBLIC_SERVER_URL"
+		"PUBLIC_LISTEN_PORT"
+		"HEADSCALE_DNS_BASE_DOMAIN"
+		"HEADSCALE_OVERRIDE_LOCAL_DNS"
+		"MAGIC_DNS"
+		"IPV6_PREFIX"
+		"IPV4_PREFIX"
+		"IP_ALLOCATION"
+		"HEADSCALE_EXTRA_RECORDS_PATH"
+	)
+	for var in "${template_vars[@]}"; do
+		export "${var}=${!var}"
+	done
 
 	create_headscale_config
 

@@ -85,6 +85,9 @@ derp:
     region_code: "headscale"
     region_name: "Headscale Embedded DERP"
 
+    # Only allow clients associated with this server access
+    verify_clients: true
+
     # Listens over UDP at the configured address for STUN connections - to help with NAT traversal.
     # When the embedded DERP server is enabled stun_listen_addr MUST be defined.
     #
@@ -127,7 +130,7 @@ derp:
   auto_update_enabled: true
 
   # How often should we check for DERP updates?
-  update_frequency: 24h
+  update_frequency: 3h
 
 # Disables the automatic check for headscale updates on startup
 disable_check_updates: true
@@ -224,9 +227,11 @@ tls_cert_path: ""
 tls_key_path: ""
 
 log:
+  # Valid log levels: panic, fatal, error, warn, info, debug, trace
+  level: info
+
   # Output formatting for logs: text or json
   format: text
-  level: info
 
 ## Policy
 # headscale supports Tailscale's ACL policies.
@@ -272,9 +277,9 @@ dns:
   # `hostname.base_domain` (e.g., _myhost.example.com_).
   base_domain: $HEADSCALE_DNS_BASE_DOMAIN
 
-  # Whether to use the local DNS settings of a node (default) or override the
-  # local DNS settings and force the use of Headscale's DNS configuration.
-  override_local_dns: false
+  # Whether to use the local DNS settings of a node or override the local DNS
+  # settings (default) and force the use of Headscale's DNS configuration.
+  override_local_dns: $HEADSCALE_OVERRIDE_LOCAL_DNS
 
   # List of DNS servers to expose to clients.
   nameservers:
