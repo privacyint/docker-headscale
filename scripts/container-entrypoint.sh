@@ -166,12 +166,12 @@ validate_extra_records() {
 check_ip_address_settings() {
 	check_env_var_or_set_default "IP_ALLOCATION" "${headscale_ip_allocation_default}" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
 	check_env_var_or_set_default "IPV6_ONLY" "${headscale_ipv6_only_default}" "^(true|false)$" "Invalid 'IPV6_ONLY'. Must be 'true' or 'false'."
-	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
 	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
 
 	if [[ "${IPV6_ONLY}" == "true" ]]; then
 		export IP_PREFIXES="v6: ${IPV6_PREFIX}"
 	else
+		check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
 		export IP_PREFIXES="v4: ${IPV4_PREFIX}
   v6: ${IPV6_PREFIX}"
 	fi
