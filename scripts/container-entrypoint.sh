@@ -161,6 +161,23 @@ validate_extra_records() {
 }
 
 #######################################
+# Validate IP address settings
+#######################################
+check_ip_address_settings() {
+	check_env_var_or_set_default "IP_ALLOCATION" "${headscale_ip_allocation_default}" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
+	check_env_var_or_set_default "IPV6_ONLY" "${headscale_ipv6_only_default}" "^(true|false)$" "Invalid 'IPV6_ONLY'. Must be 'true' or 'false'."
+	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
+	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
+
+	if [[ "${IPV6_ONLY}" == "true" ]]; then
+		export IP_PREFIXES="v6: $IPV6_PREFIX"
+	else
+		export IP_PREFIXES="v4: $IPV4_PREFIX
+  v6: $IPV6_PREFIX"
+	fi
+}
+
+#######################################
 # Perform all Headscale environment variable checks
 #######################################
 check_headscale_environment_vars() {
@@ -170,10 +187,8 @@ check_headscale_environment_vars() {
 	check_litestream_replica_url
 	validate_oidc_settings
 	validate_extra_records
+	check_ip_address_settings
 	check_env_var_or_set_default "HEADSCALE_OVERRIDE_LOCAL_DNS" "true" "^(true|false)$" "Invalid 'HEADSCALE_OVERRIDE_LOCAL_DNS'. Must be 'true' (default) or 'false'."
-	check_env_var_or_set_default "IP_ALLOCATION" "${headscale_ip_allocation_default}" "^(sequential|random)$" "Invalid 'IP_ALLOCATION'. Must be either 'sequential' (default) or 'random'."
-	check_env_var_or_set_default "IPV4_PREFIX" "${headscale_ipv4_prefix_default}"
-	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
 	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
@@ -193,8 +208,7 @@ create_headscale_config() {
         "HEADSCALE_DNS_BASE_DOMAIN"
         "HEADSCALE_OVERRIDE_LOCAL_DNS"
         "MAGIC_DNS"
-        "IPV6_PREFIX"
-        "IPV4_PREFIX"
+		"IP_PREFIXES"
         "IP_ALLOCATION"
         "HEADSCALE_EXTRA_RECORDS_PATH"
     )
