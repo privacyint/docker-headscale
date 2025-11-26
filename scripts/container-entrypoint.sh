@@ -451,7 +451,11 @@ display_configuration_summary() {
 	log_feature_status "Magic DNS" "${MAGIC_DNS}"
 
 	log_info "IP Allocation: ${IP_ALLOCATION}"
-	log_info "IPv4 Prefix: ${IPV4_PREFIX}"
+	if [[ "${IPV6_ONLY}" == "true" ]]; then
+		log_feature_status "IPv6 Only" true ""
+	else
+		log_info "IPv4 Prefix: ${IPV4_PREFIX}"
+	fi
 	log_info "IPv6 Prefix: ${IPV6_PREFIX}"
 
 	if env_var_is_defined "HEADSCALE_OIDC_ISSUER"; then
