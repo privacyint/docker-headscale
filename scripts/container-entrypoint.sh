@@ -170,10 +170,10 @@ check_ip_address_settings() {
 	check_env_var_or_set_default "IPV6_PREFIX" "${headscale_ipv6_prefix_default}"
 
 	if [[ "${IPV6_ONLY}" == "true" ]]; then
-		export IP_PREFIXES="v6: $IPV6_PREFIX"
+		export IP_PREFIXES="v6: ${IPV6_PREFIX}"
 	else
-		export IP_PREFIXES="v4: $IPV4_PREFIX
-  v6: $IPV6_PREFIX"
+		export IP_PREFIXES="v4: ${IPV4_PREFIX}
+  v6: ${IPV6_PREFIX}"
 	fi
 }
 
@@ -208,7 +208,7 @@ create_headscale_config() {
         "HEADSCALE_DNS_BASE_DOMAIN"
         "HEADSCALE_OVERRIDE_LOCAL_DNS"
         "MAGIC_DNS"
-		"IP_PREFIXES"
+        "IP_PREFIXES"
         "IP_ALLOCATION"
         "HEADSCALE_EXTRA_RECORDS_PATH"
     )
