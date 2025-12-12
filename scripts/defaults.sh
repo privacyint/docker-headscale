@@ -2,6 +2,7 @@
 # shellcheck disable=SC2034 # This is a defaults file
 public_listen_port_default=443
 
+headscale_ephemeral_node_inactivity_timeout_default="30m"
 headscale_extra_records_path_default="/data/headscale/extra-records.json"
 headscale_magic_dns_default="true"
 headscale_ipv6_only_default="false"
