@@ -192,7 +192,7 @@ check_headscale_environment_vars() {
 	check_env_var_or_set_default "MAGIC_DNS" "${headscale_magic_dns_default}" "^(true|false)$" "Invalid 'MAGIC_DNS'. Must be 'true' or 'false'."
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
-	check_env_var_or_set_default "EPHEMERAL_NODE_INACTIVITY_TIMEOUT" "${headscale_ephemeral_node_inactivity_timeout_default}"
+	check_env_var_or_set_default "EPHEMERAL_NODE_INACTIVITY_TIMEOUT" "${headscale_ephemeral_node_inactivity_timeout_default}" "^[0-9]+[smhd]([0-9]+[smhd])*$" "Invalid 'EPHEMERAL_NODE_INACTIVITY_TIMEOUT'. Must be a valid duration (e.g., '30m', '1h', '90s')."
 }
 
 #######################################
