@@ -445,7 +445,7 @@ display_configuration_summary() {
 	log_info "Tailnet Base Domain: ${HEADSCALE_DNS_BASE_DOMAIN}"
 	log_info "Public Listening Port: ${PUBLIC_LISTEN_PORT}"
 	log_info "GOMAXPROCS: ${GOMAXPROCS}"
-	log_info "Ephemeral Node Inactivity Timeout: " "${EPHEMERAL_NODE_INACTIVITY_TIMEOUT}"
+	log_info "Ephemeral Node Inactivity Timeout: ${EPHEMERAL_NODE_INACTIVITY_TIMEOUT}"
 
 	log_feature_status "HTTPS Mode" "${https_enabled}" "" "warn"
 	log_feature_status "Litestream" "${litestream_enabled}" "${LITESTREAM_REPLICA_URL}" "warn"
