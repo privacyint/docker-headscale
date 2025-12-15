@@ -17,6 +17,7 @@ declare helper_scripts=(
 abort_config=false
 litestream_enabled=true
 https_enabled=true
+caddy_config_file=""
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -221,17 +222,6 @@ create_headscale_config() {
 }
 
 #######################################
-# Create our Caddyfile
-#######################################
-create_caddyfile() {
-	if ${https_enabled}; then
-		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
-	else
-		create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
-	fi
-}
-
-#######################################
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
@@ -353,6 +343,9 @@ check_caddy_environment_variables() {
 
 	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
+		caddy_config_file="${caddyfile_cleartext}"
+	else
+		caddy_config_file="${caddyfile_https}"
 		return
 	fi
 
@@ -427,7 +420,7 @@ check_config_files() {
 
 	create_headscale_config
 
-	create_caddyfile
+	create_config_from_template "${caddy_config_file}" "Caddy configuration file"
 
 	reuse_or_create_noise_private_key
 }
@@ -496,17 +489,10 @@ display_configuration_summary() {
 start_caddy_service() {
 	log_info "Starting Caddy using our environment variables."
 
-	if ${https_enabled}; then
-		caddy start --config "${caddyfile_https}" || {
-			log_error "Failed to start Caddy with HTTPS config"
-			return
-		}
-	else
-		caddy start --config "${caddyfile_cleartext}" || {
-			log_error "Failed to start Caddy with cleartext config"
-			return
-		}
-	fi
+	caddy start --config "${caddy_config_file}" || {
+		log_error "Failed to start Caddy"
+		return
+	}
 
 	# Verify Caddy is actually running
 	sleep 2
