@@ -360,8 +360,8 @@ reuse_or_create_noise_private_key() {
 	fi
 
 	if env_var_is_defined "HEADSCALE_NOISE_PRIVATE_KEY"; then
-	    printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
-        chmod 600 "${key_path}"
+		printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
+		chmod 600 "${key_path}"
 	else
 		log_info "Generating new Noise private key - existing clients will need to re-authenticate"
 	fi
