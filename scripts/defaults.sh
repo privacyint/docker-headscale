@@ -1,5 +1,6 @@
 #!/bin/bash
-# shellcheck disable=SC2034 # This is a defaults file
+# This is a defaults file
+# shellcheck disable=SC2034
 public_listen_port_default=443
 
 headscale_ephemeral_node_inactivity_timeout_default="30m"
