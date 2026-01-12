@@ -14,7 +14,7 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 
 ## Versioning
 
-Because of the mix of upstream tools included, this project will be tagged using semantic versioning - `YYYY.MM.REVISION`.
+Because of the mix of upstream tools included, this project will be tagged using the versioning style `YYYY.MM.REVISION`.
 
 All development should be done against the `develop` branch, `main` is deemed "stable".
 
