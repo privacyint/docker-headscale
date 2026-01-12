@@ -6,10 +6,10 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 
 | Tool | Upstream Repository | Version |
 |---|---|---|
-| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.22.1`](https://git.alpinelinux.org/aports/log/?h=v3.22.1) |
+| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.2`](https://git.alpinelinux.org/aports/log/?h=v3.23.2) |
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.27.1`](https://github.com/juanfont/headscale/releases/tag/v0.27.1) |
 | [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`0.26.0`](https://github.com/GoodiesHQ/headscale-admin/commit/6cf2bc7d59165757a70f4c918a032225eb5e6e7d) |
-| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`v0.5.3`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.3) |
+| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.6`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.6) |
 | [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.10.2`](https://github.com/caddyserver/caddy/releases/tag/v2.10.2) |
 
 ## Versioning

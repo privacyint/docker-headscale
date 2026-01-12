@@ -279,6 +279,10 @@ check_cloudflare_dns_api_key() {
 #   `true` on success, `false` on error
 #######################################
 configure_security_headers() {
+	# Note: For documentation on security headers, see:
+	# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+	# - https://owasp.org/www-project-secure-headers/
+
     # Modern security headers with sensible defaults
     # shellcheck disable=SC2034  # Used via nameref in array_to_caddy_block
     local default_headers=(
@@ -290,18 +294,14 @@ configure_security_headers() {
         "Cross-Origin-Embedder-Policy \"require-corp\""
         "Cross-Origin-Opener-Policy \"same-origin\""
     )
-    
+
     # Minimal security headers for compatibility
     # shellcheck disable=SC2034  # Used via nameref in array_to_caddy_block
     local minimal_headers=(
         "X-Frame-Options \"DENY\""
         "X-Content-Type-Options \"nosniff\""
     )
-    
-	# Note: For documentation on security headers, see:
-	# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
-	# - https://owasp.org/www-project-secure-headers/
-	
+
 	# Helper function to convert array to multi-line string for Caddy config
 	array_to_caddy_block() {
 		local -n headers_array=${1}
