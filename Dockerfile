@@ -11,8 +11,8 @@ ARG LITESTREAM_VERSION="0.5.9"
 ARG LITESTREAM_SHA256="sha256:e8612ef5424802723e8cfa2d07a182df60f9af71839b5ff5ef1e80dff38efbdd"
 
 # No checksum needed for these tools, we pull from official images
-ARG CADDY_VERSION="2.10.2"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.23.2"
+ARG CADDY_VERSION="2.11.1"
 ARG HEADSCALE_ADMIN_VERSION="0.26.0"
 
 # github download links
