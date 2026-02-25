@@ -60,6 +60,8 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
 
     RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
 
+    RUN apk del BuildTimeDeps
+
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     # Set SHELL flags for RUN commands to allow -e and pipefail
