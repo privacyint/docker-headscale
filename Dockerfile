@@ -10,10 +10,15 @@ ARG HEADSCALE_SHA256="af2a232ff407c100f05980b4d8fceaafc7fdb2e8de5eba8e184a8bb029
 ARG LITESTREAM_VERSION="0.5.9"
 ARG LITESTREAM_SHA256="e8612ef5424802723e8cfa2d07a182df60f9af71839b5ff5ef1e80dff38efbdd"
 
+# We're building these from source, so we need to specify the versions here rather than hash
+ARG HEADSCALE_ADMIN_ENDPOINT="/admin"
+ARG HEADSCALE_ADMIN_REPO="https://github.com/serein-213/headscale-admin-il18n"
+ARG HEADSCALE_ADMIN_VERSION="main"
+ARG HEADSCALE_ADMIN_NODE_VERSION="22"
+
 # No checksum needed for these tools, we pull from official images
 ARG CADDY_VERSION="2.11.1"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.23.3"
-ARG HEADSCALE_ADMIN_VERSION="0.26.0"
 
 # github download links
 # These should never need adjusting unless the URIs change
@@ -33,8 +38,27 @@ FROM caddy:${CADDY_VERSION}-builder AS caddy-builder
     RUN xcaddy build \
         --with github.com/caddy-dns/cloudflare
 
-# Docker hates variables in COPY, apparently. Hello, workaround.
-FROM goodieshq/headscale-admin:${HEADSCALE_ADMIN_VERSION} AS admin-gui
+# Build the admin GUI from source
+FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
+    # Set SHELL flags for RUN commands to allow -e and pipefail
+    # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+    SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+    ARG HEADSCALE_ADMIN_REPO
+    ARG HEADSCALE_ADMIN_VERSION
+    ARG HEADSCALE_ADMIN_ENDPOINT
+
+    RUN apk --no-cache upgrade; \
+        apk add --no-cache --virtual BuildTimeDeps git;
+
+    RUN git clone --depth 1 --branch ${HEADSCALE_ADMIN_VERSION} ${HEADSCALE_ADMIN_REPO} /app
+    WORKDIR /app
+
+    RUN ENDPOINT=${HEADSCALE_ADMIN_ENDPOINT}; \
+        npm install; \
+        npm run build;
+
+    RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
