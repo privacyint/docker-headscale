@@ -55,8 +55,7 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     WORKDIR /app
 
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
-    RUN npm install; \
-        npm run build;
+    RUN npm install && npm run build;
 
     RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
 
