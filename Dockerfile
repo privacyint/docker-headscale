@@ -54,7 +54,7 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     RUN git clone --depth 1 --branch ${HEADSCALE_ADMIN_VERSION} ${HEADSCALE_ADMIN_REPO} /app
     WORKDIR /app
 
-    RUN ENDPOINT=${HEADSCALE_ADMIN_ENDPOINT}; \
+    RUN export ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"; \
         npm install; \
         npm run build;
 
