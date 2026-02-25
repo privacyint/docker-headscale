@@ -12,6 +12,8 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 | [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.9`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.9) |
 | [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.1`](https://github.com/caddyserver/caddy/releases/tag/v2.11.1) |
 
+NB: `Headscale-Admin` is deprecated in this release as it appears to have been abandoned by upstream. We have moved to a fork with patches, but intend to replace by `0.29.X`.
+
 ## Versioning
 
 Because of the mix of upstream tools included, this project will be tagged using the versioning style `YYYY.MM.REVISION`.
