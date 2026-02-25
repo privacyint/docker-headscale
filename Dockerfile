@@ -13,7 +13,7 @@ ARG LITESTREAM_SHA256="e8612ef5424802723e8cfa2d07a182df60f9af71839b5ff5ef1e80dff
 # We're building these from source, so we need to specify the versions here rather than hash
 ARG HEADSCALE_ADMIN_ENDPOINT="/admin"
 ARG HEADSCALE_ADMIN_REPO="https://github.com/serein-213/headscale-admin-il18n"
-ARG HEADSCALE_ADMIN_VERSION="main"
+ARG HEADSCALE_ADMIN_VERSION="7da5aa3f89cb1027d086256c176cdb2112d6641c"
 ARG HEADSCALE_ADMIN_NODE_VERSION="22"
 
 # No checksum needed for these tools, we pull from official images
@@ -51,7 +51,9 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     RUN apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps git;
 
-    RUN git clone --depth 1 --branch ${HEADSCALE_ADMIN_VERSION} ${HEADSCALE_ADMIN_REPO} /app
+    RUN git clone ${HEADSCALE_ADMIN_REPO} /app && \
+        cd /app && \
+        git checkout ${HEADSCALE_ADMIN_VERSION}
     WORKDIR /app
 
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
