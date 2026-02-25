@@ -8,7 +8,7 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 | --- | --- | --- |
 | [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.3`](https://git.alpinelinux.org/aports/log/?h=v3.23.3) |
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.27.1`](https://github.com/juanfont/headscale/releases/tag/v0.27.1) |
-| [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`0.26.0`](https://github.com/GoodiesHQ/headscale-admin/commit/6cf2bc7d59165757a70f4c918a032225eb5e6e7d) |
+| [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`main`](https://github.com/serein-213/headscale-admin-il18n) |
 | [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.9`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.9) |
 | [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.1`](https://github.com/caddyserver/caddy/releases/tag/v2.11.1) |
 
@@ -61,8 +61,8 @@ Note that applying this will cause your application to restart, but afterwards n
 [alpine-linux-repo]: https://gitlab.alpinelinux.org/alpine
 [caddy-wob]: https://caddyserver.com/
 [caddy-repo]: https://github.com/caddyserver/caddy
-[headscale-admin-wob]: https://github.com/GoodiesHQ/headscale-admin
-[headscale-admin-repo]: https://github.com/GoodiesHQ/headscale-admin
+[headscale-admin-wob]: https://github.com/serein-213/headscale-admin-il18n
+[headscale-admin-repo]: https://github.com/serein-213/headscale-admin-il18n
 [headscale-wob]: https://headscale.net/
 [headscale-repo]: https://github.com/juanfont/headscale
 [litestream-wob]: https://litestream.io/
