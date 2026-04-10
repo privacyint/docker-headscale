@@ -17,7 +17,7 @@ ARG HEADSCALE_ADMIN_VERSION="7da5aa3f89cb1027d086256c176cdb2112d6641c"
 ARG HEADSCALE_ADMIN_NODE_VERSION="22"
 
 # No checksum needed for these tools, we pull from official images
-ARG CADDY_VERSION="2.11.1"
+ARG CADDY_VERSION="2.11.2"
 ARG MAIN_IMAGE_ALPINE_VERSION="3.23.3"
 
 # github download links
