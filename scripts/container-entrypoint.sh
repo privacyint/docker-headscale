@@ -465,7 +465,7 @@ start_caddy_service() {
 	log_info "Starting Caddy using our environment variables."
 
 	caddy start --config "${caddy_config_file}" || {
-		log_error "Failed to start Caddy"
+		log_error "Failed to start Caddy (config: ${caddy_config_file}, HTTPS: ${https_enabled})"
 		return
 	}
 
