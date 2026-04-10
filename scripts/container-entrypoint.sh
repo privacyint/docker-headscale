@@ -17,6 +17,7 @@ declare helper_scripts=(
 abort_config=false
 litestream_enabled=true
 https_enabled=true
+caddy_config_file=""
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -196,42 +197,6 @@ check_headscale_environment_vars() {
 }
 
 #######################################
-# Create our Headscale configuration file
-#######################################
-create_headscale_config() {
-	# Ensure all template variables are exported for envsubst
-    local template_vars=(
-        "ACME_EAB_BLOCK"
-        "CLOUDFLARE_ACME_BLOCK"
-        "SECURITY_HEADERS_BLOCK"
-        "PUBLIC_SERVER_URL"
-        "PUBLIC_LISTEN_PORT"
-        "HEADSCALE_DNS_BASE_DOMAIN"
-        "HEADSCALE_OVERRIDE_LOCAL_DNS"
-        "MAGIC_DNS"
-        "IP_PREFIXES"
-        "IP_ALLOCATION"
-        "HEADSCALE_EXTRA_RECORDS_PATH"
-    )
-	for var in "${template_vars[@]}"; do
-		export "${var}=${!var}"
-	done
-
-	create_config_from_template "${headscale_config}" "Headscale configuration file"
-}
-
-#######################################
-# Create our Caddyfile
-#######################################
-create_caddyfile() {
-	if ${https_enabled}; then
-		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
-	else
-		create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
-	fi
-}
-
-#######################################
 # Validate ZeroSSL EAB credentials if provided and modify Caddyfile as needed
 #######################################
 check_zerossl_eab() {
@@ -353,7 +318,10 @@ check_caddy_environment_variables() {
 
 	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
+		caddy_config_file="${caddyfile_cleartext}"
 		return
+	else
+		caddy_config_file="${caddyfile_https}"
 	fi
 
 	require_env_var "ACME_ISSUANCE_EMAIL"
@@ -392,8 +360,8 @@ reuse_or_create_noise_private_key() {
 	fi
 
 	if env_var_is_defined "HEADSCALE_NOISE_PRIVATE_KEY"; then
-	    printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
-        chmod 600 "${key_path}"
+		printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
+		chmod 600 "${key_path}"
 	else
 		log_info "Generating new Noise private key - existing clients will need to re-authenticate"
 	fi
@@ -425,9 +393,9 @@ check_config_files() {
 		export "${var}=${!var}"
 	done
 
-	create_headscale_config
+	create_config_from_template "${headscale_config}" "Headscale configuration file"
 
-	create_caddyfile
+	create_config_from_template "${caddy_config_file}" "Caddy configuration file"
 
 	reuse_or_create_noise_private_key
 }
@@ -496,17 +464,10 @@ display_configuration_summary() {
 start_caddy_service() {
 	log_info "Starting Caddy using our environment variables."
 
-	if ${https_enabled}; then
-		caddy start --config "${caddyfile_https}" || {
-			log_error "Failed to start Caddy with HTTPS config"
-			return
-		}
-	else
-		caddy start --config "${caddyfile_cleartext}" || {
-			log_error "Failed to start Caddy with cleartext config"
-			return
-		}
-	fi
+	caddy start --config "${caddy_config_file}" || {
+		log_error "Failed to start Caddy (config: ${caddy_config_file}, HTTPS: ${https_enabled})"
+		return
+	}
 
 	# Verify Caddy is actually running
 	sleep 2
