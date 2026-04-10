@@ -47,19 +47,14 @@ log_warn() {
 }
 
 #######################################
-# Log an error message and set abort flag
+# Log an error message
 # Arguments:
 #   `$1` - Message to log
-# Globals:
-#   `abort_config`
 # Returns:
 #   `false`
 #######################################
 log_error() {
     log_with_level "ERROR" "${1}"
-    # Ensure caller can rely on abort_config being set; the main script defines it but
-    # if not present yet this will create it in the current shell environment.
-    abort_config=true
     false
 }
 

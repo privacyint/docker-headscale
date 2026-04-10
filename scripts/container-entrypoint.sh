@@ -14,7 +14,6 @@ declare helper_scripts=(
 )
 
 # Global flags
-abort_config=false
 litestream_enabled=true
 https_enabled=true
 caddy_config_file=""
@@ -501,11 +500,6 @@ run() {
 	check_needed_directories
 
 	check_config_files
-
-	if ${abort_config} ; then
-		log_error "Configuration validation failed. Exiting."
-		exit
-	fi
 
 	# Here we... here we... here we go!!!
 	display_configuration_summary
