@@ -16,3 +16,7 @@ headscale_override_local_dns_default="true"
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
+
+# Default global nameservers (bash array). Can be overridden by setting GLOBAL_NAMESERVERS
+# as a space-separated string in the environment (e.g. "1.1.1.1 8.8.8.8").
+headscale_global_nameservers_default=("1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001")

@@ -177,6 +177,49 @@ check_ip_address_settings() {
 	fi
 }
 
+
+#######################################
+# Build YAML flow list for GLOBAL_NAMESERVERS
+# Produces GLOBAL_NAMESERVERS_YAML like: [ "1.1.1.1", "8.8.8.8" ]
+#######################################
+build_global_nameservers_yaml() {
+	local -a ns_array=()
+	local -a items=()
+	local ip
+
+	if [[ -n "${GLOBAL_NAMESERVERS:-}" ]]; then
+		read -r -a ns_array <<< "${GLOBAL_NAMESERVERS}"
+	else
+		# Use defaults from defaults.sh if available
+		ns_array=("${headscale_global_nameservers_default[@]:-}")
+	fi
+
+	if [[ ${#ns_array[@]} -eq 0 ]]; then
+		GLOBAL_NAMESERVERS_YAML='[]'
+		return
+	fi
+
+	for ip in "${ns_array[@]}"; do
+		# permissive validation: allow hex digits, dots and colons (IPv4/IPv6)
+		if [[ ! ${ip} =~ ^[0-9A-Fa-f:\.]+$ ]]; then
+			log_warn "Skipping invalid GLOBAL_NAMESERVERS entry: ${ip}"
+			continue
+		fi
+		items+=("\"${ip}\"")
+	done
+
+	if [[ ${#items[@]} -eq 0 ]]; then
+		GLOBAL_NAMESERVERS_YAML='[]'
+		return
+	fi
+
+	# join items with ', '
+	local joined
+	printf -v joined '%s, ' "${items[@]}"
+	joined=${joined%, }
+	export GLOBAL_NAMESERVERS_YAML="[ ${joined} ]"
+}
+
 #######################################
 # Perform all Headscale environment variable checks
 #######################################
@@ -374,6 +417,8 @@ check_config_files() {
 
 	check_caddy_environment_variables
 
+	build_global_nameservers_yaml
+
 	# Ensure all template variables are exported for envsubst
 	local template_vars=(
 		"ACME_EAB_BLOCK"
@@ -387,6 +432,7 @@ check_config_files() {
 		"IP_ALLOCATION"
 		"HEADSCALE_EXTRA_RECORDS_PATH"
 		"EPHEMERAL_NODE_INACTIVITY_TIMEOUT"
+		"GLOBAL_NAMESERVERS_YAML"
 	)
 	for var in "${template_vars[@]}"; do
 		export "${var}=${!var}"
