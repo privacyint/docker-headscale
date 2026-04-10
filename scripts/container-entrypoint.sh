@@ -319,9 +319,9 @@ check_caddy_environment_variables() {
 	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
 		caddy_config_file="${caddyfile_cleartext}"
+		return
 	else
 		caddy_config_file="${caddyfile_https}"
-		return
 	fi
 
 	require_env_var "ACME_ISSUANCE_EMAIL"
