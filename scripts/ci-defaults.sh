@@ -6,12 +6,11 @@
 # shellcheck disable=SC2034
 export IP_PREFIXES="v4: $headscale_ipv4_prefix_default
   v6: $headscale_ipv6_prefix_default"
-
 export PUBLIC_SERVER_URL="example.com"
-export PUBLIC_LISTEN_PORT="443"
+export PUBLIC_LISTEN_PORT="$public_listen_port_default"
 export HEADSCALE_DNS_BASE_DOMAIN="example.com"
-export HEADSCALE_OVERRIDE_LOCAL_DNS="true"
-export MAGIC_DNS="true"
-export IP_ALLOCATION="sequential"
-export HEADSCALE_EXTRA_RECORDS_PATH="/data/headscale/extra-records.json"
-export EPHEMERAL_NODE_INACTIVITY_TIMEOUT="30m"
+export HEADSCALE_OVERRIDE_LOCAL_DNS="$headscale_override_local_dns_default"
+export MAGIC_DNS="$headscale_magic_dns_default"
+export IP_ALLOCATION="$headscale_ip_allocation_default"
+export HEADSCALE_EXTRA_RECORDS_PATH="$headscale_extra_records_path_default"
+export EPHEMERAL_NODE_INACTIVITY_TIMEOUT="$headscale_ephemeral_node_inactivity_timeout_default"
