@@ -27,6 +27,27 @@ jobs:
           
           echo "Successfully downloaded upstream config"
       
+      - name: Generate config from template with defaults
+        run: |
+          # Source the defaults
+          source scripts/defaults.sh
+          
+          # Export default values for envsubst
+          export IP_PREFIXES="${IP_PREFIXES:-"v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48"}"
+
+          export PUBLIC_SERVER_URL="https://example.com"
+          export PUBLIC_LISTEN_PORT="443"
+          export HEADSCALE_DNS_BASE_DOMAIN="example.com"
+          export HEADSCALE_OVERRIDE_LOCAL_DNS="true"
+          export MAGIC_DNS="true"
+          export IP_ALLOCATION="sequential"
+          export HEADSCALE_EXTRA_RECORDS_PATH="/data/headscale/extra-records.json"
+          export EPHEMERAL_NODE_INACTIVITY_TIMEOUT="30m"
+          
+          # Generate config
+          envsubst < templates/headscale.template.yaml > generated-config.yaml
+      
       - name: Check for new options
         id: check
         run: |
@@ -40,20 +61,20 @@ jobs:
 
           # Get list of keys to ignore from DIFF_IGNORE comments (including commented lines)
           get_ignored_keys() {
-            grep "# DIFF_IGNORE" "$1" | \
+            grep "# DIFF_IGNORE" "templates/headscale.template.yaml" | \
             sed -E 's/^[[:space:]]*#?[[:space:]]*//' | \
             sed -E 's/:.*# DIFF_IGNORE.*$//' | \
             sort -u
           }
 
           echo "=== Getting ignored keys ==="
-          get_ignored_keys "templates/headscale.template.yaml" > ignored_keys.txt
+          get_ignored_keys > ignored_keys.txt
           echo "Keys to ignore:"
           cat ignored_keys.txt
           echo "=== End ignored keys ==="
 
           # Extract all keys
-          extract_keys "templates/headscale.template.yaml" > local_all_keys.txt
+          extract_keys "generated-config.yaml" > local_all_keys.txt
           extract_keys "upstream-config.yaml" > upstream_all_keys.txt
 
           # Normalize keys (strip optional leading '#' and surrounding spaces) and sort-unique
