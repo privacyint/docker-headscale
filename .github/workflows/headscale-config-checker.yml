@@ -31,19 +31,7 @@ jobs:
         run: |
           # Source the defaults
           source scripts/defaults.sh
-          
-          # Export default values for envsubst
-          export IP_PREFIXES="${IP_PREFIXES:-"v4: 100.64.0.0/10
-  v6: fd7a:115c:a1e0::/48"}"
-
-          export PUBLIC_SERVER_URL="https://example.com"
-          export PUBLIC_LISTEN_PORT="443"
-          export HEADSCALE_DNS_BASE_DOMAIN="example.com"
-          export HEADSCALE_OVERRIDE_LOCAL_DNS="true"
-          export MAGIC_DNS="true"
-          export IP_ALLOCATION="sequential"
-          export HEADSCALE_EXTRA_RECORDS_PATH="/data/headscale/extra-records.json"
-          export EPHEMERAL_NODE_INACTIVITY_TIMEOUT="30m"
+          source scripts/ci-defaults.sh
           
           # Generate config
           envsubst < templates/headscale.template.yaml > generated-config.yaml
