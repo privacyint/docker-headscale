@@ -5,7 +5,7 @@
 # Export default values for envsubst in templates
 # shellcheck disable=SC2034
 export IP_PREFIXES="v4: $headscale_ipv4_prefix_default
-v6: $headscale_ipv6_prefix_default"
+  v6: $headscale_ipv6_prefix_default"
 
 export PUBLIC_SERVER_URL="example.com"
 export PUBLIC_LISTEN_PORT="443"
