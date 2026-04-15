@@ -27,6 +27,15 @@ jobs:
           
           echo "Successfully downloaded upstream config"
       
+      - name: Generate config from template with defaults
+        run: |
+          # Source the defaults
+          source scripts/defaults.sh
+          source scripts/ci-defaults.sh
+          
+          # Generate config
+          envsubst < templates/headscale.template.yaml > generated-config.yaml
+      
       - name: Check for new options
         id: check
         run: |
@@ -40,20 +49,20 @@ jobs:
 
           # Get list of keys to ignore from DIFF_IGNORE comments (including commented lines)
           get_ignored_keys() {
-            grep "# DIFF_IGNORE" "$1" | \
+            grep "# DIFF_IGNORE" "templates/headscale.template.yaml" | \
             sed -E 's/^[[:space:]]*#?[[:space:]]*//' | \
             sed -E 's/:.*# DIFF_IGNORE.*$//' | \
             sort -u
           }
 
           echo "=== Getting ignored keys ==="
-          get_ignored_keys "templates/headscale.template.yaml" > ignored_keys.txt
+          get_ignored_keys > ignored_keys.txt
           echo "Keys to ignore:"
           cat ignored_keys.txt
           echo "=== End ignored keys ==="
 
           # Extract all keys
-          extract_keys "templates/headscale.template.yaml" > local_all_keys.txt
+          extract_keys "generated-config.yaml" > local_all_keys.txt
           extract_keys "upstream-config.yaml" > upstream_all_keys.txt
 
           # Normalize keys (strip optional leading '#' and surrounding spaces) and sort-unique
