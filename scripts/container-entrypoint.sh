@@ -195,7 +195,7 @@ build_global_nameservers_yaml() {
 	fi
 
 	if [[ ${#ns_array[@]} -eq 0 ]]; then
-		GLOBAL_NAMESERVERS_YAML='[]'
+		export GLOBAL_NAMESERVERS_YAML='[]'
 		return
 	fi
 
@@ -209,7 +209,7 @@ build_global_nameservers_yaml() {
 	done
 
 	if [[ ${#items[@]} -eq 0 ]]; then
-		GLOBAL_NAMESERVERS_YAML='[]'
+		export GLOBAL_NAMESERVERS_YAML='[]'
 		return
 	fi
 
