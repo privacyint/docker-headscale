@@ -14,3 +14,8 @@ export MAGIC_DNS="$headscale_magic_dns_default"
 export IP_ALLOCATION="$headscale_ip_allocation_default"
 export HEADSCALE_EXTRA_RECORDS_PATH="$headscale_extra_records_path_default"
 export EPHEMERAL_NODE_INACTIVITY_TIMEOUT="$headscale_ephemeral_node_inactivity_timeout_default"
+export GLOBAL_NAMESERVERS_YAML="
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001"

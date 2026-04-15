@@ -41,7 +41,7 @@ jobs:
         run: |
           # Simple approach: extract keys and apply ignores
           extract_keys() {
-            grep -E "^[[:space:]]*[^#].*:" "$1" | \
+            grep -E "^[[:space:]]*[^#\-].*:" "$1" | \
             sed 's/:[[:space:]]*.*$//' | \
             sed 's/^[[:space:]]*//' | \
             sort -u
