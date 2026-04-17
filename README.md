@@ -8,11 +8,11 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 | --- | --- | --- |
 | [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.3`](https://git.alpinelinux.org/aports/log/?h=v3.23.3) |
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.28.0`](https://github.com/juanfont/headscale/releases/tag/v0.28.0) |
-| [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`7da5aa3`](https://github.com/serein-213/headscale-admin-il18n/commit/7da5aa3f89cb1027d086256c176cdb2112d6641c) |
+| [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`139abd2`](https://github.com/privacyint/headscale-admin/commit/139abd3e2468db4878f0a92895515090697fba3d) |
 | [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.11`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.11) |
 | [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.2`](https://github.com/caddyserver/caddy/releases/tag/v2.11.2) |
 
-DEPRECATION NOTICE: `Headscale-Admin` is deprecated in this release as it appears to have been abandoned by upstream. We have moved to a fork with patches so we can take advantage of the improvements in Headscale's `0.28.X` release, but are actively testing replacement admin panels before Headscale's `0.29.X` releases.
+NB: `Headscale-Admin` appears to have been abandoned by upstream. We have created a fork with patches so we can take advantage of the improvements in Headscale's `0.28.X` release.
 
 ## Versioning
 
@@ -78,8 +78,8 @@ Note that applying this will cause your application to restart, but afterwards n
 [alpine-linux-repo]: https://gitlab.alpinelinux.org/alpine
 [caddy-wob]: https://caddyserver.com/
 [caddy-repo]: https://github.com/caddyserver/caddy
-[headscale-admin-wob]: https://github.com/serein-213/headscale-admin-il18n
-[headscale-admin-repo]: https://github.com/serein-213/headscale-admin-il18n
+[headscale-admin-wob]: https://github.com/privacyint/headscale-admin
+[headscale-admin-repo]: https://github.com/privacyint/headscale-admin
 [headscale-wob]: https://headscale.net/
 [headscale-repo]: https://github.com/juanfont/headscale
 [litestream-wob]: https://litestream.io/
