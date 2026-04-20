@@ -4,16 +4,21 @@
 # Tool version arguments
 # Bump these every time there is a new release.
 # We're pulling these from github source, don't forget to bump the checksum!
-ARG HEADSCALE_VERSION="0.27.1"
-ARG HEADSCALE_SHA256="af2a232ff407c100f05980b4d8fceaafc7fdb2e8de5eba8e184a8bb029cb6c00"
+ARG HEADSCALE_VERSION="0.28.0"
+ARG HEADSCALE_SHA256="95f242a31003d60646d233b14a1acacac20d8f319886d0441df085cc3a920f2d"
 
-ARG LITESTREAM_VERSION="0.5.6"
-ARG LITESTREAM_SHA256="959f72ef0b28acf2d7785c622df4936f7813a381931366ef732157048a5a45e5"
+ARG LITESTREAM_VERSION="0.5.11"
+ARG LITESTREAM_SHA256="2f80fdb6b0a0ff7a116ee37adf02d3de8e977ef76e052b28a6690218f0f7ab55"
+
+# We're building these from source, so we need to specify the versions here rather than hash
+ARG HEADSCALE_ADMIN_ENDPOINT="/admin"
+ARG HEADSCALE_ADMIN_REPO="https://github.com/privacyint/headscale-admin"
+ARG HEADSCALE_ADMIN_VERSION="v0.28.0"
+ARG HEADSCALE_ADMIN_NODE_VERSION="25"
 
 # No checksum needed for these tools, we pull from official images
-ARG CADDY_VERSION="2.10.2"
-ARG MAIN_IMAGE_ALPINE_VERSION="3.23.2"
-ARG HEADSCALE_ADMIN_VERSION="0.26.0"
+ARG CADDY_VERSION="2.11.2"
+ARG MAIN_IMAGE_ALPINE_VERSION="3.23.3"
 
 # github download links
 # These should never need adjusting unless the URIs change
@@ -33,8 +38,30 @@ FROM caddy:${CADDY_VERSION}-builder AS caddy-builder
     RUN xcaddy build \
         --with github.com/caddy-dns/cloudflare
 
-# Docker hates variables in COPY, apparently. Hello, workaround.
-FROM goodieshq/headscale-admin:${HEADSCALE_ADMIN_VERSION} AS admin-gui
+# Build the admin GUI from source
+FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
+    # Set SHELL flags for RUN commands to allow -e and pipefail
+    # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+    SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+    ARG HEADSCALE_ADMIN_REPO
+    ARG HEADSCALE_ADMIN_VERSION
+    ARG HEADSCALE_ADMIN_ENDPOINT
+
+    RUN apk --no-cache upgrade; \
+        apk add --no-cache --virtual BuildTimeDeps git;
+
+    RUN git clone ${HEADSCALE_ADMIN_REPO} /app && \
+        cd /app && \
+        git checkout ${HEADSCALE_ADMIN_VERSION}
+    WORKDIR /app
+
+    ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
+    RUN npm install && npm run build;
+
+    RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
+
+    RUN apk del BuildTimeDeps
 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}

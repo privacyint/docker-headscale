@@ -5,16 +5,18 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 ## Included upstream versions
 
 | Tool | Upstream Repository | Version |
-|---|---|---|
-| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.2`](https://git.alpinelinux.org/aports/log/?h=v3.23.2) |
-| [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.27.1`](https://github.com/juanfont/headscale/releases/tag/v0.27.1) |
-| [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`0.26.0`](https://github.com/GoodiesHQ/headscale-admin/commit/6cf2bc7d59165757a70f4c918a032225eb5e6e7d) |
-| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.6`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.6) |
-| [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.10.2`](https://github.com/caddyserver/caddy/releases/tag/v2.10.2) |
+| --- | --- | --- |
+| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.3`](https://git.alpinelinux.org/aports/log/?h=v3.23.3) |
+| [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.28.0`](https://github.com/juanfont/headscale/releases/tag/v0.28.0) |
+| [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`v0.28.0`](https://github.com/privacyint/headscale-admin/releases/tag/v0.28.0) |
+| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.11`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.11) |
+| [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.2`](https://github.com/caddyserver/caddy/releases/tag/v2.11.2) |
+
+NB: `Headscale-Admin` appears to have been abandoned by upstream. We have created a fork with patches so we can take advantage of the improvements in Headscale's `0.28.X` release.
 
 ## Versioning
 
-Because of the mix of upstream tools included, this project will be tagged using semantic versioning - `YYYY.MM.REVISION`.
+Because of the mix of upstream tools included, this project will be tagged using the versioning style `YYYY.MM.REVISION`.
 
 All development should be done against the `develop` branch, `main` is deemed "stable".
 
@@ -28,6 +30,21 @@ All development should be done against the `develop` branch, `main` is deemed "s
 Populate your environment variables according to `templates/secrets.template.env`
 
 The container entrypoint script will guide you on any errors.
+
+## Configuring upstream/global nameservers
+
+You can now control the nameservers exposed to clients via the `GLOBAL_NAMESERVERS` environment variable. Provide a space-separated list of IP addresses (IPv4 or IPv6). If omitted, the container falls back to the defaults defined in `scripts/defaults.sh`.
+
+The entrypoint converts the list into a YAML flow-style sequence and injects it into the Headscale config, e.g. `global: [ "1.1.1.1", "8.8.8.8" ]` so there are no YAML indentation issues regardless of the number of entries.
+
+Example (set in Fly config or your environment):
+
+```toml
+[env]
+GLOBAL_NAMESERVERS = "94.140.14.15 94.140.15.16 2a10:50c0::bad1:ff 2a10:50c0::bad2:ff"
+```
+
+The script performs permissive validation (allows IPv4/IPv6 characters). If you need stricter validation or alternative input formats (commas, JSON), say so and I'll update the parser.
 
 ## Deployment and user creation
 
@@ -61,8 +78,8 @@ Note that applying this will cause your application to restart, but afterwards n
 [alpine-linux-repo]: https://gitlab.alpinelinux.org/alpine
 [caddy-wob]: https://caddyserver.com/
 [caddy-repo]: https://github.com/caddyserver/caddy
-[headscale-admin-wob]: https://github.com/GoodiesHQ/headscale-admin
-[headscale-admin-repo]: https://github.com/GoodiesHQ/headscale-admin
+[headscale-admin-wob]: https://github.com/privacyint/headscale-admin
+[headscale-admin-repo]: https://github.com/privacyint/headscale-admin
 [headscale-wob]: https://headscale.net/
 [headscale-repo]: https://github.com/juanfont/headscale
 [litestream-wob]: https://litestream.io/

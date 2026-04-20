@@ -14,9 +14,9 @@ declare helper_scripts=(
 )
 
 # Global flags
-abort_config=false
 litestream_enabled=true
 https_enabled=true
+caddy_config_file=""
 
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
@@ -177,6 +177,49 @@ check_ip_address_settings() {
 	fi
 }
 
+
+#######################################
+# Build YAML flow list for GLOBAL_NAMESERVERS
+# Produces GLOBAL_NAMESERVERS_YAML like: [ "1.1.1.1", "8.8.8.8" ]
+#######################################
+build_global_nameservers_yaml() {
+	local -a ns_array=()
+	local -a items=()
+	local ip
+
+	if [[ -n "${GLOBAL_NAMESERVERS:-}" ]]; then
+		read -r -a ns_array <<< "${GLOBAL_NAMESERVERS}"
+	else
+		# Use defaults from defaults.sh if available
+		ns_array=("${headscale_global_nameservers_default[@]:-}")
+	fi
+
+	if [[ ${#ns_array[@]} -eq 0 ]]; then
+		export GLOBAL_NAMESERVERS_YAML='[]'
+		return
+	fi
+
+	for ip in "${ns_array[@]}"; do
+		# permissive validation: allow hex digits, dots and colons (IPv4/IPv6)
+		if [[ ! ${ip} =~ ^[0-9A-Fa-f:\.]+$ ]]; then
+			log_warn "Skipping invalid GLOBAL_NAMESERVERS entry: ${ip}"
+			continue
+		fi
+		items+=("\"${ip}\"")
+	done
+
+	if [[ ${#items[@]} -eq 0 ]]; then
+		export GLOBAL_NAMESERVERS_YAML='[]'
+		return
+	fi
+
+	# join items with ', '
+	local joined
+	printf -v joined '%s, ' "${items[@]}"
+	joined=${joined%, }
+	export GLOBAL_NAMESERVERS_YAML="[ ${joined} ]"
+}
+
 #######################################
 # Perform all Headscale environment variable checks
 #######################################
@@ -193,42 +236,6 @@ check_headscale_environment_vars() {
 	require_env_var "PUBLIC_SERVER_URL"
 	require_env_var "HEADSCALE_DNS_BASE_DOMAIN"
 	check_env_var_or_set_default "EPHEMERAL_NODE_INACTIVITY_TIMEOUT" "${headscale_ephemeral_node_inactivity_timeout_default}" "^[0-9]+[smhd]([0-9]+[smhd])*$" "Invalid 'EPHEMERAL_NODE_INACTIVITY_TIMEOUT'. Must be a valid duration (e.g., '30m', '1h', '90s')."
-}
-
-#######################################
-# Create our Headscale configuration file
-#######################################
-create_headscale_config() {
-	# Ensure all template variables are exported for envsubst
-    local template_vars=(
-        "ACME_EAB_BLOCK"
-        "CLOUDFLARE_ACME_BLOCK"
-        "SECURITY_HEADERS_BLOCK"
-        "PUBLIC_SERVER_URL"
-        "PUBLIC_LISTEN_PORT"
-        "HEADSCALE_DNS_BASE_DOMAIN"
-        "HEADSCALE_OVERRIDE_LOCAL_DNS"
-        "MAGIC_DNS"
-        "IP_PREFIXES"
-        "IP_ALLOCATION"
-        "HEADSCALE_EXTRA_RECORDS_PATH"
-    )
-	for var in "${template_vars[@]}"; do
-		export "${var}=${!var}"
-	done
-
-	create_config_from_template "${headscale_config}" "Headscale configuration file"
-}
-
-#######################################
-# Create our Caddyfile
-#######################################
-create_caddyfile() {
-	if ${https_enabled}; then
-		create_config_from_template "${caddyfile_https}" "Caddy HTTPS configuration file"
-	else
-		create_config_from_template "${caddyfile_cleartext}" "Caddy HTTP configuration file"
-	fi
 }
 
 #######################################
@@ -353,7 +360,10 @@ check_caddy_environment_variables() {
 
 	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
+		caddy_config_file="${caddyfile_cleartext}"
 		return
+	else
+		caddy_config_file="${caddyfile_https}"
 	fi
 
 	require_env_var "ACME_ISSUANCE_EMAIL"
@@ -392,8 +402,8 @@ reuse_or_create_noise_private_key() {
 	fi
 
 	if env_var_is_defined "HEADSCALE_NOISE_PRIVATE_KEY"; then
-	    printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
-        chmod 600 "${key_path}"
+		printf '%s' "${HEADSCALE_NOISE_PRIVATE_KEY}" > "${key_path}"
+		chmod 600 "${key_path}"
 	else
 		log_info "Generating new Noise private key - existing clients will need to re-authenticate"
 	fi
@@ -406,6 +416,8 @@ check_config_files() {
 	check_headscale_environment_vars
 
 	check_caddy_environment_variables
+
+	build_global_nameservers_yaml
 
 	# Ensure all template variables are exported for envsubst
 	local template_vars=(
@@ -420,14 +432,15 @@ check_config_files() {
 		"IP_ALLOCATION"
 		"HEADSCALE_EXTRA_RECORDS_PATH"
 		"EPHEMERAL_NODE_INACTIVITY_TIMEOUT"
+		"GLOBAL_NAMESERVERS_YAML"
 	)
 	for var in "${template_vars[@]}"; do
 		export "${var}=${!var}"
 	done
 
-	create_headscale_config
+	create_config_from_template "${headscale_config}" "Headscale configuration file"
 
-	create_caddyfile
+	create_config_from_template "${caddy_config_file}" "Caddy configuration file"
 
 	reuse_or_create_noise_private_key
 }
@@ -496,17 +509,10 @@ display_configuration_summary() {
 start_caddy_service() {
 	log_info "Starting Caddy using our environment variables."
 
-	if ${https_enabled}; then
-		caddy start --config "${caddyfile_https}" || {
-			log_error "Failed to start Caddy with HTTPS config"
-			return
-		}
-	else
-		caddy start --config "${caddyfile_cleartext}" || {
-			log_error "Failed to start Caddy with cleartext config"
-			return
-		}
-	fi
+	caddy start --config "${caddy_config_file}" || {
+		log_error "Failed to start Caddy (config: ${caddy_config_file}, HTTPS: ${https_enabled})"
+		return
+	}
 
 	# Verify Caddy is actually running
 	sleep 2
@@ -540,11 +546,6 @@ run() {
 	check_needed_directories
 
 	check_config_files
-
-	if ${abort_config} ; then
-		log_error "Configuration validation failed. Exiting."
-		exit
-	fi
 
 	# Here we... here we... here we go!!!
 	display_configuration_summary
