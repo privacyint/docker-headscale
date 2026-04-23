@@ -14,7 +14,25 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 	handle /admin/* {
 		root * /admin-gui
 		encode gzip zstd
-		try_files {path}.html {path} {path}/index.html /admin/200.html
+
+		@admin_asset path_regexp admin_asset ^/admin/.*\.[^/]+$
+		handle @admin_asset {
+			file_server${SECURITY_HEADERS_BLOCK}
+		}
+
+		@admin_existing file {
+			try_files {path}.html {path} {path}/index.html
+		}
+		handle @admin_existing {
+			rewrite * {file_match.relative}
+			file_server${SECURITY_HEADERS_BLOCK}
+		}
+
+		@admin_html header Accept *text/html*
+		handle @admin_html {
+			rewrite * /admin/200.html
+			file_server${SECURITY_HEADERS_BLOCK}
+		}
 		file_server${SECURITY_HEADERS_BLOCK}
 	}
 
