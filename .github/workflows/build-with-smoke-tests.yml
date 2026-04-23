@@ -45,7 +45,7 @@ jobs:
       - name: Run container in detached mode
         run: |
           docker run -d --name headscale-container \
-            -p 8008:8008 \
+            -p 127.0.0.1:8008:8008 \
             --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
             --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
             --env HEADSCALE_DNS_BASE_DOMAIN=${{ env.HEADSCALE_DNS_BASE_DOMAIN }} \
