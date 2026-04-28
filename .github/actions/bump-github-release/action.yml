@@ -1,0 +1,150 @@
+name: Bump GitHub Release Dependency
+description: Update pinned Dockerfile and README versions from the latest GitHub release.
+
+inputs:
+  version_arg:
+    description: Dockerfile ARG containing the pinned version.
+    required: true
+  checksum_arg:
+    description: Dockerfile ARG containing the pinned checksum.
+    required: false
+    default: ''
+  upstream_repo:
+    description: GitHub owner/repo to query.
+    required: true
+  asset_name_template:
+    description: Release asset name template using {version} placeholder.
+    required: false
+    default: ''
+  upstream_tag_prefix:
+    description: Prefix to strip from the upstream tag name.
+    required: false
+    default: v
+  readme_tool_label:
+    description: README table tool label.
+    required: true
+  readme_tool_ref:
+    description: README link reference for the tool.
+    required: true
+  readme_repo_label:
+    description: README table repo label.
+    required: true
+  readme_repo_ref:
+    description: README link reference for the repo.
+    required: true
+  readme_display_prefix:
+    description: Prefix to show before the version in README and PR metadata.
+    required: false
+    default: ''
+
+outputs:
+  changed:
+    description: Whether any version bump was applied.
+    value: ${{ steps.bump.outputs.changed }}
+  current_version:
+    description: Version currently pinned before update.
+    value: ${{ steps.current.outputs.version }}
+  latest_version:
+    description: Latest version found upstream.
+    value: ${{ steps.upstream.outputs.version }}
+  release_url:
+    description: Upstream release URL.
+    value: ${{ steps.upstream.outputs.release_url }}
+  asset_name:
+    description: Release asset used to derive the checksum.
+    value: ${{ steps.upstream.outputs.asset_name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read current pinned version
+      id: current
+      shell: bash
+      env:
+        VERSION_ARG: ${{ inputs.version_arg }}
+        CHECKSUM_ARG: ${{ inputs.checksum_arg }}
+      run: |
+        set -euo pipefail
+
+        version=$(grep -oP "ARG ${VERSION_ARG}=\"\\K[^\"]+" Dockerfile)
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+        if [[ -n "$CHECKSUM_ARG" ]]; then
+          sha256=$(grep -oP "ARG ${CHECKSUM_ARG}=\"\\K[^\"]+" Dockerfile)
+          echo "sha256=${sha256}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Read latest upstream release
+      id: upstream
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        UPSTREAM_REPO: ${{ inputs.upstream_repo }}
+        ASSET_NAME_TEMPLATE: ${{ inputs.asset_name_template }}
+        UPSTREAM_TAG_PREFIX: ${{ inputs.upstream_tag_prefix }}
+      run: |
+        set -euo pipefail
+
+        release_json=$(curl -fsSL \
+          -H 'Accept: application/vnd.github+json' \
+          -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+          "https://api.github.com/repos/${UPSTREAM_REPO}/releases/latest")
+
+        version=$(jq -r --arg prefix "$UPSTREAM_TAG_PREFIX" '.tag_name | ltrimstr($prefix)' <<< "$release_json")
+        release_url=$(jq -r '.html_url' <<< "$release_json")
+
+        if [[ -z "$version" || "$version" == 'null' ]]; then
+          echo 'Failed to determine latest upstream version' >&2
+          exit 1
+        fi
+
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        echo "release_url=${release_url}" >> "$GITHUB_OUTPUT"
+
+        if [[ -n "$ASSET_NAME_TEMPLATE" ]]; then
+          asset_name=${ASSET_NAME_TEMPLATE//\{version\}/$version}
+          sha256=$(jq -r --arg asset_name "$asset_name" '.assets[] | select(.name == $asset_name) | .digest | ltrimstr("sha256:")' <<< "$release_json")
+
+          if [[ -z "$sha256" || "$sha256" == 'null' ]]; then
+            echo "Failed to determine SHA256 for ${asset_name}" >&2
+            exit 1
+          fi
+
+          echo "asset_name=${asset_name}" >> "$GITHUB_OUTPUT"
+          echo "sha256=${sha256}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Update pinned version and docs
+      id: bump
+      shell: bash
+      env:
+        VERSION_ARG: ${{ inputs.version_arg }}
+        CHECKSUM_ARG: ${{ inputs.checksum_arg }}
+        README_TOOL_LABEL: ${{ inputs.readme_tool_label }}
+        README_TOOL_REF: ${{ inputs.readme_tool_ref }}
+        README_REPO_LABEL: ${{ inputs.readme_repo_label }}
+        README_REPO_REF: ${{ inputs.readme_repo_ref }}
+        README_DISPLAY_PREFIX: ${{ inputs.readme_display_prefix }}
+        CURRENT_VERSION: ${{ steps.current.outputs.version }}
+        CURRENT_SHA256: ${{ steps.current.outputs.sha256 }}
+        LATEST_VERSION: ${{ steps.upstream.outputs.version }}
+        LATEST_SHA256: ${{ steps.upstream.outputs.sha256 }}
+        RELEASE_URL: ${{ steps.upstream.outputs.release_url }}
+      run: |
+        set -euo pipefail
+
+        if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+          echo 'Pinned dependency version is already current.'
+          echo 'changed=false' >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        perl -0pi -e 's/ARG \Q$ENV{VERSION_ARG}\E="\Q$ENV{CURRENT_VERSION}\E"/ARG $ENV{VERSION_ARG}="$ENV{LATEST_VERSION}"/' Dockerfile
+
+        if [[ -n "$CHECKSUM_ARG" ]]; then
+          perl -0pi -e 's/ARG \Q$ENV{CHECKSUM_ARG}\E="\Q$ENV{CURRENT_SHA256}\E"/ARG $ENV{CHECKSUM_ARG}="$ENV{LATEST_SHA256}"/' Dockerfile
+        fi
+
+        perl -0pi -e 'my $tool_label = quotemeta($ENV{README_TOOL_LABEL}); my $tool_ref = quotemeta($ENV{README_TOOL_REF}); my $repo_label = quotemeta($ENV{README_REPO_LABEL}); my $repo_ref = quotemeta($ENV{README_REPO_REF}); my $display_version = $ENV{README_DISPLAY_PREFIX} . $ENV{LATEST_VERSION}; s/^\| \[`$tool_label`\]\[$tool_ref\] \| \[$repo_label\]\[$repo_ref\] \| \[`[^`]+`\]\([^)]+\) \|$/| [`$ENV{README_TOOL_LABEL}`][$ENV{README_TOOL_REF}] | [$ENV{README_REPO_LABEL}][$ENV{README_REPO_REF}] | [`$display_version`]($ENV{RELEASE_URL}) |/mg;' README.md
+
+        echo 'changed=true' >> "$GITHUB_OUTPUT"
