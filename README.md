@@ -68,19 +68,6 @@ Then set `HEADSCALE_NOISE_PRIVATE_KEY` to the value obtained above.
 
 Note that applying this will cause your application to restart, but afterwards no other change will be necessary.
 
-## Repository secrets
-
-The automated upstream-version-bump workflow (`bump-upstream-releases.yml`) opens pull requests via a fine-grained PAT so that CI is triggered on those PRs. GitHub Actions ignores events created by `GITHUB_TOKEN`, so a dedicated token is needed.
-
-Create a [fine-grained PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) scoped to this repository with the following permissions:
-
-| Permission | Access |
-| --- | --- |
-| Contents | Read and write |
-| Pull requests | Read and write |
-
-Store it as a repository secret named **`BUMP_PR_TOKEN`** (_Settings → Secrets and variables → Actions_).
-
 ## Known to run on
 
 * Azure Container Apps
