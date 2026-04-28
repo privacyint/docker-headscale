@@ -20,6 +20,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - dependency_id: caddy
+            dependency_name: Caddy
+            upstream_repo: caddyserver/caddy
+            version_arg: CADDY_VERSION
+            checksum_arg: ''
+            asset_name_template: ''
+            readme_tool_label: Caddy
+            readme_tool_ref: caddy-wob
+            readme_repo_label: Caddy Repo
+            readme_repo_ref: caddy-repo
+            readme_display_prefix: v
+            upstream_tag_prefix: v
           - dependency_id: headscale
             dependency_name: Headscale
             upstream_repo: juanfont/headscale
