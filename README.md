@@ -33,9 +33,7 @@ The container entrypoint script will guide you on any errors.
 
 ## Configuring upstream/global nameservers
 
-You can now control the nameservers exposed to clients via the `GLOBAL_NAMESERVERS` environment variable. Provide a space-separated list of IP addresses (IPv4 or IPv6). If omitted, the container falls back to the defaults defined in `scripts/defaults.sh`.
-
-The entrypoint converts the list into a YAML flow-style sequence and injects it into the Headscale config, e.g. `global: [ "1.1.1.1", "8.8.8.8" ]` so there are no YAML indentation issues regardless of the number of entries.
+You can control the nameservers exposed to clients via the `GLOBAL_NAMESERVERS` environment variable. Provide a space-separated list of IP addresses (IPv4 or IPv6). If omitted, the container falls back to the defaults defined in `scripts/defaults.sh`.
 
 Example (set in Fly config or your environment):
 
@@ -43,8 +41,6 @@ Example (set in Fly config or your environment):
 [env]
 GLOBAL_NAMESERVERS = "94.140.14.15 94.140.15.16 2a10:50c0::bad1:ff 2a10:50c0::bad2:ff"
 ```
-
-The script performs permissive validation (allows IPv4/IPv6 characters). If you need stricter validation or alternative input formats (commas, JSON), say so and I'll update the parser.
 
 ## Deployment and user creation
 
