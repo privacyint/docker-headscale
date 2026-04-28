@@ -103,7 +103,20 @@ runs:
 
         if [[ -n "$ASSET_NAME_TEMPLATE" ]]; then
           asset_name=${ASSET_NAME_TEMPLATE//\{version\}/$version}
-          sha256=$(jq -r --arg asset_name "$asset_name" '.assets[] | select(.name == $asset_name) | .digest | ltrimstr("sha256:")' <<< "$release_json")
+          asset_api_url=$(jq -r --arg asset_name "$asset_name" '.assets[] | select(.name == $asset_name) | .url' <<< "$release_json")
+          sha256=$(jq -r --arg asset_name "$asset_name" '.assets[] | select(.name == $asset_name) | .digest // "" | ltrimstr("sha256:")' <<< "$release_json")
+
+          if [[ -z "$asset_api_url" || "$asset_api_url" == 'null' ]]; then
+            echo "Failed to find release asset ${asset_name}" >&2
+            exit 1
+          fi
+
+          if [[ -z "$sha256" || "$sha256" == 'null' ]]; then
+            sha256=$(curl -fsSL \
+              -H 'Accept: application/octet-stream' \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              "${asset_api_url}" | sha256sum | awk '{print $1}')
+          fi
 
           if [[ -z "$sha256" || "$sha256" == 'null' ]]; then
             echo "Failed to determine SHA256 for ${asset_name}" >&2
