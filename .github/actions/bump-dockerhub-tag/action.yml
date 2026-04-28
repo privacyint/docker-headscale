@@ -78,21 +78,10 @@ runs:
       run: |
         set -euo pipefail
 
-        url="https://hub.docker.com/v2/namespaces/${DOCKERHUB_NAMESPACE}/repositories/${DOCKERHUB_REPOSITORY}/tags?page_size=100"
-        all_tags=""
+        tags_json=$(curl -fsSL "https://hub.docker.com/v2/namespaces/${DOCKERHUB_NAMESPACE}/repositories/${DOCKERHUB_REPOSITORY}/tags?page_size=100")
 
-        while [[ -n "$url" && "$url" != "null" ]]; do
-          tags_json=$(curl -fsSL "$url")
+        version=$(jq -r '.results[].name' <<< "$tags_json" | grep -E "$TAG_REGEX" | sort -V | tail -n 1)
 
-          page_tags=$(jq -r '.results[].name' <<< "$tags_json" | grep -E "$TAG_REGEX" || true)
-          if [[ -n "$page_tags" ]]; then
-            all_tags+="$page_tags"$'\n'
-          fi
-
-          url=$(jq -r '.next // empty' <<< "$tags_json")
-        done
-
-        version=$(printf '%s' "$all_tags" | sed '/^$/d' | sort -V | tail -n 1)
         if [[ -z "$version" ]]; then
           echo "Failed to determine latest Docker Hub tag for ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_REPOSITORY}" >&2
           exit 1
