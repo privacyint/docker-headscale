@@ -129,4 +129,13 @@ runs:
 
         perl -0pi -e 'my $tool_label = quotemeta($ENV{README_TOOL_LABEL}); my $tool_ref = quotemeta($ENV{README_TOOL_REF}); my $repo_label = quotemeta($ENV{README_REPO_LABEL}); my $repo_ref = quotemeta($ENV{README_REPO_REF}); my $display_version = $ENV{README_DISPLAY_PREFIX} . $ENV{LATEST_VERSION}; s/^\| \[`$tool_label`\]\[$tool_ref\] \| \[$repo_label\]\[$repo_ref\] \| \[`[^`]+`\]\([^)]+\) \|$/| [`$ENV{README_TOOL_LABEL}`][$ENV{README_TOOL_REF}] | [$ENV{README_REPO_LABEL}][$ENV{README_REPO_REF}] | [`$display_version`]($ENV{RELEASE_URL}) |/mg;' README.md
 
+        if git diff --quiet -- Dockerfile; then
+          echo "Failed to update Dockerfile: expected to replace ARG ${VERSION_ARG}=\"${CURRENT_VERSION}\" with ${LATEST_VERSION}." >&2
+          exit 1
+        fi
+
+        if git diff --quiet -- README.md; then
+          echo "Failed to update README.md: expected to update the ${README_TOOL_LABEL} table row to version ${README_DISPLAY_PREFIX}${LATEST_VERSION}. Check the README formatting and configured labels/references." >&2
+          exit 1
+        fi
         echo 'changed=true' >> "$GITHUB_OUTPUT"

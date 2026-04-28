@@ -74,7 +74,7 @@ runs:
         echo "version=${version}" >> "$GITHUB_OUTPUT"
 
         if [[ -n "$CHECKSUM_ARG" ]]; then
-          sha256=$(grep -oP "ARG ${CHECKSUM_ARG}=\"\\K[^\"]+" Dockerfile)
+          sha256=$(grep -oP "ARG ${CHECKSUM_ARG}=\"\\K[^\"]+" Dockerfile || true)
           if [[ -z "$sha256" ]]; then
             echo "ERROR: ARG ${CHECKSUM_ARG} not found in Dockerfile" >&2
             exit 1
@@ -160,12 +160,12 @@ runs:
           exit 0
         fi
 
-        perl -0pi -e 's/ARG \Q$ENV{VERSION_ARG}\E="\Q$ENV{CURRENT_VERSION}\E"/ARG $ENV{VERSION_ARG}="$ENV{LATEST_VERSION}"/' Dockerfile
+        perl -0pi -e 'my $count = s/ARG \Q$ENV{VERSION_ARG}\E="\Q$ENV{CURRENT_VERSION}\E"/ARG $ENV{VERSION_ARG}="$ENV{LATEST_VERSION}"/; die "ERROR: failed to update ARG $ENV{VERSION_ARG} in Dockerfile\n" unless $count;' Dockerfile
 
         if [[ -n "$CHECKSUM_ARG" ]]; then
-          perl -0pi -e 's/ARG \Q$ENV{CHECKSUM_ARG}\E="\Q$ENV{CURRENT_SHA256}\E"/ARG $ENV{CHECKSUM_ARG}="$ENV{LATEST_SHA256}"/' Dockerfile
+          perl -0pi -e 'my $count = s/ARG \Q$ENV{CHECKSUM_ARG}\E="\Q$ENV{CURRENT_SHA256}\E"/ARG $ENV{CHECKSUM_ARG}="$ENV{LATEST_SHA256}"/; die "ERROR: failed to update ARG $ENV{CHECKSUM_ARG} in Dockerfile\n" unless $count;' Dockerfile
         fi
 
-        perl -0pi -e 'my $tool_label = quotemeta($ENV{README_TOOL_LABEL}); my $tool_ref = quotemeta($ENV{README_TOOL_REF}); my $repo_label = quotemeta($ENV{README_REPO_LABEL}); my $repo_ref = quotemeta($ENV{README_REPO_REF}); my $display_version = $ENV{README_DISPLAY_PREFIX} . $ENV{LATEST_VERSION}; s/^\| \[`$tool_label`\]\[$tool_ref\] \| \[$repo_label\]\[$repo_ref\] \| \[`[^`]+`\]\([^)]+\) \|$/| [`$ENV{README_TOOL_LABEL}`][$ENV{README_TOOL_REF}] | [$ENV{README_REPO_LABEL}][$ENV{README_REPO_REF}] | [`$display_version`]($ENV{RELEASE_URL}) |/mg;' README.md
+        perl -0pi -e 'my $tool_label = quotemeta($ENV{README_TOOL_LABEL}); my $tool_ref = quotemeta($ENV{README_TOOL_REF}); my $repo_label = quotemeta($ENV{README_REPO_LABEL}); my $repo_ref = quotemeta($ENV{README_REPO_REF}); my $display_version = $ENV{README_DISPLAY_PREFIX} . $ENV{LATEST_VERSION}; my $count = s/^\| \[`$tool_label`\]\[$tool_ref\] \| \[$repo_label\]\[$repo_ref\] \| \[`[^`]+`\]\([^)]+\) \|$/| [`$ENV{README_TOOL_LABEL}`][$ENV{README_TOOL_REF}] | [$ENV{README_REPO_LABEL}][$ENV{README_REPO_REF}] | [`$display_version`]($ENV{RELEASE_URL}) |/mg; die "ERROR: failed to update release row in README.md\n" unless $count;' README.md
 
         echo 'changed=true' >> "$GITHUB_OUTPUT"
