@@ -67,10 +67,18 @@ runs:
         set -euo pipefail
 
         version=$(grep -oP "ARG ${VERSION_ARG}=\"\\K[^\"]+" Dockerfile)
+        if [[ -z "$version" ]]; then
+          echo "ERROR: ARG ${VERSION_ARG} not found in Dockerfile" >&2
+          exit 1
+        fi
         echo "version=${version}" >> "$GITHUB_OUTPUT"
 
         if [[ -n "$CHECKSUM_ARG" ]]; then
           sha256=$(grep -oP "ARG ${CHECKSUM_ARG}=\"\\K[^\"]+" Dockerfile)
+          if [[ -z "$sha256" ]]; then
+            echo "ERROR: ARG ${CHECKSUM_ARG} not found in Dockerfile" >&2
+            exit 1
+          fi
           echo "sha256=${sha256}" >> "$GITHUB_OUTPUT"
         fi
 
