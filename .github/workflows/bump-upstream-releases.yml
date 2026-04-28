@@ -108,7 +108,7 @@ jobs:
 
             The existing CI workflows will validate the resulting image and config compatibility.
           labels: |
-            dependencies
+            upstream package version bump
 
   bump-docker-tag-upstreams:
     runs-on: ubuntu-latest
@@ -167,4 +167,4 @@ jobs:
 
             The existing CI workflows will validate the resulting image and config compatibility.
           labels: |
-            dependencies
+            upstream package version bump
