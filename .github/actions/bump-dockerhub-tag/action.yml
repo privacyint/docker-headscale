@@ -59,7 +59,12 @@ runs:
       run: |
         set -euo pipefail
 
-        version=$(grep -oP "ARG ${VERSION_ARG}=\"\\K[^\"]+" Dockerfile)
+        version=$(grep -oP "ARG ${VERSION_ARG}=\"\\K[^\"]+" Dockerfile || true)
+
+        if [[ -z "$version" ]]; then
+          echo "Failed to extract the current pinned version from Dockerfile: expected an ARG named ${VERSION_ARG} with a quoted value." >&2
+          exit 1
+        fi
         echo "version=${version}" >> "$GITHUB_OUTPUT"
 
     - name: Read latest Docker Hub tag
