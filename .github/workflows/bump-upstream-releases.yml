@@ -91,7 +91,11 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ github.token }}
+          # A fine-grained PAT (stored as BUMP_PR_TOKEN) is required here instead of
+          # github.token so that the created PR triggers CI workflow runs.
+          # github.token-created events are deliberately ignored by GitHub Actions.
+          # The PAT needs 'contents: write' and 'pull-requests: write' on this repository.
+          token: ${{ secrets.BUMP_PR_TOKEN }}
           commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
           branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
           delete-branch: true
@@ -151,7 +155,11 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ github.token }}
+          # A fine-grained PAT (stored as BUMP_PR_TOKEN) is required here instead of
+          # github.token so that the created PR triggers CI workflow runs.
+          # github.token-created events are deliberately ignored by GitHub Actions.
+          # The PAT needs 'contents: write' and 'pull-requests: write' on this repository.
+          token: ${{ secrets.BUMP_PR_TOKEN }}
           commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
           branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
           delete-branch: true
