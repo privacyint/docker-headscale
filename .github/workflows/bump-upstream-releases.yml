@@ -110,3 +110,61 @@ jobs:
           labels: |
             dependencies
 
+  bump-docker-tag-upstreams:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dependency_id: alpine-linux
+            dependency_name: Alpine Linux
+            dockerhub_namespace: library
+            dockerhub_repository: alpine
+            version_arg: MAIN_IMAGE_ALPINE_VERSION
+            tag_regex: '^[0-9]+\.[0-9]+\.[0-9]+$'
+            readme_tool_label: Alpine Linux
+            readme_tool_ref: alpine-linux-wob
+            readme_repo_label: Alpine Linux Repo
+            readme_repo_ref: alpine-linux-repo
+            readme_display_prefix: v
+            release_url_template: https://git.alpinelinux.org/aports/log/?h=v{version}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Bump dependency files
+        id: bump
+        uses: ./.github/actions/bump-dockerhub-tag
+        with:
+          dockerhub_namespace: ${{ matrix.dockerhub_namespace }}
+          dockerhub_repository: ${{ matrix.dockerhub_repository }}
+          version_arg: ${{ matrix.version_arg }}
+          tag_regex: ${{ matrix.tag_regex }}
+          readme_tool_label: ${{ matrix.readme_tool_label }}
+          readme_tool_ref: ${{ matrix.readme_tool_ref }}
+          readme_repo_label: ${{ matrix.readme_repo_label }}
+          readme_repo_ref: ${{ matrix.readme_repo_ref }}
+          readme_display_prefix: ${{ matrix.readme_display_prefix }}
+          release_url_template: ${{ matrix.release_url_template }}
+
+      - name: Create pull request
+        if: steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
+          branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
+          delete-branch: true
+          title: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
+          body: |
+            ## Summary
+
+            This automated PR updates the pinned `${{ matrix.dependency_name }}` release.
+
+            - Current version: `${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.current_version }}`
+            - New version: `${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}`
+            - Upstream release: ${{ steps.bump.outputs.release_url }}
+
+            The existing CI workflows will validate the resulting image and config compatibility.
+          labels: |
+            dependencies
