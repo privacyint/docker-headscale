@@ -54,8 +54,8 @@ jobs:
             readme_tool_ref: headscale-admin-wob
             readme_repo_label: Headscale-Admin Repo
             readme_repo_ref: headscale-admin-repo
-            readme_display_prefix: v
-            upstream_tag_prefix: v
+            readme_display_prefix: ''
+            upstream_tag_prefix: ''
           - dependency_id: litestream
             dependency_name: Litestream
             upstream_repo: benbjohnson/litestream
