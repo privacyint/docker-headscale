@@ -113,7 +113,8 @@ check_litestream_replica_url() {
 			require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
 			;;
 		ABS://*)
-			require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
+			# Azure Blob can authenticate with an account key, managed identity,
+			# or other Azure credential chain methods supported by Litestream.
 			;;
 		*)
 			log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
