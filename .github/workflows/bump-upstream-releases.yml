@@ -95,6 +95,7 @@ jobs:
           # github.token-created events are deliberately ignored by GitHub Actions.
           # The PAT needs 'contents: write' and 'pull-requests: write' on this repository.
           token: ${{ secrets.BUMP_PR_TOKEN }}
+          base: develop
           commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
           branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
           delete-branch: true
@@ -159,6 +160,7 @@ jobs:
           # github.token-created events are deliberately ignored by GitHub Actions.
           # The PAT needs 'contents: write' and 'pull-requests: write' on this repository.
           token: ${{ secrets.BUMP_PR_TOKEN }}
+          base: develop
           commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
           branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
           delete-branch: true
