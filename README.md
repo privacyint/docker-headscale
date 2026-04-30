@@ -66,7 +66,7 @@ Note that applying this will cause your application to restart, but afterwards n
 
 ## Known to run on
 
-* Azure Container Apps
+* [Azure Container Apps][azure-container-apps-instructions]
 * [Fly.io][fly-io-instructions]
 * ??? Let us know!
 
@@ -84,4 +84,5 @@ Note that applying this will cause your application to restart, but afterwards n
 [dns-01-challenge]: https://letsencrypt.org/docs/challenge-types/#dns-01-challenge
 [http-01-challenge]: https://letsencrypt.org/docs/challenge-types/#http-01-challenge
 [headscale-usage]: https://headscale.net/stable/ref/remote-cli/#create-an-api-key
+[azure-container-apps-instructions]: docs/backends/azure-container-apps.md
 [fly-io-instructions]: docs/backends/fly-io.md
