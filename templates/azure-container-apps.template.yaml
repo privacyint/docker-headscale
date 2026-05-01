@@ -12,12 +12,13 @@ properties:
       external: true
       targetPort: 8008
       transport: auto
-    # For shared-key Azure Blob replication, add a secret entry here and reference it
-    # via a `secretRef` in the `LITESTREAM_AZURE_ACCOUNT_KEY` env var below.
+    # For shared-key Azure Blob replication, add a secret entry here.
+    # Then add a `LITESTREAM_AZURE_ACCOUNT_KEY` env var under the container's
+    # `env:` block that references this secret via `secretRef`.
     # Example secret entry:
     #   - name: litestream-azure-account-key
     #     value: <your-storage-account-key>
-    # Then add this env var under the container's `env:` block:
+    # Example `env:` entry:
     #   - name: LITESTREAM_AZURE_ACCOUNT_KEY
     #     secretRef: litestream-azure-account-key
     secrets: []
