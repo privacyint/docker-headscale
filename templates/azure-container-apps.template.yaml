@@ -12,8 +12,9 @@ properties:
       external: true
       targetPort: 8008
       transport: auto
-    # For shared-key Azure Blob replication, add a secret here and switch the
-    # matching env var below from value: to secretRef:.
+    # For shared-key Azure Blob replication, add a secret here and add a
+    # corresponding LITESTREAM_AZURE_ACCOUNT_KEY env var below using secretRef:
+    # instead of an inline value:.
     secrets: []
   template:
     containers:
