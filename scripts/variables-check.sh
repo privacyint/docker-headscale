@@ -39,7 +39,7 @@ env_var_is_populated() {
 #   `true` if populated, otherwise `false`
 #######################################
 require_env_var() {
-	env_var_is_defined "${1}" || log_error "Environment variable '${1}' is required"
+	env_var_is_populated "${1}" || log_error "Environment variable '${1}' is required"
 }
 
 ########################################
