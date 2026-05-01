@@ -117,9 +117,9 @@ check_litestream_replica_url() {
 			#   1. Account key
 			#   2. Service principal (client ID + tenant ID + client secret)
 			#   3. Managed identity (IDENTITY_ENDPOINT set by the Azure runtime)
-			env_var_is_defined "LITESTREAM_AZURE_ACCOUNT_KEY" \
-				|| { env_var_is_defined "AZURE_CLIENT_ID" && env_var_is_defined "AZURE_TENANT_ID" && env_var_is_defined "AZURE_CLIENT_SECRET"; } \
-				|| env_var_is_defined "IDENTITY_ENDPOINT" \
+			env_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY" \
+				|| { env_var_is_populated "AZURE_CLIENT_ID" && env_var_is_populated "AZURE_TENANT_ID" && env_var_is_populated "AZURE_CLIENT_SECRET"; } \
+				|| env_var_is_populated "IDENTITY_ENDPOINT" \
 				|| log_error "Azure Blob Storage ('abs://') requires at least one auth mechanism: 'LITESTREAM_AZURE_ACCOUNT_KEY', service-principal vars ('AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET'), or managed identity ('IDENTITY_ENDPOINT')."
 			;;
 		*)
