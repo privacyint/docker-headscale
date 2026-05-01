@@ -366,7 +366,8 @@ Once the app is healthy and the custom domain is in place, open a shell inside t
 ```sh
 az containerapp exec \
   --name $CONTAINER_APP_NAME \
-  --resource-group $RESOURCE_GROUP
+  --resource-group $RESOURCE_GROUP \
+  --command /bin/sh
 ```
 
 From there, create an API key for the admin UI:
