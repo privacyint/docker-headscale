@@ -28,6 +28,7 @@ This document assumes the following:
 
 - You have an Azure subscription
 - You have the Azure CLI installed locally
+- You have `make` and `envsubst` available locally
 - You control the DNS records of a domain
 - You have a Git client installed
 - You are happy to run a single replica of Headscale
@@ -157,7 +158,7 @@ export CONTAINER_IMAGE=$(az containerapp show \
   --query 'properties.template.containers[0].image' \
   --output tsv)
 
-envsubst < templates/azure-container-apps.template.yaml > azure-container-apps.yaml
+make render-azure-container-apps
 ```
 
 The generated file already includes the required `/data` mount, single-replica scale settings, and the repo's required environment variables.
@@ -195,6 +196,8 @@ az containerapp update \
   --resource-group $RESOURCE_GROUP \
   --yaml azure-container-apps.yaml
 ```
+
+This writes `azure-container-apps.yaml` to the project root.
 
 ## Step 5: Add your custom domain and HTTPS
 

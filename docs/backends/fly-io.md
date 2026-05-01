@@ -23,6 +23,7 @@ The assumptions made in this document are the following:
 
 - You have a Fly.io account
 - You have Fly CLI installed
+- You have `make` and `envsubst` available locally
 - You control the DNS records of a domain
 - You have a Git client installed
 
@@ -78,8 +79,10 @@ Create a customised `fly.toml` configuration file in the root of your project fr
 export FLY_APP=$yourAppName
 export PUBLIC_SERVER_URL=$publicServerURL
 export HEADSCALE_DNS_BASE_DOMAIN=$tailnetInternalDomain
-envsubst < templates/fly.template.toml > fly.toml
+make render-fly-config
 ```
+
+This writes `fly.toml` to the project root.
 
 ## Step 6: Deploy Your Application
 

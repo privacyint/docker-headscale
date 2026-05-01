@@ -29,6 +29,11 @@ All development should be done against the `develop` branch, `main` is deemed "s
 
 Populate your environment variables according to `templates/secrets.template.env`
 
+For provider deployment templates, this repo includes `make` targets that render:
+
+* `fly.toml` via `make render-fly-config`
+* `azure-container-apps.yaml` via `make render-azure-container-apps`
+
 The container entrypoint script will guide you on any errors.
 
 ## Configuring upstream/global nameservers
