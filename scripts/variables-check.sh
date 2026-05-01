@@ -20,6 +20,18 @@ env_var_is_defined() {
 }
 
 #######################################
+# Check if an environment variable is populated with a non-empty value.
+# Arguments:
+#   $1 - Variable name
+# Returns:
+#   `true` if populated, otherwise `false`
+#######################################
+env_var_is_populated() {
+	# Reuse variable name validation and unset handling from env_var_is_defined.
+	env_var_is_defined "${1}" && [[ -n "${!1}" ]]
+}
+
+#######################################
 # Ensure an environment variable is populated
 # Arguments:
 #   $1 - Variable name
