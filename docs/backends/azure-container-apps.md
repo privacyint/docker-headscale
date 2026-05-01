@@ -345,7 +345,7 @@ Then print the generated Noise private key:
 cat /data/noise_private.key
 ```
 
-Store that value back in Azure as an environment variable called `HEADSCALE_NOISE_PRIVATE_KEY`. This makes future deployments reproducible and avoids forcing all clients to re-authenticate when the container is replaced.
+Do not store that value back in Azure as a plain environment variable. Instead, store it as an Azure Container Apps secret (or a Key Vault-backed secret) and configure `HEADSCALE_NOISE_PRIVATE_KEY` to reference it with `secretref:headscale-noise-private-key`. This keeps future deployments reproducible and avoids forcing all clients to re-authenticate when the container is replaced, without exposing the private key in app configuration.
 
 Afterwards, the admin interface will be available at `/admin/` on your public URL.
 
