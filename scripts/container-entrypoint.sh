@@ -113,14 +113,22 @@ check_litestream_replica_url() {
 			require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
 			;;
 		ABS://*)
-			# Azure Blob Storage requires at least one auth mechanism:
-			#   1. Account key
-			#   2. Service principal (client ID + tenant ID + client secret)
-			#   3. Managed identity (IDENTITY_ENDPOINT set by the Azure runtime)
-			env_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY" \
-				|| { env_var_is_populated "AZURE_CLIENT_ID" && env_var_is_populated "AZURE_TENANT_ID" && env_var_is_populated "AZURE_CLIENT_SECRET"; } \
-				|| env_var_is_populated "IDENTITY_ENDPOINT" \
-				|| log_error "Azure Blob Storage ('abs://') requires at least one auth mechanism: 'LITESTREAM_AZURE_ACCOUNT_KEY', service-principal vars ('AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET'), or managed identity ('IDENTITY_ENDPOINT')."
+			# Azure Blob Storage supports three auth mechanisms:
+			#   1. Account key      — set LITESTREAM_AZURE_ACCOUNT_KEY
+			#   2. Service principal — set AZURE_CLIENT_ID + AZURE_TENANT_ID + AZURE_CLIENT_SECRET
+			#   3. Managed identity  — no extra variables required; the Azure runtime provides credentials
+			if env_var_is_populated "AZURE_CLIENT_ID" \
+				|| env_var_is_populated "AZURE_TENANT_ID" \
+				|| env_var_is_populated "AZURE_CLIENT_SECRET"; then
+				# Partial service-principal credentials are always a misconfiguration.
+				env_var_is_populated "AZURE_CLIENT_ID" \
+					|| log_error "Service-principal auth for Azure Blob Storage requires 'AZURE_CLIENT_ID'."
+				env_var_is_populated "AZURE_TENANT_ID" \
+					|| log_error "Service-principal auth for Azure Blob Storage requires 'AZURE_TENANT_ID'."
+				env_var_is_populated "AZURE_CLIENT_SECRET" \
+					|| log_error "Service-principal auth for Azure Blob Storage requires 'AZURE_CLIENT_SECRET'."
+			fi
+			# If no explicit credentials are provided, managed identity is assumed.
 			;;
 		*)
 			log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
