@@ -134,7 +134,12 @@ check_litestream_replica_url() {
 			elif env_var_is_populated "IDENTITY_ENDPOINT" || env_var_is_populated "MSI_ENDPOINT"; then
 				: # Managed identity signal detected — Azure runtime will supply credentials
 			else
-				log_error "Azure Blob Storage ('abs://') requires an auth mechanism: set 'LITESTREAM_AZURE_ACCOUNT_KEY' (account key), all of 'AZURE_CLIENT_ID'/'AZURE_TENANT_ID'/'AZURE_CLIENT_SECRET' (service principal), or enable managed identity on the hosting platform (expects 'IDENTITY_ENDPOINT' or 'MSI_ENDPOINT' to be set by the Azure runtime)."
+				log_warn "Azure Blob Storage ('abs://') requires one of:"
+				log_warn "  1. Account key:       set 'LITESTREAM_AZURE_ACCOUNT_KEY'"
+				log_warn "  2. Service principal: set 'AZURE_CLIENT_ID', 'AZURE_TENANT_ID', and 'AZURE_CLIENT_SECRET'"
+				log_warn "  3. Managed identity:  enable managed identity on the hosting platform"
+				log_warn "                        ('IDENTITY_ENDPOINT' or 'MSI_ENDPOINT' must be set by the Azure runtime)"
+				log_error "No Azure authentication mechanism configured for 'abs://' replica URL."
 			fi
 			;;
 		*)
