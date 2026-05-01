@@ -242,7 +242,7 @@ az storage container create \
   --auth-mode login
 ```
 
-You now have two supported authentication choices for Litestream.
+You now have three supported authentication choices for Litestream.
 
 ### Option A: shared key authentication
 
@@ -308,6 +308,40 @@ az containerapp update \
 ```
 
 Role assignment propagation is not immediate. If Litestream logs permission errors straight away, wait a few minutes and try again.
+
+### Option C: service principal authentication
+
+If you do not want to use a storage account key and the workload is not running with a suitable managed identity, you can authenticate Litestream with an Entra service principal instead.
+
+First, create or choose a service principal that has `Storage Blob Data Contributor` on the blob container or storage account.
+
+Then store the service-principal credentials as Container Apps secrets:
+
+```sh
+az containerapp secret set \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --secrets \
+    azure-client-id="$AZURE_CLIENT_ID" \
+    azure-tenant-id="$AZURE_TENANT_ID" \
+    azure-client-secret="$AZURE_CLIENT_SECRET"
+```
+
+Finally, configure the app to use those secrets for Litestream's Azure credential chain:
+
+```sh
+az containerapp update \
+  --name $CONTAINER_APP_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --remove-env-vars LITESTREAM_AZURE_ACCOUNT_KEY \
+  --set-env-vars \
+    LITESTREAM_REPLICA_URL=abs://$STORAGE_ACCOUNT_NAME@$BLOB_CONTAINER_NAME/headscale/headscale.sqlite3 \
+    AZURE_CLIENT_ID=secretref:azure-client-id \
+    AZURE_TENANT_ID=secretref:azure-tenant-id \
+    AZURE_CLIENT_SECRET=secretref:azure-client-secret
+```
+
+This is useful when you want keyless blob access but cannot rely on the Container App's own managed identity. As with managed identity, the service principal still needs the appropriate Azure Blob Data role before Litestream can read or write the replica.
 
 ## Step 7: Monitor your application
 
