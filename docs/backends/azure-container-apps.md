@@ -105,19 +105,17 @@ az storage share-rm create \
   --quota 1024 \
   --enabled-protocols SMB
 
-export STORAGE_ACCOUNT_KEY=$(az storage account keys list \
-  --resource-group $RESOURCE_GROUP \
-  --account-name $STORAGE_ACCOUNT_NAME \
-  --query '[0].value' \
-  --output tsv)
-
 az containerapp env storage set \
   --name $CONTAINER_APP_ENV \
   --resource-group $RESOURCE_GROUP \
   --storage-name $STORAGE_MOUNT_NAME \
   --access-mode ReadWrite \
   --azure-file-account-name $STORAGE_ACCOUNT_NAME \
-  --azure-file-account-key "$STORAGE_ACCOUNT_KEY" \
+  --azure-file-account-key "$(az storage account keys list \
+    --resource-group $RESOURCE_GROUP \
+    --account-name $STORAGE_ACCOUNT_NAME \
+    --query '[0].value' \
+    --output tsv)" \
   --azure-file-share-name $STORAGE_SHARE_NAME
 ```
 
@@ -241,7 +239,11 @@ export BLOB_CONTAINER_NAME=$blobContainerName
 az storage container create \
   --account-name $STORAGE_ACCOUNT_NAME \
   --name $BLOB_CONTAINER_NAME \
-  --account-key "$STORAGE_ACCOUNT_KEY"
+  --account-key "$(az storage account keys list \
+    --resource-group $RESOURCE_GROUP \
+    --account-name $STORAGE_ACCOUNT_NAME \
+    --query '[0].value' \
+    --output tsv)"
 ```
 
 You now have two supported authentication choices for Litestream.
@@ -254,7 +256,11 @@ Set the storage account key as a Container Apps secret:
 az containerapp secret set \
   --name $CONTAINER_APP_NAME \
   --resource-group $RESOURCE_GROUP \
-  --secrets litestream-azure-account-key="$STORAGE_ACCOUNT_KEY"
+  --secrets litestream-azure-account-key="$(az storage account keys list \
+    --resource-group $RESOURCE_GROUP \
+    --account-name $STORAGE_ACCOUNT_NAME \
+    --query '[0].value' \
+    --output tsv)"
 ```
 
 Then update the app configuration:
