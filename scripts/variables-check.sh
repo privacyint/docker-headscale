@@ -57,7 +57,7 @@ check_env_var_or_set_default() {
 	local error_msg="${4:-}"
 	
 	# Set default value if variable is not populated
-	if ! env_var_is_defined "${var_name}"; then
+	if ! env_var_is_populated "${var_name}"; then
 		export "${var_name}"="${default_value}"
 	fi
 	
