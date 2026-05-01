@@ -16,7 +16,7 @@ PUBLIC_SERVER_URL = "$PUBLIC_SERVER_URL"
 HEADSCALE_DNS_BASE_DOMAIN = "$HEADSCALE_DNS_BASE_DOMAIN"
 
 [[services]]
-  internal_port = 8080
+  internal_port = 8008
   protocol = "tcp"
   [services.concurrency]
     hard_limit = 250
