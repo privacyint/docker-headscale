@@ -1,0 +1,43 @@
+name: ${CONTAINER_APP_NAME}
+type: Microsoft.App/containerApps
+location: ${LOCATION}
+identity:
+  type: SystemAssigned
+properties:
+  environmentId: ${CONTAINER_APP_ENVIRONMENT_ID}
+  configuration:
+    activeRevisionsMode: single
+    ingress:
+      allowInsecure: false
+      external: true
+      targetPort: 8008
+      transport: auto
+    # For shared-key Azure Blob replication, add a secret here and switch the
+    # matching env var below from value: to secretRef:.
+    secrets: []
+  template:
+    containers:
+      - image: ${CONTAINER_IMAGE}
+        name: ${CONTAINER_APP_NAME}
+        env:
+          - name: PUBLIC_SERVER_URL
+            value: ${PUBLIC_SERVER_URL}
+          - name: HEADSCALE_DNS_BASE_DOMAIN
+            value: ${HEADSCALE_DNS_BASE_DOMAIN}
+          - name: CADDY_FRONTEND
+            value: DISABLE_HTTPS
+          - name: LITESTREAM_REPLICA_URL
+            value: DISABLED_I_KNOW_WHAT_IM_DOING
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        volumeMounts:
+          - mountPath: /data
+            volumeName: hs-data
+    scale:
+      minReplicas: 1
+      maxReplicas: 1
+    volumes:
+      - name: hs-data
+        storageName: ${STORAGE_MOUNT_NAME}
+        storageType: AzureFile
