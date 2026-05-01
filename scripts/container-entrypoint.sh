@@ -113,7 +113,34 @@ check_litestream_replica_url() {
 			require_env_var "LITESTREAM_SECRET_ACCESS_KEY"
 			;;
 		ABS://*)
-			require_env_var "LITESTREAM_AZURE_ACCOUNT_KEY"
+			# Azure Blob Storage supports three auth mechanisms:
+			#   1. Account key       — set LITESTREAM_AZURE_ACCOUNT_KEY
+			#   2. Service principal — set AZURE_CLIENT_ID + AZURE_TENANT_ID + AZURE_CLIENT_SECRET
+			#   3. Managed identity  — no extra variables required; the Azure runtime provides
+			#                          credentials, signalled by IDENTITY_ENDPOINT (Container Apps /
+			#                          App Service) or MSI_ENDPOINT (legacy Azure runtimes)
+			if env_var_is_populated "LITESTREAM_AZURE_ACCOUNT_KEY"; then
+				: # Account key auth configured — valid
+			elif env_var_is_populated "AZURE_CLIENT_ID" \
+				|| env_var_is_populated "AZURE_TENANT_ID" \
+				|| env_var_is_populated "AZURE_CLIENT_SECRET"; then
+				# Any AZURE_CLIENT_* var present → service-principal path; all three must be set.
+				env_var_is_populated "AZURE_CLIENT_ID" \
+					|| log_error "Service-principal auth for Azure Blob Storage requires 'AZURE_CLIENT_ID'."
+				env_var_is_populated "AZURE_TENANT_ID" \
+					|| log_error "Service-principal auth for Azure Blob Storage requires 'AZURE_TENANT_ID'."
+				env_var_is_populated "AZURE_CLIENT_SECRET" \
+					|| log_error "Service-principal auth for Azure Blob Storage requires 'AZURE_CLIENT_SECRET'."
+			elif env_var_is_populated "IDENTITY_ENDPOINT" || env_var_is_populated "MSI_ENDPOINT"; then
+				: # Managed identity signal detected — Azure runtime will supply credentials
+			else
+				log_warn "Azure Blob Storage ('abs://') requires one of:"
+				log_warn "  1. Account key:       set 'LITESTREAM_AZURE_ACCOUNT_KEY'"
+				log_warn "  2. Service principal: set 'AZURE_CLIENT_ID', 'AZURE_TENANT_ID', and 'AZURE_CLIENT_SECRET'"
+				log_warn "  3. Managed identity:  enable managed identity on the hosting platform"
+				log_warn "                        ('IDENTITY_ENDPOINT' or 'MSI_ENDPOINT' must be set by the Azure runtime)"
+				log_error "No Azure authentication mechanism configured for 'abs://' replica URL."
+			fi
 			;;
 		*)
 			log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
