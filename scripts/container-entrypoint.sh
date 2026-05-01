@@ -117,11 +117,10 @@ check_litestream_replica_url() {
 			#   1. Account key
 			#   2. Service principal (client ID + tenant ID + client secret)
 			#   3. Managed identity (IDENTITY_ENDPOINT set by the Azure runtime)
-			if ! env_var_is_defined "LITESTREAM_AZURE_ACCOUNT_KEY" && \
-			   ! (env_var_is_defined "AZURE_CLIENT_ID" && env_var_is_defined "AZURE_TENANT_ID" && env_var_is_defined "AZURE_CLIENT_SECRET") && \
-			   ! env_var_is_defined "IDENTITY_ENDPOINT"; then
-				log_error "Azure Blob Storage ('abs://') requires at least one auth mechanism: 'LITESTREAM_AZURE_ACCOUNT_KEY', service-principal vars ('AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET'), or managed identity ('IDENTITY_ENDPOINT')."
-			fi
+			env_var_is_defined "LITESTREAM_AZURE_ACCOUNT_KEY" \
+				|| { env_var_is_defined "AZURE_CLIENT_ID" && env_var_is_defined "AZURE_TENANT_ID" && env_var_is_defined "AZURE_CLIENT_SECRET"; } \
+				|| env_var_is_defined "IDENTITY_ENDPOINT" \
+				|| log_error "Azure Blob Storage ('abs://') requires at least one auth mechanism: 'LITESTREAM_AZURE_ACCOUNT_KEY', service-principal vars ('AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET'), or managed identity ('IDENTITY_ENDPOINT')."
 			;;
 		*)
 			log_error "Invalid 'LITESTREAM_REPLICA_URL'. Must start with 's3://', 'abs://', or be set to 'DISABLED_I_KNOW_WHAT_IM_DOING'."
