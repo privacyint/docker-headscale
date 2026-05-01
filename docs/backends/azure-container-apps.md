@@ -231,7 +231,7 @@ After DNS has propagated, go to your Container App in the Azure portal:
 
 The basic deployment above is already persistent because `/data` is backed by Azure Files. If you also want off-instance backup, you can configure Litestream to replicate the SQLite database to Azure Blob Storage.
 
-Create a blob container:
+Create a blob container using your own RBAC credentials (no account key required):
 
 ```sh
 export BLOB_CONTAINER_NAME=$blobContainerName
@@ -239,11 +239,7 @@ export BLOB_CONTAINER_NAME=$blobContainerName
 az storage container create \
   --account-name $STORAGE_ACCOUNT_NAME \
   --name $BLOB_CONTAINER_NAME \
-  --account-key "$(az storage account keys list \
-    --resource-group $RESOURCE_GROUP \
-    --account-name $STORAGE_ACCOUNT_NAME \
-    --query '[0].value' \
-    --output tsv)"
+  --auth-mode login
 ```
 
 You now have two supported authentication choices for Litestream.
