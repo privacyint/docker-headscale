@@ -21,6 +21,7 @@ caddy_config_file=""
 # Caddyfile block placeholders 
 ACME_EAB_BLOCK=""
 CLOUDFLARE_ACME_BLOCK=""
+ECH_BLOCK=""
 SECURITY_HEADERS_BLOCK=""
 
 #######################################
@@ -302,6 +303,50 @@ check_cloudflare_dns_api_key() {
 }
 
 #######################################
+# Configure Encrypted Client Hello (ECH) if requested.
+# When ECH_PUBLIC_HOSTNAME is set, adds a global `dns` provider and `ech`
+# directive to the Caddy global options block so that Caddy can automatically
+# generate, publish (via DNS HTTPS records), and serve ECH configurations.
+# A Cloudflare API token is required because ECH publication depends on the DNS
+# provider module being available.
+# Arguments:
+#   None
+# Environment Variables:
+#   ECH_PUBLIC_HOSTNAME - Outer/public hostname for ECH (e.g. ech.example.com)
+#   CF_API_TOKEN        - Cloudflare API token (required when ECH is enabled)
+# Globals:
+#   ECH_BLOCK - Exported Caddy global ECH block
+# Returns:
+#   `true` on success, `false` on error
+#######################################
+check_ech_config() {
+	if ! env_var_is_defined "ECH_PUBLIC_HOSTNAME"; then
+		export ECH_BLOCK=""
+		return
+	fi
+
+	require_env_var "ECH_PUBLIC_HOSTNAME"
+
+	if ! env_var_is_populated "CF_API_TOKEN"; then
+		log_error "'ECH_PUBLIC_HOSTNAME' is set but 'CF_API_TOKEN' is not. ECH requires the Cloudflare DNS module to publish ECH configuration via HTTPS DNS records."
+		return 1
+	fi
+
+	# Basic FQDN validation: labels of 1–63 alnum/hyphen chars, at least two labels
+	if ! [[ "${ECH_PUBLIC_HOSTNAME}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$ ]]; then
+		log_error "Invalid 'ECH_PUBLIC_HOSTNAME': '${ECH_PUBLIC_HOSTNAME}'. Must be a valid fully-qualified domain name (e.g. 'ech.example.com')."
+		return 1
+	fi
+
+	ECH_BLOCK=$(cat <<EOF
+dns cloudflare ${CF_API_TOKEN}
+	ech ${ECH_PUBLIC_HOSTNAME}
+EOF
+)
+	export ECH_BLOCK
+}
+
+#######################################
 # Configure security headers for Caddy
 # Arguments:
 #   None
@@ -396,6 +441,7 @@ check_caddy_environment_variables() {
 	require_env_var "ACME_ISSUANCE_EMAIL"
 	check_cloudflare_dns_api_key
 	check_zerossl_eab
+	check_ech_config
 }
 
 #######################################
@@ -450,6 +496,7 @@ check_config_files() {
 	local template_vars=(
 		"ACME_EAB_BLOCK"
 		"CLOUDFLARE_ACME_BLOCK"
+		"ECH_BLOCK"
 		"SECURITY_HEADERS_BLOCK"
 		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
@@ -518,6 +565,11 @@ display_configuration_summary() {
 			log_feature_status "ACME EAB" true "ZeroSSL"
 		else
 			log_feature_status "ACME EAB" false "Let's Encrypt"
+		fi
+		if env_var_is_defined "ECH_PUBLIC_HOSTNAME"; then
+			log_feature_status "ECH" true "${ECH_PUBLIC_HOSTNAME}"
+		else
+			log_info "ECH: disabled"
 		fi
 	fi
 
