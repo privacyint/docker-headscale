@@ -24,8 +24,8 @@ jobs:
           non_pinned_actions=$(
             grep -RInE '^[[:space:]]*uses:[[:space:]]*' .github/workflows | \
               grep -vE 'uses:[[:space:]]*\./' | \
-              grep -vE 'uses:[[:space:]]*[^[:space:]]+@[a-f0-9]{40}([[:space:]]*#.*)?$' | \
-              grep -vE 'uses:[[:space:]]*docker://[^@[:space:]]+@sha256:[a-f0-9]{64}([[:space:]]*#.*)?$' || true
+              grep -vE 'uses:[[:space:]]*[^[:space:]]+@[A-Fa-f0-9]{40}([[:space:]]*#.*)?$' | \
+              grep -vE 'uses:[[:space:]]*docker://[^@[:space:]]+@sha256:[A-Fa-f0-9]{64}([[:space:]]*#.*)?$' || true
           )
 
           if [[ -n "$non_pinned_actions" ]]; then
