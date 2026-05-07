@@ -20,6 +20,18 @@ env_var_is_defined() {
 }
 
 #######################################
+# Check if an environment variable is populated with a non-empty value.
+# Arguments:
+#   $1 - Variable name
+# Returns:
+#   `true` if populated, otherwise `false`
+#######################################
+env_var_is_populated() {
+	# Reuse variable name validation and unset handling from env_var_is_defined.
+	env_var_is_defined "${1}" && [[ -n "${!1}" ]]
+}
+
+#######################################
 # Ensure an environment variable is populated
 # Arguments:
 #   $1 - Variable name
@@ -27,7 +39,7 @@ env_var_is_defined() {
 #   `true` if populated, otherwise `false`
 #######################################
 require_env_var() {
-	env_var_is_defined "${1}" || log_error "Environment variable '${1}' is required"
+	env_var_is_populated "${1}" || log_error "Environment variable '${1}' is required"
 }
 
 ########################################
@@ -45,7 +57,7 @@ check_env_var_or_set_default() {
 	local error_msg="${4:-}"
 	
 	# Set default value if variable is not populated
-	if ! env_var_is_defined "${var_name}"; then
+	if ! env_var_is_populated "${var_name}"; then
 		export "${var_name}"="${default_value}"
 	fi
 	

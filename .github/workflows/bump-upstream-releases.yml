@@ -1,0 +1,179 @@
+name: Bump Upstreams When Releases Land
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump-upstream-releases
+  cancel-in-progress: true
+
+jobs:
+  bump-github-release-upstreams:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dependency_id: caddy
+            dependency_name: Caddy
+            upstream_repo: caddyserver/caddy
+            version_arg: CADDY_VERSION
+            checksum_arg: ''
+            asset_name_template: ''
+            readme_tool_label: Caddy
+            readme_tool_ref: caddy-wob
+            readme_repo_label: Caddy Repo
+            readme_repo_ref: caddy-repo
+            readme_display_prefix: v
+            upstream_tag_prefix: v
+          - dependency_id: headscale
+            dependency_name: Headscale
+            upstream_repo: juanfont/headscale
+            version_arg: HEADSCALE_VERSION
+            checksum_arg: HEADSCALE_SHA256
+            asset_name_template: headscale_{version}_linux_amd64
+            readme_tool_label: Headscale
+            readme_tool_ref: headscale-wob
+            readme_repo_label: Headscale Repo
+            readme_repo_ref: headscale-repo
+            readme_display_prefix: v
+            upstream_tag_prefix: v
+          - dependency_id: headscale-admin
+            dependency_name: Headscale-Admin
+            upstream_repo: privacyint/headscale-admin
+            version_arg: HEADSCALE_ADMIN_VERSION
+            checksum_arg: ''
+            asset_name_template: ''
+            readme_tool_label: Headscale-Admin
+            readme_tool_ref: headscale-admin-wob
+            readme_repo_label: Headscale-Admin Repo
+            readme_repo_ref: headscale-admin-repo
+            readme_display_prefix: ''
+            upstream_tag_prefix: ''
+          - dependency_id: litestream
+            dependency_name: Litestream
+            upstream_repo: benbjohnson/litestream
+            version_arg: LITESTREAM_VERSION
+            checksum_arg: LITESTREAM_SHA256
+            asset_name_template: litestream-{version}-linux-x86_64.tar.gz
+            readme_tool_label: Litestream
+            readme_tool_ref: litestream-wob
+            readme_repo_label: Litestream Repo
+            readme_repo_ref: litestream-repo
+            readme_display_prefix: ''
+            upstream_tag_prefix: v
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Bump dependency files
+        id: bump
+        uses: ./.github/actions/bump-github-release
+        with:
+          version_arg: ${{ matrix.version_arg }}
+          checksum_arg: ${{ matrix.checksum_arg }}
+          upstream_repo: ${{ matrix.upstream_repo }}
+          asset_name_template: ${{ matrix.asset_name_template }}
+          upstream_tag_prefix: ${{ matrix.upstream_tag_prefix }}
+          readme_tool_label: ${{ matrix.readme_tool_label }}
+          readme_tool_ref: ${{ matrix.readme_tool_ref }}
+          readme_repo_label: ${{ matrix.readme_repo_label }}
+          readme_repo_ref: ${{ matrix.readme_repo_ref }}
+          readme_display_prefix: ${{ matrix.readme_display_prefix }}
+
+      - name: Create pull request
+        if: steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          # A fine-grained PAT (stored as BUMP_PR_TOKEN) is required here instead of
+          # github.token so that the created PR triggers CI workflow runs.
+          # github.token-created events are deliberately ignored by GitHub Actions.
+          # The PAT needs 'contents: write' and 'pull-requests: write' on this repository.
+          token: ${{ secrets.BUMP_PR_TOKEN }}
+          base: develop
+          commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
+          branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
+          delete-branch: true
+          title: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
+          body: |
+            ## Summary
+
+            This automated PR updates the pinned `${{ matrix.dependency_name }}` release.
+
+            - Current version: `${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.current_version }}`
+            - New version: `${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}`
+            - Upstream release: ${{ steps.bump.outputs.release_url }}
+            - Updated checksum asset: `${{ steps.bump.outputs.asset_name || 'not applicable' }}`
+
+            The existing CI workflows will validate the resulting image and config compatibility.
+          labels: |
+            upstream package version bump
+
+  bump-docker-tag-upstreams:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dependency_id: alpine-linux
+            dependency_name: Alpine Linux
+            dockerhub_namespace: library
+            dockerhub_repository: alpine
+            version_arg: MAIN_IMAGE_ALPINE_VERSION
+            tag_regex: '^[0-9]+\.[0-9]+\.[0-9]+$'
+            readme_tool_label: Alpine Linux
+            readme_tool_ref: alpine-linux-wob
+            readme_repo_label: Alpine Linux Repo
+            readme_repo_ref: alpine-linux-repo
+            readme_display_prefix: v
+            release_url_template: https://git.alpinelinux.org/aports/log/?h=v{version}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Bump dependency files
+        id: bump
+        uses: ./.github/actions/bump-dockerhub-tag
+        with:
+          dockerhub_namespace: ${{ matrix.dockerhub_namespace }}
+          dockerhub_repository: ${{ matrix.dockerhub_repository }}
+          version_arg: ${{ matrix.version_arg }}
+          tag_regex: ${{ matrix.tag_regex }}
+          readme_tool_label: ${{ matrix.readme_tool_label }}
+          readme_tool_ref: ${{ matrix.readme_tool_ref }}
+          readme_repo_label: ${{ matrix.readme_repo_label }}
+          readme_repo_ref: ${{ matrix.readme_repo_ref }}
+          readme_display_prefix: ${{ matrix.readme_display_prefix }}
+          release_url_template: ${{ matrix.release_url_template }}
+
+      - name: Create pull request
+        if: steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          # A fine-grained PAT (stored as BUMP_PR_TOKEN) is required here instead of
+          # github.token so that the created PR triggers CI workflow runs.
+          # github.token-created events are deliberately ignored by GitHub Actions.
+          # The PAT needs 'contents: write' and 'pull-requests: write' on this repository.
+          token: ${{ secrets.BUMP_PR_TOKEN }}
+          base: develop
+          commit-message: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
+          branch: chore/bump-${{ matrix.dependency_id }}-${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}
+          delete-branch: true
+          title: 'deps(${{ matrix.dependency_id }}): bump to ${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}'
+          body: |
+            ## Summary
+
+            This automated PR updates the pinned `${{ matrix.dependency_name }}` release.
+
+            - Current version: `${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.current_version }}`
+            - New version: `${{ matrix.readme_display_prefix }}${{ steps.bump.outputs.latest_version }}`
+            - Upstream release: ${{ steps.bump.outputs.release_url }}
+
+            The existing CI workflows will validate the resulting image and config compatibility.
+          labels: |
+            upstream package version bump

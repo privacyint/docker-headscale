@@ -9,10 +9,23 @@
 :8008 {
 	redir /admin /admin/
 
-	handle_path /admin/* {
-		root * /admin-gui/admin
+	handle /admin/* {
+		root * /admin-gui
 		encode gzip zstd
-		try_files {path}.html {path} index.html
+
+		@admin_assets path_regexp admin_assets ^/admin/.*\.[^/]+$
+		handle @admin_assets {
+			file_server${SECURITY_HEADERS_BLOCK}
+		}
+
+		@admin_navigation {
+			header Accept *text/html*
+			not path_regexp admin_navigation_assets ^/admin/.*\.[^/]+$
+		}
+		handle @admin_navigation {
+			try_files {path}.html {path} {path}/index.html /admin/200.html
+			file_server${SECURITY_HEADERS_BLOCK}
+		}
 		file_server${SECURITY_HEADERS_BLOCK}
 	}
 

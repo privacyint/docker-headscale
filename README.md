@@ -1,12 +1,12 @@
 # Headscale on an immutable Docker image
 
-Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image with real-time [Litestream][litestream-wob] database backup and (by default) inbuilt [Caddy][caddy-wob] SSL termination, using a miniscule [Alpine Linux][alpine-linux-wob] base image. Provides a stateless [headscale-admin][headscale-admin-wob] panel at `/admin/`.
+Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image with real-time [Litestream][litestream-wob] database backup and (by default) inbuilt Encrypted Client Hello (ECH) capable [Caddy][caddy-wob] SSL termination, using a miniscule [Alpine Linux][alpine-linux-wob] base image. Provides a stateless [headscale-admin][headscale-admin-wob] panel at `/admin/`.
 
 ## Included upstream versions
 
 | Tool | Upstream Repository | Version |
 | --- | --- | --- |
-| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.3`](https://git.alpinelinux.org/aports/log/?h=v3.23.3) |
+| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.23.4`](https://git.alpinelinux.org/aports/log/?h=v3.23.4) |
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.28.0`](https://github.com/juanfont/headscale/releases/tag/v0.28.0) |
 | [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`v0.28.0`](https://github.com/privacyint/headscale-admin/releases/tag/v0.28.0) |
 | [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.11`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.11) |
@@ -29,13 +29,16 @@ All development should be done against the `develop` branch, `main` is deemed "s
 
 Populate your environment variables according to `templates/secrets.template.env`
 
+For provider deployment templates, this repo includes `make` targets that render:
+
+* `fly.toml` via `make render-fly-config`
+* `azure-container-apps.yaml` via `make render-azure-container-apps`
+
 The container entrypoint script will guide you on any errors.
 
 ## Configuring upstream/global nameservers
 
-You can now control the nameservers exposed to clients via the `GLOBAL_NAMESERVERS` environment variable. Provide a space-separated list of IP addresses (IPv4 or IPv6). If omitted, the container falls back to the defaults defined in `scripts/defaults.sh`.
-
-The entrypoint converts the list into a YAML flow-style sequence and injects it into the Headscale config, e.g. `global: [ "1.1.1.1", "8.8.8.8" ]` so there are no YAML indentation issues regardless of the number of entries.
+You can control the nameservers exposed to clients via the `GLOBAL_NAMESERVERS` environment variable. Provide a space-separated list of IP addresses (IPv4 or IPv6). If omitted, the container falls back to the defaults defined in `scripts/defaults.sh`.
 
 Example (set in Fly config or your environment):
 
@@ -43,8 +46,6 @@ Example (set in Fly config or your environment):
 [env]
 GLOBAL_NAMESERVERS = "94.140.14.15 94.140.15.16 2a10:50c0::bad1:ff 2a10:50c0::bad2:ff"
 ```
-
-The script performs permissive validation (allows IPv4/IPv6 characters). If you need stricter validation or alternative input formats (commas, JSON), say so and I'll update the parser.
 
 ## Deployment and user creation
 
@@ -70,7 +71,7 @@ Note that applying this will cause your application to restart, but afterwards n
 
 ## Known to run on
 
-* Azure Container Apps
+* [Azure Container Apps][azure-container-apps-instructions]
 * [Fly.io][fly-io-instructions]
 * ??? Let us know!
 
@@ -88,4 +89,5 @@ Note that applying this will cause your application to restart, but afterwards n
 [dns-01-challenge]: https://letsencrypt.org/docs/challenge-types/#dns-01-challenge
 [http-01-challenge]: https://letsencrypt.org/docs/challenge-types/#http-01-challenge
 [headscale-usage]: https://headscale.net/stable/ref/remote-cli/#create-an-api-key
+[azure-container-apps-instructions]: docs/backends/azure-container-apps.md
 [fly-io-instructions]: docs/backends/fly-io.md

@@ -1,0 +1,50 @@
+name: ${CONTAINER_APP_NAME}
+type: Microsoft.App/containerApps
+location: ${LOCATION}
+identity:
+  type: SystemAssigned
+properties:
+  environmentId: ${CONTAINER_APP_ENVIRONMENT_ID}
+  configuration:
+    activeRevisionsMode: single
+    ingress:
+      allowInsecure: false
+      external: true
+      targetPort: 8008
+      transport: auto
+    # For shared-key Azure Blob replication, add a secret entry here.
+    # Then add a `LITESTREAM_AZURE_ACCOUNT_KEY` env var under the container's
+    # `env:` block that references this secret via `secretRef`.
+    # Example secret entry:
+    #   - name: litestream-azure-account-key
+    #     value: <your-storage-account-key>
+    # Example `env:` entry:
+    #   - name: LITESTREAM_AZURE_ACCOUNT_KEY
+    #     secretRef: litestream-azure-account-key
+    secrets: []
+  template:
+    containers:
+      - image: ${CONTAINER_IMAGE}
+        name: ${CONTAINER_APP_NAME}
+        env:
+          - name: PUBLIC_SERVER_URL
+            value: ${PUBLIC_SERVER_URL}
+          - name: HEADSCALE_DNS_BASE_DOMAIN
+            value: ${HEADSCALE_DNS_BASE_DOMAIN}
+          - name: CADDY_FRONTEND
+            value: DISABLE_HTTPS
+          - name: LITESTREAM_REPLICA_URL
+            value: DISABLED_I_KNOW_WHAT_IM_DOING
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        volumeMounts:
+          - mountPath: /data
+            volumeName: hs-data
+    scale:
+      minReplicas: 1
+      maxReplicas: 1
+    volumes:
+      - name: hs-data
+        storageName: ${STORAGE_MOUNT_NAME}
+        storageType: AzureFile

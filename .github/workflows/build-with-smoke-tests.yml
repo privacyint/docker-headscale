@@ -22,16 +22,16 @@ jobs:
       CADDY_FRONTEND: "DISABLE_HTTPS"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
       - name: Create cache directory
         run: mkdir -p /tmp/.buildx-cache
 
       - name: Cache Docker layers
-        uses: actions/cache@v4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -45,6 +45,7 @@ jobs:
       - name: Run container in detached mode
         run: |
           docker run -d --name headscale-container \
+            -p 127.0.0.1:8008:8008 \
             --env LITESTREAM_REPLICA_URL=${{ env.LITESTREAM_REPLICA_URL }} \
             --env PUBLIC_SERVER_URL=${{ env.PUBLIC_SERVER_URL }} \
             --env HEADSCALE_DNS_BASE_DOMAIN=${{ env.HEADSCALE_DNS_BASE_DOMAIN }} \
@@ -61,7 +62,36 @@ jobs:
         run: |
           docker exec headscale-container sh -c "netstat -tuln | grep ':8008 '"
 
+      - name: Wait for admin GUI to respond
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --silent --show-error --fail http://127.0.0.1:8008/admin/ > /tmp/admin-gui.html; then
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          echo "Admin GUI did not become ready in time"
+          docker logs headscale-container
+          exit 1
+
+      - name: Check admin GUI redirect and content
+        run: |
+          redirect_headers=$(mktemp)
+
+          curl --silent --show-error --fail \
+            --dump-header "$redirect_headers" \
+            --output /dev/null \
+            http://127.0.0.1:8008/admin
+
+          tr -d '\r' < "$redirect_headers" | grep -qi '^location: /admin/$'
+          grep -qi '<!doctype html>' /tmp/admin-gui.html
+          grep -qi 'data-sveltekit-preload-data="hover"' /tmp/admin-gui.html
+          grep -qi 'assets: "/admin"' /tmp/admin-gui.html
+
       - name: Stop and remove container
+        if: always()
         run: |
           docker stop headscale-container
           docker rm headscale-container

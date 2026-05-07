@@ -1,0 +1,130 @@
+name: Bump Docker Hub Tag Dependency
+description: Update pinned Dockerfile and README versions from Docker Hub tags.
+
+inputs:
+  dockerhub_namespace:
+    description: Docker Hub namespace to query.
+    required: true
+  dockerhub_repository:
+    description: Docker Hub repository to query.
+    required: true
+  version_arg:
+    description: Dockerfile ARG containing the pinned version.
+    required: true
+  tag_regex:
+    description: Regular expression used to select version-like tags.
+    required: true
+  readme_tool_label:
+    description: README table tool label.
+    required: true
+  readme_tool_ref:
+    description: README link reference for the tool.
+    required: true
+  readme_repo_label:
+    description: README table repo label.
+    required: true
+  readme_repo_ref:
+    description: README link reference for the repo.
+    required: true
+  readme_display_prefix:
+    description: Prefix to show before the version in README and PR metadata.
+    required: false
+    default: ''
+  release_url_template:
+    description: Release URL template using {version} placeholder.
+    required: true
+
+outputs:
+  changed:
+    description: Whether any version bump was applied.
+    value: ${{ steps.bump.outputs.changed }}
+  current_version:
+    description: Version currently pinned before update.
+    value: ${{ steps.current.outputs.version }}
+  latest_version:
+    description: Latest version found upstream.
+    value: ${{ steps.upstream.outputs.version }}
+  release_url:
+    description: Upstream release URL.
+    value: ${{ steps.upstream.outputs.release_url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read current pinned version
+      id: current
+      shell: bash
+      env:
+        VERSION_ARG: ${{ inputs.version_arg }}
+      run: |
+        set -euo pipefail
+
+        version=$(grep -oP "ARG ${VERSION_ARG}=\"\\K[^\"]+" Dockerfile || true)
+
+        if [[ -z "$version" ]]; then
+          echo "Failed to extract the current pinned version from Dockerfile: expected an ARG named ${VERSION_ARG} with a quoted value." >&2
+          exit 1
+        fi
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+    - name: Read latest Docker Hub tag
+      id: upstream
+      shell: bash
+      env:
+        DOCKERHUB_NAMESPACE: ${{ inputs.dockerhub_namespace }}
+        DOCKERHUB_REPOSITORY: ${{ inputs.dockerhub_repository }}
+        TAG_REGEX: ${{ inputs.tag_regex }}
+        RELEASE_URL_TEMPLATE: ${{ inputs.release_url_template }}
+      run: |
+        set -euo pipefail
+
+        tags_json=$(curl -fsSL "https://hub.docker.com/v2/namespaces/${DOCKERHUB_NAMESPACE}/repositories/${DOCKERHUB_REPOSITORY}/tags?page_size=100")
+
+        version=$(jq -r '.results[].name' <<< "$tags_json" | grep -E "$TAG_REGEX" | sort -V | tail -n 1)
+
+        if [[ -z "$version" ]]; then
+          echo "Failed to determine latest Docker Hub tag for ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_REPOSITORY}" >&2
+          exit 1
+        fi
+
+        release_url=${RELEASE_URL_TEMPLATE//\{version\}/$version}
+
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        echo "release_url=${release_url}" >> "$GITHUB_OUTPUT"
+
+    - name: Update pinned version and docs
+      id: bump
+      shell: bash
+      env:
+        VERSION_ARG: ${{ inputs.version_arg }}
+        README_TOOL_LABEL: ${{ inputs.readme_tool_label }}
+        README_TOOL_REF: ${{ inputs.readme_tool_ref }}
+        README_REPO_LABEL: ${{ inputs.readme_repo_label }}
+        README_REPO_REF: ${{ inputs.readme_repo_ref }}
+        README_DISPLAY_PREFIX: ${{ inputs.readme_display_prefix }}
+        CURRENT_VERSION: ${{ steps.current.outputs.version }}
+        LATEST_VERSION: ${{ steps.upstream.outputs.version }}
+        RELEASE_URL: ${{ steps.upstream.outputs.release_url }}
+      run: |
+        set -euo pipefail
+
+        if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+          echo 'Pinned dependency version is already current.'
+          echo 'changed=false' >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        perl -0pi -e 's/ARG \Q$ENV{VERSION_ARG}\E="\Q$ENV{CURRENT_VERSION}\E"/ARG $ENV{VERSION_ARG}="$ENV{LATEST_VERSION}"/' Dockerfile
+
+        perl -0pi -e 'my $tool_label = quotemeta($ENV{README_TOOL_LABEL}); my $tool_ref = quotemeta($ENV{README_TOOL_REF}); my $repo_label = quotemeta($ENV{README_REPO_LABEL}); my $repo_ref = quotemeta($ENV{README_REPO_REF}); my $display_version = $ENV{README_DISPLAY_PREFIX} . $ENV{LATEST_VERSION}; s/^\| \[`$tool_label`\]\[$tool_ref\] \| \[$repo_label\]\[$repo_ref\] \| \[`[^`]+`\]\([^)]+\) \|$/| [`$ENV{README_TOOL_LABEL}`][$ENV{README_TOOL_REF}] | [$ENV{README_REPO_LABEL}][$ENV{README_REPO_REF}] | [`$display_version`]($ENV{RELEASE_URL}) |/mg;' README.md
+
+        if git diff --quiet -- Dockerfile; then
+          echo "Failed to update Dockerfile: expected to replace ARG ${VERSION_ARG}=\"${CURRENT_VERSION}\" with ${LATEST_VERSION}." >&2
+          exit 1
+        fi
+
+        if git diff --quiet -- README.md; then
+          echo "Failed to update README.md: expected to update the ${README_TOOL_LABEL} table row to version ${README_DISPLAY_PREFIX}${LATEST_VERSION}. Check the README formatting and configured labels/references." >&2
+          exit 1
+        fi
+        echo 'changed=true' >> "$GITHUB_OUTPUT"
