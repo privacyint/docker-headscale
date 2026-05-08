@@ -69,7 +69,7 @@ jobs:
             upstream_tag_prefix: v
     steps:
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Bump dependency files
         id: bump
@@ -134,7 +134,7 @@ jobs:
             release_url_template: https://git.alpinelinux.org/aports/log/?h=v{version}
     steps:
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Bump dependency files
         id: bump
