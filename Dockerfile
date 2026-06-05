@@ -51,10 +51,9 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     RUN apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps git;
 
-    RUN git clone ${HEADSCALE_ADMIN_REPO} /app && \
-        cd /app && \
-        git checkout ${HEADSCALE_ADMIN_VERSION}
     WORKDIR /app
+    RUN git clone ${HEADSCALE_ADMIN_REPO} . && \
+        git checkout ${HEADSCALE_ADMIN_VERSION}
 
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
     RUN npm install && npm run build;
