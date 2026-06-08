@@ -40,9 +40,9 @@ grpc_allow_insecure: false
 
 # CIDR(s) of reverse proxies (e.g. 127.0.0.1/32) whose
 # True-Client-IP, X-Real-IP and X-Forwarded-For headers should
-# be honoured. Empty (default) ignores those headers; setting
-# this without a proxy in front lets clients spoof their logged
-# source IP.
+# be honoured. This template trusts loopback by default (for the bundled Caddy);
+# set to [] to disable, or replace with your proxy CIDRs. Setting this
+# without a proxy in front lets clients spoof their logged source IP.
 trusted_proxies:
   - 127.0.0.1/32
   - ::1/128
