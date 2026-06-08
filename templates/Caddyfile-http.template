@@ -7,6 +7,11 @@
 }
 
 :8008 {
+	# Tailscale captive portal detection
+	handle /generate_204 {
+		respond 204
+	}
+
 	redir /admin /admin/
 
 	handle /admin/* {

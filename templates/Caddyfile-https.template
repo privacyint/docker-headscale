@@ -10,6 +10,11 @@
 }
 
 ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
+	# Tailscale captive portal detection
+	handle /generate_204 {
+		respond 204
+	}
+
 	redir /admin /admin/
 
 	handle /admin/* {
