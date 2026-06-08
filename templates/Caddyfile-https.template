@@ -43,7 +43,10 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 	}
 
 	handle {
-		reverse_proxy 127.0.0.1:8080${SECURITY_HEADERS_BLOCK}
+		reverse_proxy 127.0.0.1:8080 {
+			header_up True-Client-IP {remote_host}
+			header_up X-Real-IP {remote_host}
+		}${SECURITY_HEADERS_BLOCK}
 	}
 
 	${CLOUDFLARE_ACME_BLOCK}
