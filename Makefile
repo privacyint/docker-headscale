@@ -43,7 +43,7 @@ render-azure-container-apps: check-envsubst
 smoke-test:
 	@set -euo pipefail; \
 	image="$${SMOKE_TEST_IMAGE:-$(DEFAULT_SMOKE_TEST_IMAGE)}"; \
-	container="$${SMOKE_TEST_CONTAINER_NAME:-$(DEFAULT_SMOKE_TEST_CONTAINER)}"; \
+	container="$${SMOKE_TEST_CONTAINER:-$(DEFAULT_SMOKE_TEST_CONTAINER)}"; \
 	host="$${SMOKE_TEST_HOST:-$(DEFAULT_SMOKE_TEST_HOST)}"; \
 	port="$${SMOKE_TEST_PORT:-$(DEFAULT_SMOKE_TEST_PORT)}"; \
 	admin_gui_html="$$(mktemp)"; \
