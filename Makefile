@@ -60,7 +60,7 @@ smoke-test:
 	echo "Starting container: $${container}"; \
 	docker run -d --name "$${container}" \
 		-p "$${host}:$${port}:8008" \
-		--env LITESTREAM_REPLICA_URL="$${LITESTREAM_REPLICA_URL:-DISABLED_I_KNOW_WHAT_IM_DOING}" \
+		--env LITESTREAM_REPLICA_URL="$${SMOKE_TEST_LITESTREAM_REPLICA_URL:-DISABLED_I_KNOW_WHAT_IM_DOING}" \
 		--env PUBLIC_SERVER_URL="$${PUBLIC_SERVER_URL:-https://headscale.example.com}" \
 		--env HEADSCALE_DNS_BASE_DOMAIN="$${HEADSCALE_DNS_BASE_DOMAIN:-example.com}" \
 		--env CADDY_FRONTEND="$${CADDY_FRONTEND:-DISABLE_HTTPS}" \
