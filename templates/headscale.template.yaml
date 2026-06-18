@@ -173,6 +173,26 @@ node:
     # Time before an inactive ephemeral node is deleted.
     inactivity_timeout: $EPHEMERAL_NODE_INACTIVITY_TIMEOUT
 
+  # HA subnet router health probing.
+  #
+  # When HA routes exist (2+ nodes advertising the same prefix), headscale
+  # pings each HA node every probe_interval via the Noise channel. If a node
+  # fails to respond within probe_timeout it is marked unhealthy and the
+  # primary role moves to the next healthy node. A node that later responds
+  # is marked healthy again but does NOT reclaim primary (avoids flapping).
+  #
+  # Worst-case detection time is probe_interval + probe_timeout (15s default).
+  # No-op when no HA routes exist. Set probe_interval to 0 to disable.
+  routes:
+    ha:
+      # How often to ping HA subnet routers. Set to 0 to disable probing.
+      # Must be >= 2s when enabled.
+      probe_interval: 10s
+
+      # How long to wait for a ping response before marking a node unhealthy.
+      # Must be >= 1s and less than probe_interval.
+      probe_timeout: 5s
+
 database:
   # Database type. Available options: sqlite, postgres
   # Please note that using Postgres is highly discouraged as it is only supported for legacy reasons.
