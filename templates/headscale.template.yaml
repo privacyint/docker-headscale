@@ -134,9 +134,9 @@ derp:
 
   # Locally available DERP map files encoded in YAML
   #
-  # This option is mostly interesting for people hosting
-  # their own DERP servers:
-  # https://tailscale.com/kb/1118/custom-derp-servers/
+  # This option is mostly interesting for people hosting their own DERP servers:
+  # https://tailscale.com/docs/reference/derp-servers/custom-derp-servers
+  # https://headscale.net/stable/ref/derp/
   #
   # paths:
   #   - /etc/headscale/derp-example.yaml
