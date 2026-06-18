@@ -424,13 +424,15 @@ oidc:
 #   # Only accept users whose email domain is part of the allowed_domains list.
 #   allowed_domains:
 #     - example.com
-#   # Note: Groups from keycloak have a leading '/'
-#   allowed_groups:
-#     - /headscale
 #
 #   # Only accept users whose email address is part of the allowed_users list.
 #   allowed_users:
 #     - alice@example.com
+#
+#   # Only accept users which are members of at least one group in the
+#   # allowed_groups list.
+#   allowed_groups:
+#     - /headscale
 #
 #   # Optional: PKCE (Proof Key for Code Exchange) configuration
 #   # PKCE adds an additional layer of security to the OAuth 2.0 authorization code flow
