@@ -484,6 +484,11 @@ auto_update:
 # Only modify these if you have identified a specific performance issue.
 #
 # tuning:
+#   # Maximum number of pending registration entries in the auth cache.
+#   # Oldest entries are evicted when the cap is reached.
+#   #
+#   # register_cache_max_entries: 1024
+#
 #   # NodeStore write batching configuration.
 #   # The NodeStore batches write operations before rebuilding peer relationships,
 #   # which is computationally expensive. Batching reduces rebuild frequency.
