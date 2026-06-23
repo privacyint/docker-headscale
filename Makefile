@@ -7,20 +7,32 @@ DEFAULT_SMOKE_TEST_PORT := 8008
 
 .DEFAULT_GOAL := help
 
-.PHONY: help check-envsubst render-fly-config render-azure-container-apps smoke-test
+.PHONY: help check-docker check-envsubst render-fly-config render-azure-container-apps smoke-test
 
 help:
 	@printf '%s\n' \
 	  'Available targets:' \
 	  '  make render-fly-config           Render fly.toml from templates/fly.template.toml' \
 	  '  make render-azure-container-apps Render azure-container-apps.yaml from templates/azure-container-apps.template.yaml' \
-	  '  make smoke-test                  Build the image and run local smoke tests'
+	  '  make smoke-test                  Build the image, run a container, and execute local smoke tests'
+
+check-docker:
+	@command -v docker >/dev/null || { \
+		echo 'docker is required for image builds and containerised linters.'; \
+		exit 1; \
+	}
 
 check-envsubst:
 	@command -v envsubst >/dev/null || { \
 		echo 'envsubst is required to render deployment templates. Install gettext first.'; \
 		exit 1; \
 	}
+
+build-image: check-docker
+	@set -euo pipefail; \
+	image="$${SMOKE_TEST_IMAGE:-$(DEFAULT_SMOKE_TEST_IMAGE)}"; \
+	echo "Building Docker image: $${image}"; \
+	docker build -t "$${image}" .
 
 render-fly-config: check-envsubst
 	@: $${FLY_APP:?Set FLY_APP}
@@ -40,7 +52,7 @@ render-azure-container-apps: check-envsubst
 	@envsubst < templates/azure-container-apps.template.yaml > azure-container-apps.yaml
 	@printf '%s\n' 'Wrote azure-container-apps.yaml'
 
-smoke-test:
+smoke-test: build-image
 	@set -euo pipefail; \
 	image="$${SMOKE_TEST_IMAGE:-$(DEFAULT_SMOKE_TEST_IMAGE)}"; \
 	container="$${SMOKE_TEST_CONTAINER:-$(DEFAULT_SMOKE_TEST_CONTAINER)}"; \
@@ -55,8 +67,6 @@ smoke-test:
 	}; \
 	trap cleanup EXIT; \
 	docker rm -f "$${container}" >/dev/null 2>&1 || true; \
-	echo "Building Docker image: $${image}"; \
-	docker build -t "$${image}" .; \
 	echo "Starting container: $${container}"; \
 	docker run -d --name "$${container}" \
 		-p "$${host}:$${port}:8008" \
