@@ -44,4 +44,6 @@ jobs:
 
       - name: Fail when drift check fails
         if: steps.check.outcome == 'failure'
-        run: make check-config-drift
+        run: |
+          echo 'Headscale config drift check failed (see logs above).'
+          exit 1
