@@ -4,8 +4,8 @@
 # Tool version arguments
 # Bump these every time there is a new release.
 # We're pulling these from github source, don't forget to bump the checksum!
-ARG HEADSCALE_VERSION="0.29.1"
-ARG HEADSCALE_SHA256="5d24905749e68ee8ddbb3743f4903959878575aeab59c4a41b61d104853d1888"
+ARG HEADSCALE_VERSION="0.29.2"
+ARG HEADSCALE_SHA256="858ef94bca9ecdfc742c24119c831e437e1b75691fdd5041be4059db1a38aac0"
 
 ARG LITESTREAM_VERSION="0.5.12"
 ARG LITESTREAM_SHA256="e10049d206079ef12dc623d859780b2f7a06d32418dc1939004381abbafd01f1"
