@@ -34,7 +34,7 @@ jobs:
             }
 
             const newOptions = fs.readFileSync('new-options.txt', 'utf8');
-            
+
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
