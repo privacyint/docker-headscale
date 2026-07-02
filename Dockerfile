@@ -54,7 +54,10 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
 
     WORKDIR /app
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
-    RUN git clone --depth 1 --branch "${HEADSCALE_ADMIN_VERSION}" "${HEADSCALE_ADMIN_REPO}" . && \
+    RUN git init . && \
+        git remote add origin "${HEADSCALE_ADMIN_REPO}" && \
+        git fetch --depth 1 origin "${HEADSCALE_ADMIN_VERSION}" && \
+        git checkout FETCH_HEAD && \
         npm install && \
         npm run build && \
         mv /app/build "/app${HEADSCALE_ADMIN_ENDPOINT}" && \
