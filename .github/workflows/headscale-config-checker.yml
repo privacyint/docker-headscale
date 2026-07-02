@@ -42,6 +42,6 @@ jobs:
               body: `## 🆕 New Headscale Config Options\n\n\`\`\`diff\n${newOptions.split('\n').map(line => line.trim() ? `+ ${line}` : '').filter(line => line).join('\n')}\`\`\``
             });
 
-      - name: Fail when new options are found
+      - name: Fail when drift check fails
         if: steps.check.outcome == 'failure'
-        run: exit 1
+        run: make check-config-drift
