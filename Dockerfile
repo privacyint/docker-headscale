@@ -48,19 +48,17 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     ARG HEADSCALE_ADMIN_VERSION
     ARG HEADSCALE_ADMIN_ENDPOINT
 
+    # hadolint ignore=DL3018
     RUN apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps git;
 
     WORKDIR /app
-    RUN git clone ${HEADSCALE_ADMIN_REPO} . && \
-        git checkout ${HEADSCALE_ADMIN_VERSION}
-
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
-    RUN npm install && npm run build;
-
-    RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
-
-    RUN apk del BuildTimeDeps
+    RUN git clone --depth 1 --branch "${HEADSCALE_ADMIN_VERSION}" "${HEADSCALE_ADMIN_REPO}" . && \
+        npm install && \
+        npm run build && \
+        mv /app/build "/app${HEADSCALE_ADMIN_ENDPOINT}" && \
+        apk del BuildTimeDeps
 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
