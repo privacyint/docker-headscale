@@ -4,17 +4,32 @@ DEFAULT_SMOKE_TEST_IMAGE := headscale:latest
 DEFAULT_SMOKE_TEST_CONTAINER := headscale-container
 DEFAULT_SMOKE_TEST_HOST := 127.0.0.1
 DEFAULT_SMOKE_TEST_PORT := 8008
+DEFAULT_HADOLINT_IMAGE := hadolint/hadolint:v2.12.0-alpine
+DEFAULT_SHELLCHECK_IMAGE := koalaman/shellcheck:v0.10.0
 
 .DEFAULT_GOAL := help
 
-.PHONY: help check-docker check-envsubst render-fly-config render-azure-container-apps smoke-test
+.PHONY: help check-curl check-docker check-envsubst build lint-docker lint-shell render-fly-config render-azure-container-apps render-headscale-config check-config-drift check clean smoke-test
 
 help:
 	@printf '%s\n' \
 	  'Available targets:' \
+	  '  make build                       Build the Docker image locally' \
+	  '  make lint-docker                 Lint Dockerfile with hadolint' \
+	  '  make lint-shell                  Lint shell scripts with shellcheck' \
 	  '  make render-fly-config           Render fly.toml from templates/fly.template.toml' \
 	  '  make render-azure-container-apps Render azure-container-apps.yaml from templates/azure-container-apps.template.yaml' \
-	  '  make smoke-test                  Build the image, run a container, and execute local smoke tests'
+	  '  make render-headscale-config     Render generated-config.yaml from templates/headscale.template.yaml' \
+	  '  make check-config-drift          Compare rendered config against upstream Headscale config' \
+	  '  make check                       Run the local validation suite' \
+	  '  make clean                       Remove generated local artefacts' \
+	  '  make smoke-test                  Build the image and run local smoke tests'
+
+check-curl:
+	@command -v curl >/dev/null || { \
+		echo 'curl is required for upstream config checks.'; \
+		exit 1; \
+	}
 
 check-docker:
 	@command -v docker >/dev/null || { \
@@ -28,11 +43,38 @@ check-envsubst:
 		exit 1; \
 	}
 
-build-image: check-docker
+build: check-docker
 	@set -euo pipefail; \
 	image="$${SMOKE_TEST_IMAGE:-$(DEFAULT_SMOKE_TEST_IMAGE)}"; \
 	echo "Building Docker image: $${image}"; \
 	docker build -t "$${image}" .
+
+lint-docker: check-docker
+	@set -euo pipefail; \
+	image="$${HADOLINT_IMAGE:-$(DEFAULT_HADOLINT_IMAGE)}"; \
+	format="$${HADOLINT_FORMAT:-tty}"; \
+	output_file="$${HADOLINT_OUTPUT_FILE:-}"; \
+	echo "Running hadolint using $${image}"; \
+	if [[ -n "$${output_file}" ]]; then \
+		docker run --rm -i -v "$${PWD}:/workdir" -w /workdir --entrypoint hadolint "$${image}" \
+			--format "$${format}" Dockerfile > "$${output_file}"; \
+		printf '%s\n' "Wrote $${output_file}"; \
+	else \
+		docker run --rm -i -v "$${PWD}:/workdir" -w /workdir --entrypoint hadolint "$${image}" \
+			--format "$${format}" Dockerfile; \
+	fi
+
+lint-shell: check-docker
+	@set -euo pipefail; \
+	image="$${SHELLCHECK_IMAGE:-$(DEFAULT_SHELLCHECK_IMAGE)}"; \
+	set -- scripts/*.sh; \
+	if [[ "$${1}" == 'scripts/*.sh' ]]; then \
+		echo 'No shell scripts found under scripts/'; \
+		exit 0; \
+	fi; \
+	echo "Running shellcheck using $${image}"; \
+	docker run --rm -i -v "$${PWD}:/workdir" -w /workdir --entrypoint shellcheck "$${image}" \
+		--shell=bash "$${@}"
 
 render-fly-config: check-envsubst
 	@: $${FLY_APP:?Set FLY_APP}
@@ -52,7 +94,65 @@ render-azure-container-apps: check-envsubst
 	@envsubst < templates/azure-container-apps.template.yaml > azure-container-apps.yaml
 	@printf '%s\n' 'Wrote azure-container-apps.yaml'
 
-smoke-test: build-image
+render-headscale-config: check-envsubst
+	@set -euo pipefail; \
+	source scripts/defaults.sh; \
+	source scripts/ci-defaults.sh; \
+	envsubst < templates/headscale.template.yaml > generated-config.yaml; \
+	printf '%s\n' 'Wrote generated-config.yaml'
+
+check-config-drift: check-curl render-headscale-config
+	@set -euo pipefail; \
+	version="$$(awk -F'"' '/^ARG HEADSCALE_VERSION=/{ print $$2; exit }' Dockerfile)"; \
+	cleanup() { \
+		rm -f ignored_keys.txt local_all_keys.txt upstream_all_keys.txt upstream_all_keys_norm.txt local_all_keys_norm.txt upstream_filtered_keys.txt temp_filtered.txt; \
+	}; \
+	trap cleanup EXIT; \
+	echo "Downloading upstream Headscale config for v$${version}"; \
+	curl --fail --silent --show-error -o upstream-config.yaml \
+		"https://raw.githubusercontent.com/juanfont/headscale/refs/tags/v$${version}/config-example.yaml"; \
+	extract_keys() { \
+		grep -E '^[[:space:]]*[^#\-].*:' "$$1" | \
+			sed 's/:[[:space:]]*.*$$//' | \
+			sed 's/^[[:space:]]*//' | \
+			sort -u; \
+	}; \
+	get_ignored_keys() { \
+		grep '# DIFF_IGNORE' templates/headscale.template.yaml | \
+			sed -E 's/^[[:space:]]*#?[[:space:]]*//' | \
+			sed -E 's/:.*# DIFF_IGNORE.*$$//' | \
+			sort -u; \
+	}; \
+	get_ignored_keys > ignored_keys.txt; \
+	extract_keys generated-config.yaml > local_all_keys.txt; \
+	extract_keys upstream-config.yaml > upstream_all_keys.txt; \
+	sed -E 's/^[[:space:]]*#?[[:space:]]*//' upstream_all_keys.txt | sed 's/[[:space:]]*$$//' | sort -u > upstream_all_keys_norm.txt; \
+	sed -E 's/^[[:space:]]*#?[[:space:]]*//' local_all_keys.txt | sed 's/[[:space:]]*$$//' | sort -u > local_all_keys_norm.txt; \
+	cp upstream_all_keys_norm.txt upstream_filtered_keys.txt; \
+	while IFS= read -r ignore_key; do \
+		if [[ -n "$${ignore_key}" ]]; then \
+			grep -v "^$${ignore_key}$$" upstream_filtered_keys.txt > temp_filtered.txt || true; \
+			mv temp_filtered.txt upstream_filtered_keys.txt; \
+		fi; \
+	done < ignored_keys.txt; \
+	sort -u upstream_filtered_keys.txt -o upstream_filtered_keys.txt; \
+	comm -23 upstream_filtered_keys.txt local_all_keys_norm.txt > new-options.txt; \
+	echo "Local keys: $$(wc -l < local_all_keys_norm.txt)"; \
+	echo "Upstream filtered keys: $$(wc -l < upstream_filtered_keys.txt)"; \
+	if [[ -s new-options.txt ]]; then \
+		echo 'New configuration keys found:'; \
+		cat new-options.txt; \
+		exit 1; \
+	fi; \
+	rm -f new-options.txt; \
+	echo 'No new configuration keys found'
+
+check: lint-docker lint-shell check-config-drift
+
+clean:
+	@rm -f generated-config.yaml upstream-config.yaml new-options.txt azure-container-apps.yaml fly.toml hadolint-results.sarif
+
+smoke-test: build
 	@set -euo pipefail; \
 	image="$${SMOKE_TEST_IMAGE:-$(DEFAULT_SMOKE_TEST_IMAGE)}"; \
 	container="$${SMOKE_TEST_CONTAINER:-$(DEFAULT_SMOKE_TEST_CONTAINER)}"; \

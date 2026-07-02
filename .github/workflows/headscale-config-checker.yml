@@ -17,91 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       
-      - name: Get version and download upstream config
-        run: |
-          VERSION=$(grep -oP 'HEADSCALE_VERSION="\K[^"]*' Dockerfile)
-          echo "Found version: $VERSION"
-          
-          curl -f -o upstream-config.yaml \
-            "https://raw.githubusercontent.com/juanfont/headscale/refs/tags/v${VERSION}/config-example.yaml"
-          
-          echo "Successfully downloaded upstream config"
-      
-      - name: Generate config from template with defaults
-        run: |
-          # Source the defaults
-          source scripts/defaults.sh
-          source scripts/ci-defaults.sh
-          
-          # Generate config
-          envsubst < templates/headscale.template.yaml > generated-config.yaml
-      
-      - name: Check for new options
+      - name: Check for new options via Makefile
         id: check
-        run: |
-          # Simple approach: extract keys and apply ignores
-          extract_keys() {
-            grep -E "^[[:space:]]*[^#\-].*:" "$1" | \
-            sed 's/:[[:space:]]*.*$//' | \
-            sed 's/^[[:space:]]*//' | \
-            sort -u
-          }
-
-          # Get list of keys to ignore from DIFF_IGNORE comments (including commented lines)
-          get_ignored_keys() {
-            grep "# DIFF_IGNORE" "templates/headscale.template.yaml" | \
-            sed -E 's/^[[:space:]]*#?[[:space:]]*//' | \
-            sed -E 's/:.*# DIFF_IGNORE.*$//' | \
-            sort -u
-          }
-
-          echo "=== Getting ignored keys ==="
-          get_ignored_keys > ignored_keys.txt
-          echo "Keys to ignore:"
-          cat ignored_keys.txt
-          echo "=== End ignored keys ==="
-
-          # Extract all keys
-          extract_keys "generated-config.yaml" > local_all_keys.txt
-          extract_keys "upstream-config.yaml" > upstream_all_keys.txt
-
-          # Normalize keys (strip optional leading '#' and surrounding spaces) and sort-unique
-          sed -E 's/^[[:space:]]*#?[[:space:]]*//' upstream_all_keys.txt | sed 's/[[:space:]]*$//' | sort -u > upstream_all_keys_norm.txt
-          sed -E 's/^[[:space:]]*#?[[:space:]]*//' local_all_keys.txt | sed 's/[[:space:]]*$//' | sort -u > local_all_keys_norm.txt
-
-          # Remove ignored keys from upstream (operate on normalized list)
-          cp upstream_all_keys_norm.txt upstream_filtered_keys.txt
-          while IFS= read -r ignore_key; do
-            if [ -n "$ignore_key" ]; then
-              grep -v "^${ignore_key}$" upstream_filtered_keys.txt > temp_filtered.txt
-              mv temp_filtered.txt upstream_filtered_keys.txt
-            fi
-          done < ignored_keys.txt
-
-          # Ensure upstream filtered file is sorted/unique for comm
-          sort -u upstream_filtered_keys.txt -o upstream_filtered_keys.txt
-
-          # Find missing keys using normalized local list
-          comm -23 upstream_filtered_keys.txt local_all_keys_norm.txt > new-options.txt
-
-          echo "Final comparison:"
-          echo "Local keys: $(wc -l < local_all_keys_norm.txt)"
-          echo "Upstream filtered keys: $(wc -l < upstream_filtered_keys.txt)"
-
-          if [ -s new-options.txt ]; then
-            echo "has_missing=true" >> $GITHUB_OUTPUT
-            echo "🆕 New configuration keys found:"
-            cat new-options.txt
-          else
-            echo "has_missing=false" >> $GITHUB_OUTPUT
-            echo "✅ No new configuration keys found"
-          fi
-
-          # Cleanup
-          rm -f ignored_keys.txt local_all_keys.txt upstream_all_keys.txt upstream_filtered_keys.txt temp_filtered.txt upstream_all_keys_norm.txt local_all_keys_norm.txt
+        continue-on-error: true
+        run: make check-config-drift
       
       - name: Comment on PR
-        if: github.event_name == 'pull_request' && steps.check.outputs.has_missing == 'true'
+        if: github.event_name == 'pull_request' && steps.check.outcome == 'failure'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -114,3 +36,7 @@ jobs:
               issue_number: context.issue.number,
               body: `## 🆕 New Headscale Config Options\n\n\`\`\`diff\n${newOptions.split('\n').map(line => line.trim() ? `+ ${line}` : '').filter(line => line).join('\n')}\`\`\``
             });
+
+      - name: Fail when new options are found
+        if: steps.check.outcome == 'failure'
+        run: exit 1
