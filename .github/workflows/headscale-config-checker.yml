@@ -23,11 +23,16 @@ jobs:
         run: make check-config-drift
       
       - name: Comment on PR
-        if: github.event_name == 'pull_request' && steps.check.outcome == 'failure'
+        if: github.event_name == 'pull_request' && steps.check.outcome == 'failure' && hashFiles('new-options.txt') != ''
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const fs = require('fs');
+            if (!fs.existsSync('new-options.txt')) {
+              console.log('Skipping PR comment because new-options.txt was not created.');
+              return;
+            }
+
             const newOptions = fs.readFileSync('new-options.txt', 'utf8');
             
             github.rest.issues.createComment({
