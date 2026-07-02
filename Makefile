@@ -118,11 +118,11 @@ check-config-drift: check-curl render-headscale-config
 			sort -u; \
 	}; \
 	get_ignored_keys() { \
-		grep '# DIFF_IGNORE' templates/headscale.template.yaml | \
-			sed -E 's/^[[:space:]]*#?[[:space:]]*//' | \
-			sed -E 's/:.*# DIFF_IGNORE.*$$//' | \
+		awk '/# DIFF_IGNORE/ { gsub(/^[[:space:]]*#?[[:space:]]*/, ""); sub(/:.*# DIFF_IGNORE.*/, ""); print }' \
+			templates/headscale.template.yaml | \
 			sort -u; \
 	}; \
+
 	get_ignored_keys > ignored_keys.txt; \
 	extract_keys generated-config.yaml > local_all_keys.txt; \
 	extract_keys upstream-config.yaml > upstream_all_keys.txt; \
