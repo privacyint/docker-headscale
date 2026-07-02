@@ -52,15 +52,13 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
         apk add --no-cache --virtual BuildTimeDeps git;
 
     WORKDIR /app
-    RUN git clone ${HEADSCALE_ADMIN_REPO} . && \
-        git checkout ${HEADSCALE_ADMIN_VERSION}
-
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
-    RUN npm install && npm run build;
-
-    RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
-
-    RUN apk del BuildTimeDeps
+    RUN git clone ${HEADSCALE_ADMIN_REPO} . && \
+        git checkout ${HEADSCALE_ADMIN_VERSION} && \
+        npm install && \
+        npm run build && \
+        mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT} && \
+        apk del BuildTimeDeps
 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
