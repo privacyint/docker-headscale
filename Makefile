@@ -6,6 +6,7 @@ DEFAULT_SMOKE_TEST_HOST := 127.0.0.1
 DEFAULT_SMOKE_TEST_PORT := 8008
 DEFAULT_HADOLINT_IMAGE := hadolint/hadolint:v2.12.0-alpine
 DEFAULT_SHELLCHECK_IMAGE := koalaman/shellcheck:v0.10.0
+DEFAULT_YQ_IMAGE := mikefarah/yq:4.44.3
 
 .DEFAULT_GOAL := help
 
@@ -101,43 +102,94 @@ render-headscale-config: check-envsubst
 	envsubst < templates/headscale.template.yaml > generated-config.yaml; \
 	printf '%s\n' 'Wrote generated-config.yaml'
 
-check-config-drift: check-curl render-headscale-config
+check-config-drift: check-curl check-docker render-headscale-config
 	@set -euo pipefail; \
 	version="$$(awk -F'"' '/^ARG HEADSCALE_VERSION=/{ print $$2; exit }' Dockerfile)"; \
+	yq_image="$${YQ_IMAGE:-$(DEFAULT_YQ_IMAGE)}"; \
 	cleanup() { \
-		rm -f ignored_keys.txt local_all_keys.txt upstream_all_keys.txt upstream_all_keys_norm.txt local_all_keys_norm.txt upstream_filtered_keys.txt temp_filtered.txt; \
+		rm -f ignored_paths.txt local_all_paths.txt upstream_all_paths.txt upstream_filtered_paths.txt temp_filtered.txt; \
 	}; \
 	trap cleanup EXIT; \
 	echo "Downloading upstream Headscale config for v$${version}"; \
 	curl --fail --silent --show-error -o upstream-config.yaml \
 		"https://raw.githubusercontent.com/juanfont/headscale/refs/tags/v$${version}/config-example.yaml"; \
-	extract_keys() { \
-		grep -E '^[[:space:]]*[^#\-].*:' "$$1" | \
-			sed 's/:[[:space:]]*.*$$//' | \
-			sed 's/^[[:space:]]*//' | \
+	extract_paths() { \
+		docker run --rm -i -v "$${PWD}:/workdir" -w /workdir --entrypoint yq "$${yq_image}" \
+			e '.. | path | select(length > 0) | map(select(tag == "!!str")) | select(length > 0) | join(".")' "$$1" | \
 			sort -u; \
 	}; \
-	get_ignored_keys() { \
-		awk '/# DIFF_IGNORE/ { gsub(/^[[:space:]]*#?[[:space:]]*/, ""); sub(/:.*# DIFF_IGNORE.*/, ""); print }' \
-			templates/headscale.template.yaml | \
+	get_ignored_paths() { \
+		awk 'BEGIN { depth = 0; } \
+			function get_indent(text) { \
+				indent = match(text, /[^ ]/) - 1; \
+				return indent < 0 ? 0 : indent; \
+			} \
+			function get_key(text) { \
+				key = text; \
+				sub(/^[[:space:]]*#[[:space:]]?/, "", key); \
+				sub(/^[[:space:]]*/, "", key); \
+				sub(/:.*/, "", key); \
+				return key; \
+			} \
+			function print_path(indent, key,    current_depth, current, path_index) { \
+				current_depth = depth; \
+				while (current_depth > 0 && indent <= indents[current_depth]) { \
+					current_depth--; \
+				} \
+				current = key; \
+				if (current_depth > 0) { \
+					current = path[1]; \
+					for (path_index = 2; path_index <= current_depth; path_index++) { \
+						current = current "." path[path_index]; \
+					} \
+					current = current "." key; \
+				} \
+				print current; \
+			} \
+			{ \
+				line = $$0; \
+				if (line ~ /# DIFF_IGNORE/ && line ~ /^[[:space:]]*#/) { \
+					candidate = line; \
+					sub(/[[:space:]]+# DIFF_IGNORE[[:space:]]*$$/, "", candidate); \
+					sub(/#/, "", candidate); \
+					if (candidate !~ /^[[:space:]]*[[:alnum:]_.-]+[[:space:]]*:[[:space:]]*([^#].*)?$$/) { \
+						next; \
+					} \
+					print_path(get_indent(candidate), get_key(candidate)); \
+					next; \
+				} \
+				if (line ~ /^[[:space:]]*[[:alnum:]_.-]+[[:space:]]*:[[:space:]]*([^#].*)?$$/) { \
+					indent = get_indent(line); \
+					key = get_key(line); \
+					while (depth > 0 && indent <= indents[depth]) { \
+						delete path[depth]; \
+						delete indents[depth]; \
+						depth--; \
+					} \
+					depth++; \
+					path[depth] = key; \
+					indents[depth] = indent; \
+					if (line ~ /# DIFF_IGNORE/) { \
+						print_path(indent, key); \
+					} \
+				} \
+			}' templates/headscale.template.yaml | \
 			sort -u; \
 	}; \
-	get_ignored_keys > ignored_keys.txt; \
-	extract_keys generated-config.yaml > local_all_keys.txt; \
-	extract_keys upstream-config.yaml > upstream_all_keys.txt; \
-	sed -E 's/^[[:space:]]*#?[[:space:]]*//' upstream_all_keys.txt | sed 's/[[:space:]]*$$//' | sort -u > upstream_all_keys_norm.txt; \
-	sed -E 's/^[[:space:]]*#?[[:space:]]*//' local_all_keys.txt | sed 's/[[:space:]]*$$//' | sort -u > local_all_keys_norm.txt; \
-	cp upstream_all_keys_norm.txt upstream_filtered_keys.txt; \
-	while IFS= read -r ignore_key; do \
-		if [[ -n "$${ignore_key}" ]]; then \
-			grep -v "^$${ignore_key}$$" upstream_filtered_keys.txt > temp_filtered.txt || true; \
-			mv temp_filtered.txt upstream_filtered_keys.txt; \
+	get_ignored_paths > ignored_paths.txt; \
+	extract_paths generated-config.yaml > local_all_paths.txt; \
+	extract_paths upstream-config.yaml > upstream_all_paths.txt; \
+	cp upstream_all_paths.txt upstream_filtered_paths.txt; \
+	while IFS= read -r ignore_path; do \
+		if [[ -n "$${ignore_path}" ]]; then \
+			grep -F -x -v "$${ignore_path}" upstream_filtered_paths.txt > temp_filtered.txt || true; \
+			mv temp_filtered.txt upstream_filtered_paths.txt; \
 		fi; \
-	done < ignored_keys.txt; \
-	sort -u upstream_filtered_keys.txt -o upstream_filtered_keys.txt; \
-	comm -23 upstream_filtered_keys.txt local_all_keys_norm.txt > new-options.txt; \
-	echo "Local keys: $$(wc -l < local_all_keys_norm.txt)"; \
-	echo "Upstream filtered keys: $$(wc -l < upstream_filtered_keys.txt)"; \
+	done < ignored_paths.txt; \
+	sort -u upstream_filtered_paths.txt -o upstream_filtered_paths.txt; \
+	comm -23 upstream_filtered_paths.txt local_all_paths.txt > new-options.txt; \
+	echo "Local paths: $$(wc -l < local_all_paths.txt)"; \
+	echo "Upstream filtered paths: $$(wc -l < upstream_filtered_paths.txt)"; \
 	if [[ -s new-options.txt ]]; then \
 		echo 'New configuration keys found:'; \
 		cat new-options.txt; \
