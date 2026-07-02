@@ -48,7 +48,7 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     ARG HEADSCALE_ADMIN_VERSION
     ARG HEADSCALE_ADMIN_ENDPOINT
 
-    # hadolint ignore=DL3018  # Ignore unpinned apk add
+    # hadolint ignore=DL3018
     RUN apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps git;
 
