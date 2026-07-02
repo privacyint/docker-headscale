@@ -122,7 +122,6 @@ check-config-drift: check-curl render-headscale-config
 			templates/headscale.template.yaml | \
 			sort -u; \
 	}; \
-
 	get_ignored_keys > ignored_keys.txt; \
 	extract_keys generated-config.yaml > local_all_keys.txt; \
 	extract_keys upstream-config.yaml > upstream_all_keys.txt; \
