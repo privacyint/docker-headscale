@@ -9,7 +9,7 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 | [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.24.1`](https://git.alpinelinux.org/aports/log/?h=v3.24.1) |
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.29.2`](https://github.com/juanfont/headscale/releases/tag/v0.29.2) |
 | [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`v0.28.0`](https://github.com/privacyint/headscale-admin/releases/tag/v0.28.0) |
-| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.13`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.13) |
+| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.14`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.14) |
 | [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.4`](https://github.com/caddyserver/caddy/releases/tag/v2.11.4) |
 
 NB: `Headscale-Admin` appears to have been abandoned by upstream. We have created a fork with patches so we can take advantage of the improvements in Headscale's `0.28.X` release.
