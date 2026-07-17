@@ -13,7 +13,7 @@ ARG LITESTREAM_SHA256="32083dd2af13840b273c538360b828368d7b82bbaa2c641106052dc78
 # We're building these from source, so we need to specify the versions here rather than hash
 ARG HEADSCALE_ADMIN_ENDPOINT="/admin"
 ARG HEADSCALE_ADMIN_REPO="https://github.com/privacyint/headscale-admin"
-ARG HEADSCALE_ADMIN_VERSION="v0.28.0"
+ARG HEADSCALE_ADMIN_VERSION="c3a2d210c387535fce5284582051519df5e8d8ab" # v0.29.2/update4
 ARG HEADSCALE_ADMIN_NODE_VERSION="25"
 
 # No checksum needed for these tools, we pull from official images
