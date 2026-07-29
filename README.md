@@ -7,7 +7,7 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 | Tool | Upstream Repository | Version |
 | --- | --- | --- |
 | [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.24.1`](https://git.alpinelinux.org/aports/log/?h=v3.24.1) |
-| [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.29.2`](https://github.com/juanfont/headscale/releases/tag/v0.29.2) |
+| [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.29.3`](https://github.com/juanfont/headscale/releases/tag/v0.29.3) |
 | [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`v0.29.2`](https://github.com/privacyint/headscale-admin/commit/c3a2d210c387535fce5284582051519df5e8d8ab) |
 | [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.15`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.15) |
 | [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.4`](https://github.com/caddyserver/caddy/releases/tag/v2.11.4) |
