@@ -429,6 +429,8 @@ configure_security_headers() {
 #######################################
 check_caddy_environment_variables() {
 	configure_security_headers
+	check_env_var_or_set_default "HEADSCALE_RATELIMIT_REGISTRATIONS_EVENTS" "${headscale_ratelimit_registrations_events}" '^[1-9][0-9]*$' "Must be a positive integer."
+	check_env_var_or_set_default "HEADSCALE_RATELIMIT_REGISTRATIONS_WINDOW" "${headscale_ratelimit_registrations_window}" '^[1-9][0-9]*(ns|us|ms|s|m|h)$' "Use a positive integer followed by a duration unit, e.g. 30s or 1m."
 
 	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
 		https_enabled=false
@@ -438,14 +440,11 @@ check_caddy_environment_variables() {
 		caddy_config_file="${caddyfile_https}"
 	fi
 
+	# The below _ONLY_ runs with an HTTPS-enabled Caddy frontend
 	require_env_var "ACME_ISSUANCE_EMAIL"
 	check_cloudflare_dns_api_key
 	check_zerossl_eab
 	check_ech_config
-
-	# Configure rate limiting on the registration endpoint
-	check_env_var_or_set_default "HEADSCALE_RATELIMIT_REGISTRATIONS_EVENTS" "${headscale_ratelimit_registrations_events}" '^[1-9][0-9]*$' "Must be a positive integer."
-	check_env_var_or_set_default "HEADSCALE_RATELIMIT_REGISTRATIONS_WINDOW" "${headscale_ratelimit_registrations_window}" '^[1-9][0-9]*(ns|us|ms|s|m|h)$' "Use a positive integer followed by a duration unit, e.g. 30s or 1m."
 }
 
 #######################################
