@@ -42,6 +42,19 @@ ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
 		file_server${SECURITY_HEADERS_BLOCK}
 	}
 
+	route {
+		rate_limit {
+			zone headscale_register {
+				match {
+					path /machine/register
+				}
+				key {remote_host}
+				events ${HEADSCALE_RATELIMIT_REGISTRATIONS_EVENTS}
+				window ${HEADSCALE_RATELIMIT_REGISTRATIONS_WINDOW}
+			}
+		}
+	}
+
 	handle {
 		reverse_proxy 127.0.0.1:8080 {
 			header_up True-Client-IP {remote_host}
