@@ -13,6 +13,9 @@ headscale_ip_allocation_default="sequential"
 headscale_gomaxprocs_default=1
 headscale_override_local_dns_default="true"
 
+headscale_ratelimit_registrations_events="30"
+headscale_ratelimit_registrations_window="1m"
+
 caddyfile_cleartext=/etc/caddy/Caddyfile-http
 caddyfile_https=/etc/caddy/Caddyfile-https
 headscale_config="/etc/headscale/config.yaml"
