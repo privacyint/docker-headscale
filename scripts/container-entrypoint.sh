@@ -442,6 +442,10 @@ check_caddy_environment_variables() {
 	check_cloudflare_dns_api_key
 	check_zerossl_eab
 	check_ech_config
+
+	# Configure rate limiting on the registration endpoint
+	check_env_var_or_set_default "HEADSCALE_RATELIMIT_REGISTRATIONS_EVENTS" "${headscale_ratelimit_registrations_events}" '^[1-9][0-9]*$' "Must be a positive integer."
+	check_env_var_or_set_default "HEADSCALE_RATELIMIT_REGISTRATIONS_WINDOW" "${headscale_ratelimit_registrations_window}" '^[1-9][0-9]*(ns|us|ms|s|m|h)$' "Use a positive integer followed by a duration unit, e.g. 30s or 1m."
 }
 
 #######################################
