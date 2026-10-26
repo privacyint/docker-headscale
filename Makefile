@@ -226,12 +226,20 @@ smoke-test: build
 		--env HEADSCALE_DNS_BASE_DOMAIN="$${HEADSCALE_DNS_BASE_DOMAIN:-example.com}" \
 		--env CADDY_FRONTEND="$${CADDY_FRONTEND:-DISABLE_HTTPS}" \
 		"$${image}" >/dev/null; \
+	exec_in_container() { \
+		if ! docker exec "$${container}" "$${@}"; then \
+			echo 'Smoke-test container command failed; collecting container state and logs'; \
+			docker inspect --format 'Running: {{.State.Running}}; exit code: {{.State.ExitCode}}; error: {{.State.Error}}' "$${container}" || true; \
+			docker logs "$${container}" || true; \
+			return 1; \
+		fi; \
+	}; \
 	echo 'Running version checks'; \
-	docker exec "$${container}" headscale version; \
-	docker exec "$${container}" litestream version; \
-	docker exec "$${container}" caddy version; \
+	exec_in_container headscale version; \
+	exec_in_container litestream version; \
+	exec_in_container caddy version; \
 	echo "Checking listener on port 8008 inside the container"; \
-	docker exec "$${container}" sh -c "netstat -tuln | grep ':8008 '"; \
+	exec_in_container sh -c "netstat -tuln | grep ':8008 '"; \
 	echo "Waiting for admin GUI on http://$${host}:$${port}/admin/"; \
 	for attempt in $$(seq 1 30); do \
 		if curl --silent --show-error --fail "http://$${host}:$${port}/admin/" > "$${admin_gui_html}"; then \
