@@ -4,21 +4,21 @@
 # Tool version arguments
 # Bump these every time there is a new release.
 # We're pulling these from github source, don't forget to bump the checksum!
-ARG HEADSCALE_VERSION="0.28.0"
-ARG HEADSCALE_SHA256="95f242a31003d60646d233b14a1acacac20d8f319886d0441df085cc3a920f2d"
+ARG HEADSCALE_VERSION="0.29.7"
+ARG HEADSCALE_SHA256="e827fc9b12d958bc95b081c4401dd63f8e0471d025b45b508535a920532150a8"
 
-ARG LITESTREAM_VERSION="0.5.11"
-ARG LITESTREAM_SHA256="2f80fdb6b0a0ff7a116ee37adf02d3de8e977ef76e052b28a6690218f0f7ab55"
+ARG LITESTREAM_VERSION="0.5.17"
+ARG LITESTREAM_SHA256="cfb371176d164437ae869f8351cfde49bd1804ae71c61923f75c9cba9c9c006d"
 
 # We're building these from source, so we need to specify the versions here rather than hash
 ARG HEADSCALE_ADMIN_ENDPOINT="/admin"
 ARG HEADSCALE_ADMIN_REPO="https://github.com/privacyint/headscale-admin"
-ARG HEADSCALE_ADMIN_VERSION="v0.28.0"
+ARG HEADSCALE_ADMIN_VERSION="c3a2d210c387535fce5284582051519df5e8d8ab" # v0.29.2/update4
 ARG HEADSCALE_ADMIN_NODE_VERSION="25"
 
 # No checksum needed for these tools, we pull from official images
-ARG CADDY_VERSION="2.11.2"
-ARG MAIN_IMAGE_ALPINE_VERSION="3.23.4"
+ARG CADDY_VERSION="2.11.7"
+ARG MAIN_IMAGE_ALPINE_VERSION="3.24.3"
 
 # github download links
 # These should never need adjusting unless the URIs change
@@ -48,20 +48,20 @@ FROM node:${HEADSCALE_ADMIN_NODE_VERSION}-alpine AS admin-gui
     ARG HEADSCALE_ADMIN_VERSION
     ARG HEADSCALE_ADMIN_ENDPOINT
 
+    # hadolint ignore=DL3018
     RUN apk --no-cache upgrade; \
         apk add --no-cache --virtual BuildTimeDeps git;
 
-    RUN git clone ${HEADSCALE_ADMIN_REPO} /app && \
-        cd /app && \
-        git checkout ${HEADSCALE_ADMIN_VERSION}
     WORKDIR /app
-
     ENV ENDPOINT="${HEADSCALE_ADMIN_ENDPOINT}"
-    RUN npm install && npm run build;
-
-    RUN mv /app/build /app${HEADSCALE_ADMIN_ENDPOINT}
-
-    RUN apk del BuildTimeDeps
+    RUN git init . && \
+        git remote add origin "${HEADSCALE_ADMIN_REPO}" && \
+        git fetch --depth 1 origin "${HEADSCALE_ADMIN_VERSION}" && \
+        git checkout FETCH_HEAD && \
+        npm install && \
+        npm run build && \
+        mv /app/build "/app${HEADSCALE_ADMIN_ENDPOINT}" && \
+        apk del BuildTimeDeps
 
 # Build our main image
 FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
