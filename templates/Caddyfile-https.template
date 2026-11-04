@@ -11,6 +11,7 @@
 
 http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT} {
 	handle /health {
+		bind 127.0.0.1
 		reverse_proxy /health 127.0.0.1:${PRIVATE_HEADSCALE_LISTEN_PORT}
 	}
 	handle {
