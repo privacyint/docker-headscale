@@ -2,7 +2,7 @@
 # This is a defaults file
 # shellcheck disable=SC2034
 public_listen_port_https_default=443
-public_listen_port_http_default=8080
+public_listen_port_http_default=8008
 
 headscale_ephemeral_node_inactivity_timeout_default="30m"
 headscale_extra_records_path_default="/data/headscale/extra-records.json"
@@ -23,6 +23,6 @@ headscale_config="/etc/headscale/config.yaml"
 headscale_global_nameservers_default=("1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001")
 
 private_healthcheck_port_default=9999
-private_headscale_listen_port_default=8008
+private_headscale_listen_port_default=8080
 private_metrics_listen_port_default=9090
 private_grpc_listen_port_default=50443

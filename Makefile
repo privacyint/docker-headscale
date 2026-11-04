@@ -212,7 +212,7 @@ smoke-test: build
 	frontend="$${CADDY_FRONTEND-DISABLE_HTTPS}"; \
 	listen_port="$${PUBLIC_LISTEN_PORT:-}"; \
 	if [[ -z "$${listen_port}" ]]; then \
-		if [[ "$${frontend}" == 'DISABLE_HTTPS' ]]; then listen_port=8080; else listen_port=443; fi; \
+		if [[ "$${frontend}" == 'DISABLE_HTTPS' ]]; then listen_port=8008; else listen_port=443; fi; \
 	fi; \
 	admin_gui_html="$$(mktemp)"; \
 	redirect_headers="$$(mktemp)"; \
