@@ -68,6 +68,7 @@ check_listener_port_conflicts() {
 		"PRIVATE_HEADSCALE_LISTEN_PORT"
 		"PRIVATE_METRICS_LISTEN_PORT"
 		"PRIVATE_GRPC_LISTEN_PORT"
+		"CADDY_ADMIN_PORT"
 	)
 	local -a port_values=(
 		"${PUBLIC_LISTEN_PORT}"
@@ -75,6 +76,7 @@ check_listener_port_conflicts() {
 		"${PRIVATE_HEADSCALE_LISTEN_PORT}"
 		"${PRIVATE_METRICS_LISTEN_PORT}"
 		"${PRIVATE_GRPC_LISTEN_PORT}"
+		"2019"
 	)
 	local index other_index
 	for ((index = 0; index < ${#port_values[@]}; index++)); do
