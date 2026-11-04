@@ -82,6 +82,10 @@ check_listener_port_conflicts() {
 		"${PRIVATE_GRPC_LISTEN_PORT}"
 		"2019"
 	)
+	if "${https_enabled}"; then
+		port_names+=("CADDY_HTTP_PORT")
+		port_values+=("80")
+	fi
 	local index other_index
 	for ((index = 0; index < ${#port_values[@]}; index++)); do
 		for ((other_index = index + 1; other_index < ${#port_values[@]}; other_index++)); do
