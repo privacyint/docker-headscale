@@ -51,13 +51,28 @@ check_private_healthcheck_port() {
 check_private_headscale_listen_port() {
 	check_env_var_or_set_default "PRIVATE_HEADSCALE_LISTEN_PORT" "${private_headscale_listen_port_default}"
 	validate_port "PRIVATE_HEADSCALE_LISTEN_PORT"
+	check_env_var_or_set_default "PRIVATE_METRICS_LISTEN_PORT" "${private_metrics_listen_port_default}"
+	validate_port "PRIVATE_METRICS_LISTEN_PORT"
+	check_env_var_or_set_default "PRIVATE_GRPC_LISTEN_PORT" "${private_grpc_listen_port_default}"
+	validate_port "PRIVATE_GRPC_LISTEN_PORT"
 
-	if [[ "${PUBLIC_LISTEN_PORT}" -eq "${PRIVATE_HEADSCALE_LISTEN_PORT}" ]]; then
-		log_error "Public listen port and private headscale listen port should not be the same"
-	fi
-	if [[ "${PRIVATE_HEALTHCHECK_PORT}" -eq "${PRIVATE_HEADSCALE_LISTEN_PORT}" ]]; then
-		log_error "Private healthcheck port and private headscale listen port should not be the same"
-	fi
+	local -a port_vars=(
+		"PUBLIC_LISTEN_PORT"
+		"PRIVATE_HEALTHCHECK_PORT"
+		"PRIVATE_HEADSCALE_LISTEN_PORT"
+		"PRIVATE_METRICS_LISTEN_PORT"
+		"PRIVATE_GRPC_LISTEN_PORT"
+	)
+	local index other_index port_var other_var
+	for ((index = 0; index < ${#port_vars[@]}; index++)); do
+		for ((other_index = index + 1; other_index < ${#port_vars[@]}; other_index++)); do
+			port_var="${port_vars[index]}"
+			other_var="${port_vars[other_index]}"
+			if [[ "${!port_var}" -eq "${!other_var}" ]]; then
+				log_error "Ports '${port_var}' and '${other_var}' must be different (both are ${!port_var})."
+			fi
+		done
+	done
 }
 
 #######################################
@@ -555,6 +570,8 @@ check_config_files() {
 		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
 		"PRIVATE_HEADSCALE_LISTEN_PORT"
+		"PRIVATE_METRICS_LISTEN_PORT"
+		"PRIVATE_GRPC_LISTEN_PORT"
 		"PRIVATE_HEALTHCHECK_PORT"
 		"HEADSCALE_DNS_BASE_DOMAIN"
 		"HEADSCALE_OVERRIDE_LOCAL_DNS"

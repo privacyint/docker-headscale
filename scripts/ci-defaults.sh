@@ -17,3 +17,5 @@ export EPHEMERAL_NODE_INACTIVITY_TIMEOUT="$headscale_ephemeral_node_inactivity_t
 export GLOBAL_NAMESERVERS_YAML="$headscale_global_nameservers_default"
 export PRIVATE_HEALTHCHECK_PORT="$private_healthcheck_port_default"
 export PRIVATE_HEADSCALE_LISTEN_PORT="$private_headscale_listen_port_default"
+export PRIVATE_METRICS_LISTEN_PORT="$private_metrics_listen_port_default"
+export PRIVATE_GRPC_LISTEN_PORT="$private_grpc_listen_port_default"
