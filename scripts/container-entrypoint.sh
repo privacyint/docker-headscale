@@ -47,6 +47,9 @@ check_public_listen_port() {
 check_private_healthcheck_port() {
 	check_env_var_or_set_default "PRIVATE_HEALTHCHECK_PORT" "${private_healthcheck_port_default}"
 	validate_port "PRIVATE_HEALTHCHECK_PORT"
+	if [[ "${PRIVATE_HEALTHCHECK_PORT}" -eq 443 ]]; then
+		log_error "PRIVATE_HEALTHCHECK_PORT cannot be 443 because the health listener uses HTTP. Choose another port."
+	fi
 }
 
 #######################################
