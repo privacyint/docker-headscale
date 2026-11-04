@@ -209,6 +209,11 @@ smoke-test: build
 	container="$${SMOKE_TEST_CONTAINER:-$(DEFAULT_SMOKE_TEST_CONTAINER)}"; \
 	host="$${SMOKE_TEST_HOST:-$(DEFAULT_SMOKE_TEST_HOST)}"; \
 	port="$${SMOKE_TEST_PORT:-$(DEFAULT_SMOKE_TEST_PORT)}"; \
+	frontend="$${CADDY_FRONTEND-DISABLE_HTTPS}"; \
+	listen_port="$${PUBLIC_LISTEN_PORT:-}"; \
+	if [[ -z "$${listen_port}" ]]; then \
+		if [[ "$${frontend}" == 'DISABLE_HTTPS' ]]; then listen_port=8080; else listen_port=443; fi; \
+	fi; \
 	admin_gui_html="$$(mktemp)"; \
 	redirect_headers="$$(mktemp)"; \
 	cleanup() { \
@@ -220,11 +225,12 @@ smoke-test: build
 	docker rm -f "$${container}" >/dev/null 2>&1 || true; \
 	echo "Starting container: $${container}"; \
 	docker run -d --name "$${container}" \
-		-p "$${host}:$${port}:8008" \
+		-p "$${host}:$${port}:$${listen_port}" \
 		--env LITESTREAM_REPLICA_URL="$${SMOKE_TEST_LITESTREAM_REPLICA_URL:-DISABLED_I_KNOW_WHAT_IM_DOING}" \
 		--env PUBLIC_SERVER_URL="$${PUBLIC_SERVER_URL:-https://headscale.example.com}" \
+		--env PUBLIC_LISTEN_PORT="$${listen_port}" \
 		--env HEADSCALE_DNS_BASE_DOMAIN="$${HEADSCALE_DNS_BASE_DOMAIN:-example.com}" \
-		--env CADDY_FRONTEND="$${CADDY_FRONTEND:-DISABLE_HTTPS}" \
+		--env CADDY_FRONTEND="$${frontend}" \
 		"$${image}" >/dev/null; \
 	exec_in_container() { \
 		if ! docker exec "$${container}" "$${@}"; then \
@@ -238,8 +244,8 @@ smoke-test: build
 	exec_in_container headscale version; \
 	exec_in_container litestream version; \
 	exec_in_container caddy version; \
-	echo "Checking listener on port 8008 inside the container"; \
-	exec_in_container sh -c "netstat -tuln | grep ':8008 '"; \
+	echo "Checking listener on port $${listen_port} inside the container"; \
+	exec_in_container sh -c "netstat -tuln | grep ':$${listen_port} '"; \
 	echo "Waiting for admin GUI on http://$${host}:$${port}/admin/"; \
 	for attempt in $$(seq 1 30); do \
 		if curl --silent --show-error --fail "http://$${host}:$${port}/admin/" > "$${admin_gui_html}"; then \
