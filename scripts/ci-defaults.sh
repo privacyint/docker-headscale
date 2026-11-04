@@ -7,7 +7,7 @@
 export IP_PREFIXES="v4: $headscale_ipv4_prefix_default
   v6: $headscale_ipv6_prefix_default"
 export PUBLIC_SERVER_URL="example.com"
-export PUBLIC_LISTEN_PORT="$public_listen_port_default"
+export PUBLIC_LISTEN_PORT="$public_listen_port_https_default"
 export HEADSCALE_DNS_BASE_DOMAIN="example.com"
 export HEADSCALE_OVERRIDE_LOCAL_DNS="$headscale_override_local_dns_default"
 export MAGIC_DNS="$headscale_magic_dns_default"
