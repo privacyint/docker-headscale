@@ -524,9 +524,9 @@ reuse_or_create_noise_private_key() {
 check_config_files() {
 	configure_https_mode
 
-	check_headscale_environment_vars
-
 	check_caddy_environment_variables
+
+	check_headscale_environment_vars
 
 	build_global_nameservers_yaml
 
