@@ -55,21 +55,32 @@ check_private_headscale_listen_port() {
 	validate_port "PRIVATE_METRICS_LISTEN_PORT"
 	check_env_var_or_set_default "PRIVATE_GRPC_LISTEN_PORT" "${private_grpc_listen_port_default}"
 	validate_port "PRIVATE_GRPC_LISTEN_PORT"
+}
 
-	local -a port_vars=(
+
+#######################################
+# Check configured ports for conflicts
+#######################################
+check_listener_port_conflicts() {
+	local -a port_names=(
 		"PUBLIC_LISTEN_PORT"
 		"PRIVATE_HEALTHCHECK_PORT"
 		"PRIVATE_HEADSCALE_LISTEN_PORT"
 		"PRIVATE_METRICS_LISTEN_PORT"
 		"PRIVATE_GRPC_LISTEN_PORT"
 	)
-	local index other_index port_var other_var
-	for ((index = 0; index < ${#port_vars[@]}; index++)); do
-		for ((other_index = index + 1; other_index < ${#port_vars[@]}; other_index++)); do
-			port_var="${port_vars[index]}"
-			other_var="${port_vars[other_index]}"
-			if [[ "${!port_var}" -eq "${!other_var}" ]]; then
-				log_error "Ports '${port_var}' and '${other_var}' must be different (both are ${!port_var})."
+	local -a port_values=(
+		"${PUBLIC_LISTEN_PORT}"
+		"${PRIVATE_HEALTHCHECK_PORT}"
+		"${PRIVATE_HEADSCALE_LISTEN_PORT}"
+		"${PRIVATE_METRICS_LISTEN_PORT}"
+		"${PRIVATE_GRPC_LISTEN_PORT}"
+	)
+	local index other_index
+	for ((index = 0; index < ${#port_values[@]}; index++)); do
+		for ((other_index = index + 1; other_index < ${#port_values[@]}; other_index++)); do
+			if [[ "${port_values[index]}" -eq "${port_values[other_index]}" ]]; then
+				log_error "Ports '${port_names[index]}' and '${port_names[other_index]}' must be different (both are ${port_values[index]})."
 			fi
 		done
 	done
@@ -484,10 +495,6 @@ check_caddy_ports() {
 	# Check they're set or default them
 	check_public_listen_port  # This is also done by Headscale config checker, better to be redundant
 	check_private_healthcheck_port
-
-	if [[ "${PUBLIC_LISTEN_PORT}" -eq "${PRIVATE_HEALTHCHECK_PORT}" ]]; then
-		log_error "Public listen port and private healthcheck port should not be the same"
-	fi
 }
 
 #######################################
@@ -558,6 +565,7 @@ check_config_files() {
 	check_caddy_environment_variables
 
 	check_headscale_environment_vars
+	check_listener_port_conflicts
 
 	build_global_nameservers_yaml
 
