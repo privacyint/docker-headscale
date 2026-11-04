@@ -10,8 +10,12 @@
 }
 
 http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT} {
-	reverse_proxy /health 127.0.0.1:${PRIVATE_HEADSCALE_LISTEN_PORT}
-	respond 404
+	handle /health {
+		reverse_proxy /health 127.0.0.1:${PRIVATE_HEADSCALE_LISTEN_PORT}
+	}
+	handle {
+		respond 404
+	}
 }
 
 ${PUBLIC_SERVER_URL}:${PUBLIC_LISTEN_PORT} {
