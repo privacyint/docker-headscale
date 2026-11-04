@@ -148,6 +148,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
 
     # Check that Headscale and Caddy are responding
     HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-        CMD wget -q -O /dev/null "http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT:-9999}/health" || exit 1
+        CMD wget --no-proxy -q -O /dev/null "http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT:-9999}/health" || exit 1
 
     ENTRYPOINT ["/usr/local/bin/container-entrypoint.sh"]
