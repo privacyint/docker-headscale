@@ -16,7 +16,7 @@ http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT} {
 	}
 }
 
-:${PUBLIC_LISTEN_PORT} {
+http://:${PUBLIC_LISTEN_PORT} {
 	# Tailscale captive portal detection
 	handle /generate_204 {
 		respond 204
