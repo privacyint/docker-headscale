@@ -28,8 +28,22 @@ SECURITY_HEADERS_BLOCK=""
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-	check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_default}"
+	if "${https_enabled}"; then
+		check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_https_default}"
+	else
+		check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_http_default}"
+	fi
+
 	validate_port "PUBLIC_LISTEN_PORT"
+}
+
+#######################################
+# Set HTTPS mode from CADDY_FRONTEND
+#######################################
+configure_https_mode() {
+	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
+		https_enabled=false
+	fi
 }
 
 #######################################
@@ -430,8 +444,7 @@ configure_security_headers() {
 check_caddy_environment_variables() {
 	configure_security_headers
 
-	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
-		https_enabled=false
+	if ! "${https_enabled}"; then
 		caddy_config_file="${caddyfile_cleartext}"
 		return
 	else
@@ -486,6 +499,8 @@ reuse_or_create_noise_private_key() {
 # Create our configuration files
 #######################################
 check_config_files() {
+	configure_https_mode
+
 	check_headscale_environment_vars
 
 	check_caddy_environment_variables

@@ -6,7 +6,7 @@
 	auto_https off
 }
 
-:8008 {
+:${PUBLIC_LISTEN_PORT} {
 	# Tailscale captive portal detection
 	handle /generate_204 {
 		respond 204
