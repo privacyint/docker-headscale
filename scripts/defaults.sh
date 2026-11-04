@@ -23,3 +23,4 @@ headscale_config="/etc/headscale/config.yaml"
 headscale_global_nameservers_default=("1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001")
 
 private_healthcheck_port_default=9999
+private_headscale_listen_port_default=8008

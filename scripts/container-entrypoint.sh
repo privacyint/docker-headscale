@@ -46,6 +46,21 @@ check_private_healthcheck_port() {
 }
 
 #######################################
+# Set default or validate PRIVATE_HEADSCALE_LISTEN_PORT
+#######################################
+check_private_headscale_listen_port() {
+	check_env_var_or_set_default "PRIVATE_HEADSCALE_LISTEN_PORT" "${private_headscale_listen_port_default}"
+	validate_port "PRIVATE_HEADSCALE_LISTEN_PORT"
+
+	if [[ "${PUBLIC_LISTEN_PORT}" -eq "${PRIVATE_HEADSCALE_LISTEN_PORT}" ]]; then
+		log_error "Public listen port and private headscale listen port should not be the same"
+	fi
+	if [[ "${PRIVATE_HEALTHCHECK_PORT}" -eq "${PRIVATE_HEADSCALE_LISTEN_PORT}" ]]; then
+		log_error "Private healthcheck port and private headscale listen port should not be the same"
+	fi
+}
+
+#######################################
 # Set HTTPS mode from CADDY_FRONTEND
 #######################################
 configure_https_mode() {
@@ -276,6 +291,7 @@ build_global_nameservers_yaml() {
 check_headscale_environment_vars() {
 	log_info "Checking Headscale environment variables..."
 	check_public_listen_port
+	check_private_headscale_listen_port
 	configure_gomaxprocs
 	check_litestream_replica_url
 	validate_oidc_settings
@@ -538,6 +554,7 @@ check_config_files() {
 		"SECURITY_HEADERS_BLOCK"
 		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
+		"PRIVATE_HEADSCALE_LISTEN_PORT"
 		"PRIVATE_HEALTHCHECK_PORT"
 		"HEADSCALE_DNS_BASE_DOMAIN"
 		"HEADSCALE_OVERRIDE_LOCAL_DNS"

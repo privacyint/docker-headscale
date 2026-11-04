@@ -7,7 +7,7 @@
 }
 
 http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT} {
-	reverse_proxy /health 127.0.0.1:8080
+	reverse_proxy /health 127.0.0.1:${PRIVATE_HEADSCALE_LISTEN_PORT}
 	respond 404
 }
 
@@ -40,7 +40,7 @@ http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT} {
 	}
 
 	handle {
-		reverse_proxy 127.0.0.1:8080 {
+		reverse_proxy 127.0.0.1:${PRIVATE_HEADSCALE_LISTEN_PORT} {
 			header_up True-Client-IP {remote_host}
 			header_up X-Real-IP {remote_host}
 		}${SECURITY_HEADERS_BLOCK}
