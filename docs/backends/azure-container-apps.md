@@ -66,6 +66,7 @@ export STORAGE_SHARE_NAME=hs-data
 export STORAGE_MOUNT_NAME=hsdata
 export PUBLIC_SERVER_URL=$publicServerURL
 export HEADSCALE_DNS_BASE_DOMAIN=$tailnetInternalDomain
+export PUBLIC_LISTEN_PORT="${PUBLIC_LISTEN_PORT:-8008}"
 ```
 
 ## Step 2: Create your Azure resources
@@ -135,9 +136,10 @@ az containerapp up \
   --location $LOCATION \
   --source . \
   --ingress external \
-  --target-port 8008 \
+  --target-port "$PUBLIC_LISTEN_PORT" \
   --env-vars \
     PUBLIC_SERVER_URL=$PUBLIC_SERVER_URL \
+    PUBLIC_LISTEN_PORT=$PUBLIC_LISTEN_PORT \
     HEADSCALE_DNS_BASE_DOMAIN=$HEADSCALE_DNS_BASE_DOMAIN \
     CADDY_FRONTEND=DISABLE_HTTPS \
     LITESTREAM_REPLICA_URL=DISABLED_I_KNOW_WHAT_IM_DOING
@@ -170,13 +172,15 @@ properties:
   configuration:
     ingress:
       external: true
-      targetPort: 8008
+      targetPort: $PUBLIC_LISTEN_PORT
   template:
     containers:
       - image: <existing image value>
         env:
           - name: CADDY_FRONTEND
             value: DISABLE_HTTPS
+          - name: PUBLIC_LISTEN_PORT
+            value: "$PUBLIC_LISTEN_PORT"
         volumeMounts:
           - volumeName: hs-data
             mountPath: /data

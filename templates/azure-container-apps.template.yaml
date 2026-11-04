@@ -10,7 +10,7 @@ properties:
     ingress:
       allowInsecure: false
       external: true
-      targetPort: 8008
+      targetPort: ${PUBLIC_LISTEN_PORT}
       transport: auto
     # For shared-key Azure Blob replication, add a secret entry here.
     # Then add a `LITESTREAM_AZURE_ACCOUNT_KEY` env var under the container's
@@ -29,6 +29,8 @@ properties:
         env:
           - name: PUBLIC_SERVER_URL
             value: ${PUBLIC_SERVER_URL}
+          - name: PUBLIC_LISTEN_PORT
+            value: "${PUBLIC_LISTEN_PORT}"
           - name: HEADSCALE_DNS_BASE_DOMAIN
             value: ${HEADSCALE_DNS_BASE_DOMAIN}
           - name: CADDY_FRONTEND

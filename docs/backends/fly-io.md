@@ -74,6 +74,7 @@ flyctl certs add $publicServerURL
 ## Step 5: Customise your configuration
 
 Create a customised `fly.toml` configuration file in the root of your project from the template:
+The cleartext listener defaults to port `8008`. Set `PUBLIC_LISTEN_PORT` before rendering to use another supported port; the rendered Fly ingress and container environment will use the same value.
 
 ```sh
 export FLY_APP=$yourAppName

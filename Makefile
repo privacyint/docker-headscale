@@ -81,8 +81,11 @@ render-fly-config: check-envsubst
 	@: $${FLY_APP:?Set FLY_APP}
 	@: $${PUBLIC_SERVER_URL:?Set PUBLIC_SERVER_URL}
 	@: $${HEADSCALE_DNS_BASE_DOMAIN:?Set HEADSCALE_DNS_BASE_DOMAIN}
-	@envsubst < templates/fly.template.toml > fly.toml
-	@printf '%s\n' 'Wrote fly.toml'
+	@set -euo pipefail; \
+	source scripts/defaults.sh; \
+	export PUBLIC_LISTEN_PORT="$${PUBLIC_LISTEN_PORT:-$${public_listen_port_http_default}}"; \
+	envsubst < templates/fly.template.toml > fly.toml; \
+	printf '%s\n' 'Wrote fly.toml'
 
 render-azure-container-apps: check-envsubst
 	@: $${LOCATION:?Set LOCATION}
@@ -92,8 +95,11 @@ render-azure-container-apps: check-envsubst
 	@: $${STORAGE_MOUNT_NAME:?Set STORAGE_MOUNT_NAME}
 	@: $${PUBLIC_SERVER_URL:?Set PUBLIC_SERVER_URL}
 	@: $${HEADSCALE_DNS_BASE_DOMAIN:?Set HEADSCALE_DNS_BASE_DOMAIN}
-	@envsubst < templates/azure-container-apps.template.yaml > azure-container-apps.yaml
-	@printf '%s\n' 'Wrote azure-container-apps.yaml'
+	@set -euo pipefail; \
+	source scripts/defaults.sh; \
+	export PUBLIC_LISTEN_PORT="$${PUBLIC_LISTEN_PORT:-$${public_listen_port_http_default}}"; \
+	envsubst < templates/azure-container-apps.template.yaml > azure-container-apps.yaml; \
+	printf '%s\n' 'Wrote azure-container-apps.yaml'
 
 render-headscale-config: check-envsubst
 	@set -euo pipefail; \
