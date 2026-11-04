@@ -35,6 +35,10 @@ check_public_listen_port() {
 	fi
 
 	validate_port "PUBLIC_LISTEN_PORT"
+
+	if ! "${https_enabled}" && [[ "${PUBLIC_LISTEN_PORT}" -eq 443 ]]; then
+		log_error "PUBLIC_LISTEN_PORT cannot be 443 when HTTPS is disabled; Caddy requires an HTTPS scheme on port 443. Choose another port."
+	fi
 }
 
 #######################################
