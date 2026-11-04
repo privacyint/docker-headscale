@@ -6,6 +6,11 @@
 	auto_https off
 }
 
+http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT} {
+	reverse_proxy /health 127.0.0.1:8080
+	respond 404
+}
+
 :${PUBLIC_LISTEN_PORT} {
 	# Tailscale captive portal detection
 	handle /generate_204 {

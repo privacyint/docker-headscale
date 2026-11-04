@@ -38,6 +38,14 @@ check_public_listen_port() {
 }
 
 #######################################
+# Set default or validate PRIVATE_HEALTHCHECK_PORT
+#######################################
+check_private_healthcheck_port() {
+	check_env_var_or_set_default "PRIVATE_HEALTHCHECK_PORT" "${private_healthcheck_port_default}"
+	validate_port "PRIVATE_HEALTHCHECK_PORT"
+}
+
+#######################################
 # Set HTTPS mode from CADDY_FRONTEND
 #######################################
 configure_https_mode() {
@@ -439,10 +447,25 @@ configure_security_headers() {
 }
 
 #######################################
+# Check Caddy ports for conflicts
+#######################################
+check_caddy_ports() {
+	# Check they're set or default them
+	check_public_listen_port  # This is also done by Headscale config checker, better to be redundant
+	check_private_healthcheck_port
+
+	if [[ "${PUBLIC_LISTEN_PORT}" -eq "${PRIVATE_HEALTHCHECK_PORT}" ]]; then
+		log_error "Public listen port and private healthcheck port should not be the same"
+	fi
+}
+
+#######################################
 # Validate Caddy environment variables
 #######################################
 check_caddy_environment_variables() {
 	configure_security_headers
+
+	check_caddy_ports
 
 	if ! "${https_enabled}"; then
 		caddy_config_file="${caddyfile_cleartext}"
@@ -515,6 +538,7 @@ check_config_files() {
 		"SECURITY_HEADERS_BLOCK"
 		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
+		"PRIVATE_HEALTHCHECK_PORT"
 		"HEADSCALE_DNS_BASE_DOMAIN"
 		"HEADSCALE_OVERRIDE_LOCAL_DNS"
 		"MAGIC_DNS"
