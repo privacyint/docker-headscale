@@ -38,6 +38,24 @@ For provider deployment templates, this repo includes `make` targets that render
 
 The container entrypoint script will guide you on any errors.
 
+## Port configuration
+
+The default ports are suitable for the bundled Fly.io and Azure Container Apps templates. The public listener depends on whether Caddy handles HTTPS:
+
+| Environment variable | Default | Purpose |
+| --- | --- | --- |
+| `PUBLIC_LISTEN_PORT` | `443` with HTTPS; `8008` with `CADDY_FRONTEND=DISABLE_HTTPS` | Caddy's public listener |
+| `PRIVATE_HEADSCALE_LISTEN_PORT` | `8080` | Headscale's loopback-only HTTP listener |
+| `PRIVATE_METRICS_LISTEN_PORT` | `9090` | Headscale's loopback-only metrics listener; set to `disabled` to turn it off |
+| `PRIVATE_GRPC_LISTEN_PORT` | `50443` | Headscale's loopback-only gRPC listener |
+| `PRIVATE_HEALTHCHECK_PORT` | `9999` | Caddy's loopback-only healthcheck listener |
+
+If you override `PUBLIC_LISTEN_PORT`, use the same value for the platform's ingress target. The Fly.io and Azure Container Apps templates do this automatically when rendered; their cleartext default is `8008`. The private listeners are for communication within the container and should not be exposed through platform ingress.
+
+Unset `PRIVATE_METRICS_LISTEN_PORT` to use the `9090` default. Set it to `disabled` to turn off metrics. An explicitly empty value or the literal string `null` also disables the listener. Some deployment formats treat an unquoted YAML `null` as an unset variable, so use `disabled`, `""`, or `"null"` when disabling it.
+
+All listener ports must be distinct. Caddy also uses port `2019` for its admin API, and in HTTPS mode it uses port `80` for redirects and ACME HTTP challenges. Caddy's cleartext configuration cannot use port `443`; the healthcheck listener also cannot use `443` because it serves plain HTTP.
+
 ## Configuring upstream/global nameservers
 
 You can control the nameservers exposed to clients via the `GLOBAL_NAMESERVERS` environment variable. Provide a space-separated list of IP addresses (IPv4 or IPv6). If omitted, the container falls back to the defaults defined in `scripts/defaults.sh`.
