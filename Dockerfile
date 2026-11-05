@@ -76,14 +76,12 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     ARG LITESTREAM_SHA256
 
     # Upgrade system and install various dependencies
-    # - BusyBox's wget isn't reliable enough
+    # - BusyBox's wget isn't reliable enough, get GNU's. We also use it in healthcheck
     # - I'm gonna need a better shell
     # - gettext provides `envsubst` for templating
     # hadolint ignore=DL3018,SC2086
-    RUN BUILD_DEPS="wget"; \
-        RUNTIME_DEPS="bash gettext"; \
+    RUN RUNTIME_DEPS="wget bash gettext"; \
         apk --no-cache upgrade; \
-        apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}; \
         apk add --no-cache ${RUNTIME_DEPS}
 
     # Copy caddy from the first stage
@@ -135,9 +133,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     
     # Headscale web GUI
     COPY --from=admin-gui /app/admin/ /admin-gui/admin/
-    
-    # Remove build-time dependencies
-    RUN apk del BuildTimeDeps
 
     # Copy configuration templates
     COPY ./templates/headscale.template.yaml /etc/headscale/config.yaml
@@ -149,10 +144,10 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY --chmod=755 ./scripts/ /usr/local/bin/
 
     # Default HTTPS port - override with $PUBLIC_LISTEN_PORT environment variable
-    EXPOSE 443
+    EXPOSE ${PUBLIC_LISTEN_PORT:-443}
 
-    # Health check to ensure services are running
+    # Check that Headscale and Caddy are responding
     HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-        CMD headscale version && caddy version || exit 1
+        CMD wget --no-proxy -q -O /dev/null "http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT:-9999}/health" || exit 1
 
     ENTRYPOINT ["/usr/local/bin/container-entrypoint.sh"]

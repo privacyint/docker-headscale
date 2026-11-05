@@ -28,8 +28,97 @@ SECURITY_HEADERS_BLOCK=""
 # Set default or validate PUBLIC_LISTEN_PORT
 #######################################
 check_public_listen_port() {
-	check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_default}"
+	if "${https_enabled}"; then
+		check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_https_default}"
+	else
+		check_env_var_or_set_default "PUBLIC_LISTEN_PORT" "${public_listen_port_http_default}"
+	fi
+
 	validate_port "PUBLIC_LISTEN_PORT"
+
+	if ! "${https_enabled}" && [[ "${PUBLIC_LISTEN_PORT}" -eq 443 ]]; then
+		log_error "PUBLIC_LISTEN_PORT cannot be 443 when HTTPS is disabled; Caddy requires an HTTPS scheme on port 443. Choose another port."
+	fi
+}
+
+#######################################
+# Set default or validate PRIVATE_HEALTHCHECK_PORT
+#######################################
+check_private_healthcheck_port() {
+	check_env_var_or_set_default "PRIVATE_HEALTHCHECK_PORT" "${private_healthcheck_port_default}"
+	validate_port "PRIVATE_HEALTHCHECK_PORT"
+	if [[ "${PRIVATE_HEALTHCHECK_PORT}" -eq 443 ]]; then
+		log_error "PRIVATE_HEALTHCHECK_PORT cannot be 443 because the health listener uses HTTP. Choose another port."
+	fi
+}
+
+#######################################
+# Set default or validate PRIVATE_HEADSCALE_LISTEN_PORT
+#######################################
+check_private_headscale_listen_port() {
+	check_env_var_or_set_default "PRIVATE_HEADSCALE_LISTEN_PORT" "${private_headscale_listen_port_default}"
+	validate_port "PRIVATE_HEADSCALE_LISTEN_PORT"
+	if ! env_var_is_defined "PRIVATE_METRICS_LISTEN_PORT"; then
+		export PRIVATE_METRICS_LISTEN_PORT="${private_metrics_listen_port_default}"
+	fi
+	case "${PRIVATE_METRICS_LISTEN_PORT,,}" in
+		""|null|disabled)
+			PRIVATE_METRICS_LISTEN_PORT=""
+			export PRIVATE_METRICS_LISTEN_ADDR=""
+			;;
+		*)
+			validate_port "PRIVATE_METRICS_LISTEN_PORT"
+			export PRIVATE_METRICS_LISTEN_ADDR="127.0.0.1:${PRIVATE_METRICS_LISTEN_PORT}"
+			;;
+	esac
+	check_env_var_or_set_default "PRIVATE_GRPC_LISTEN_PORT" "${private_grpc_listen_port_default}"
+	validate_port "PRIVATE_GRPC_LISTEN_PORT"
+}
+
+
+#######################################
+# Check configured ports for conflicts
+#######################################
+check_listener_port_conflicts() {
+	local -a port_names=(
+		"PUBLIC_LISTEN_PORT"
+		"PRIVATE_HEALTHCHECK_PORT"
+		"PRIVATE_HEADSCALE_LISTEN_PORT"
+		"PRIVATE_GRPC_LISTEN_PORT"
+		"CADDY_ADMIN_PORT"
+	)
+	local -a port_values=(
+		"${PUBLIC_LISTEN_PORT}"
+		"${PRIVATE_HEALTHCHECK_PORT}"
+		"${PRIVATE_HEADSCALE_LISTEN_PORT}"
+		"${PRIVATE_GRPC_LISTEN_PORT}"
+		"2019"
+	)
+	if [[ -n "${PRIVATE_METRICS_LISTEN_PORT}" ]]; then
+		port_names+=("PRIVATE_METRICS_LISTEN_PORT")
+		port_values+=("${PRIVATE_METRICS_LISTEN_PORT}")
+	fi
+	if "${https_enabled}"; then
+		port_names+=("CADDY_HTTP_PORT")
+		port_values+=("80")
+	fi
+	local index other_index
+	for ((index = 0; index < ${#port_values[@]}; index++)); do
+		for ((other_index = index + 1; other_index < ${#port_values[@]}; other_index++)); do
+			if [[ "${port_values[index]}" -eq "${port_values[other_index]}" ]]; then
+				log_error "Ports '${port_names[index]}' and '${port_names[other_index]}' must be different (both are ${port_values[index]})."
+			fi
+		done
+	done
+}
+
+#######################################
+# Set HTTPS mode from CADDY_FRONTEND
+#######################################
+configure_https_mode() {
+	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
+		https_enabled=false
+	fi
 }
 
 #######################################
@@ -254,6 +343,7 @@ build_global_nameservers_yaml() {
 check_headscale_environment_vars() {
 	log_info "Checking Headscale environment variables..."
 	check_public_listen_port
+	check_private_headscale_listen_port
 	configure_gomaxprocs
 	check_litestream_replica_url
 	validate_oidc_settings
@@ -425,13 +515,23 @@ configure_security_headers() {
 }
 
 #######################################
+# Check Caddy ports for conflicts
+#######################################
+check_caddy_ports() {
+	# Check they're set or default them
+	check_public_listen_port  # This is also done by Headscale config checker, better to be redundant
+	check_private_healthcheck_port
+}
+
+#######################################
 # Validate Caddy environment variables
 #######################################
 check_caddy_environment_variables() {
 	configure_security_headers
 
-	if env_var_is_defined "CADDY_FRONTEND" && [[ "${CADDY_FRONTEND}" = "DISABLE_HTTPS" ]]; then
-		https_enabled=false
+	check_caddy_ports
+
+	if ! "${https_enabled}"; then
 		caddy_config_file="${caddyfile_cleartext}"
 		return
 	else
@@ -486,9 +586,12 @@ reuse_or_create_noise_private_key() {
 # Create our configuration files
 #######################################
 check_config_files() {
-	check_headscale_environment_vars
+	configure_https_mode
 
 	check_caddy_environment_variables
+
+	check_headscale_environment_vars
+	check_listener_port_conflicts
 
 	build_global_nameservers_yaml
 
@@ -500,6 +603,10 @@ check_config_files() {
 		"SECURITY_HEADERS_BLOCK"
 		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
+		"PRIVATE_HEADSCALE_LISTEN_PORT"
+		"PRIVATE_METRICS_LISTEN_ADDR"
+		"PRIVATE_GRPC_LISTEN_PORT"
+		"PRIVATE_HEALTHCHECK_PORT"
 		"HEADSCALE_DNS_BASE_DOMAIN"
 		"HEADSCALE_OVERRIDE_LOCAL_DNS"
 		"MAGIC_DNS"
