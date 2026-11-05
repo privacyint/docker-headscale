@@ -2,7 +2,7 @@
 # CI-specific defaults for config generation
 # These are used in the GitHub Actions workflow to generate a baseline config
 
-# Export default values for envsubst in templates
+# Export default values for envsubst in templates. Many of these would otherwise be generated at run time.
 # shellcheck disable=SC2034,SC2154
 export IP_PREFIXES="v4: $headscale_ipv4_prefix_default
   v6: $headscale_ipv6_prefix_default"
@@ -18,4 +18,5 @@ export GLOBAL_NAMESERVERS_YAML="$headscale_global_nameservers_default"
 export PRIVATE_HEALTHCHECK_PORT="$private_healthcheck_port_default"
 export PRIVATE_HEADSCALE_LISTEN_PORT="$private_headscale_listen_port_default"
 export PRIVATE_METRICS_LISTEN_PORT="$private_metrics_listen_port_default"
+export PRIVATE_METRICS_LISTEN_ADDR="127.0.0.1:$private_metrics_listen_port_default"
 export PRIVATE_GRPC_LISTEN_PORT="$private_grpc_listen_port_default"
