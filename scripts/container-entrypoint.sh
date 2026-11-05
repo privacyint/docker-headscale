@@ -58,8 +58,19 @@ check_private_healthcheck_port() {
 check_private_headscale_listen_port() {
 	check_env_var_or_set_default "PRIVATE_HEADSCALE_LISTEN_PORT" "${private_headscale_listen_port_default}"
 	validate_port "PRIVATE_HEADSCALE_LISTEN_PORT"
-	check_env_var_or_set_default "PRIVATE_METRICS_LISTEN_PORT" "${private_metrics_listen_port_default}"
-	validate_port "PRIVATE_METRICS_LISTEN_PORT"
+	if ! env_var_is_defined "PRIVATE_METRICS_LISTEN_PORT"; then
+		export PRIVATE_METRICS_LISTEN_PORT="${private_metrics_listen_port_default}"
+	fi
+	case "${PRIVATE_METRICS_LISTEN_PORT,,}" in
+		""|null|disabled)
+			PRIVATE_METRICS_LISTEN_PORT=""
+			export PRIVATE_METRICS_LISTEN_ADDR=""
+			;;
+		*)
+			validate_port "PRIVATE_METRICS_LISTEN_PORT"
+			export PRIVATE_METRICS_LISTEN_ADDR="127.0.0.1:${PRIVATE_METRICS_LISTEN_PORT}"
+			;;
+	esac
 	check_env_var_or_set_default "PRIVATE_GRPC_LISTEN_PORT" "${private_grpc_listen_port_default}"
 	validate_port "PRIVATE_GRPC_LISTEN_PORT"
 }
@@ -73,7 +84,6 @@ check_listener_port_conflicts() {
 		"PUBLIC_LISTEN_PORT"
 		"PRIVATE_HEALTHCHECK_PORT"
 		"PRIVATE_HEADSCALE_LISTEN_PORT"
-		"PRIVATE_METRICS_LISTEN_PORT"
 		"PRIVATE_GRPC_LISTEN_PORT"
 		"CADDY_ADMIN_PORT"
 	)
@@ -81,10 +91,13 @@ check_listener_port_conflicts() {
 		"${PUBLIC_LISTEN_PORT}"
 		"${PRIVATE_HEALTHCHECK_PORT}"
 		"${PRIVATE_HEADSCALE_LISTEN_PORT}"
-		"${PRIVATE_METRICS_LISTEN_PORT}"
 		"${PRIVATE_GRPC_LISTEN_PORT}"
 		"2019"
 	)
+	if [[ -n "${PRIVATE_METRICS_LISTEN_PORT}" ]]; then
+		port_names+=("PRIVATE_METRICS_LISTEN_PORT")
+		port_values+=("${PRIVATE_METRICS_LISTEN_PORT}")
+	fi
 	if "${https_enabled}"; then
 		port_names+=("CADDY_HTTP_PORT")
 		port_values+=("80")
@@ -591,7 +604,7 @@ check_config_files() {
 		"PUBLIC_SERVER_URL"
 		"PUBLIC_LISTEN_PORT"
 		"PRIVATE_HEADSCALE_LISTEN_PORT"
-		"PRIVATE_METRICS_LISTEN_PORT"
+		"PRIVATE_METRICS_LISTEN_ADDR"
 		"PRIVATE_GRPC_LISTEN_PORT"
 		"PRIVATE_HEALTHCHECK_PORT"
 		"HEADSCALE_DNS_BASE_DOMAIN"

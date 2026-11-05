@@ -21,7 +21,7 @@ listen_addr: 127.0.0.1:$PRIVATE_HEADSCALE_LISTEN_PORT
 # Address to listen to /metrics and /debug, you may want
 # to keep this endpoint private to your internal network
 # Use an empty value to disable the metrics listener.
-metrics_listen_addr: 127.0.0.1:$PRIVATE_METRICS_LISTEN_PORT
+metrics_listen_addr: "$PRIVATE_METRICS_LISTEN_ADDR"
 
 # Address to listen for gRPC.
 # gRPC is used for controlling a headscale server
