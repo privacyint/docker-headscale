@@ -6,11 +6,11 @@ Deploy [Headscale][headscale-wob] using a "serverless" immutable docker image wi
 
 | Tool | Upstream Repository | Version |
 | --- | --- | --- |
-| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.24.3`](https://git.alpinelinux.org/aports/log/?h=v3.24.3) |
+| [`Alpine Linux`][alpine-linux-wob] | [Alpine Linux Repo][alpine-linux-repo] | [`v3.24.4`](https://git.alpinelinux.org/aports/log/?h=v3.24.4) |
 | [`Headscale`][headscale-wob] | [Headscale Repo][headscale-repo] | [`v0.29.7`](https://github.com/juanfont/headscale/releases/tag/v0.29.7) |
 | [`Headscale-Admin`][headscale-admin-wob] | [Headscale-Admin Repo][headscale-admin-repo] | [`v0.29.2`](https://github.com/privacyint/headscale-admin/commit/c3a2d210c387535fce5284582051519df5e8d8ab) |
-| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.17`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.17) |
-| [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.7`](https://github.com/caddyserver/caddy/releases/tag/v2.11.7) |
+| [`Litestream`][litestream-wob] | [Litestream Repo][litestream-repo] | [`0.5.18`](https://github.com/benbjohnson/litestream/releases/tag/v0.5.18) |
+| [`Caddy`][caddy-wob] | [Caddy Repo][caddy-repo] | [`v2.11.9`](https://github.com/caddyserver/caddy/releases/tag/v2.11.9) |
 
 NB: Whilst development of `Headscale-Admin` appears to have been restarted by upstream, it still doesn't support the `0.29.X` branch. We have created a fork with patches so we can take advantage of the improvements in Headscale's `0.29.X` release.
 
@@ -37,6 +37,24 @@ For provider deployment templates, this repo includes `make` targets that render
 * `azure-container-apps.yaml` via `make render-azure-container-apps`
 
 The container entrypoint script will guide you on any errors.
+
+## Port configuration
+
+The default ports are suitable for the bundled Fly.io and Azure Container Apps templates. The public listener depends on whether Caddy handles HTTPS:
+
+| Environment variable | Default | Purpose |
+| --- | --- | --- |
+| `PUBLIC_LISTEN_PORT` | `443` with HTTPS; `8008` with `CADDY_FRONTEND=DISABLE_HTTPS` | Caddy's public listener |
+| `PRIVATE_HEADSCALE_LISTEN_PORT` | `8080` | Headscale's loopback-only HTTP listener |
+| `PRIVATE_METRICS_LISTEN_PORT` | `9090` | Headscale's loopback-only metrics listener; set to `disabled` to turn it off |
+| `PRIVATE_GRPC_LISTEN_PORT` | `50443` | Headscale's loopback-only gRPC listener |
+| `PRIVATE_HEALTHCHECK_PORT` | `9999` | Caddy's loopback-only healthcheck listener |
+
+If you override `PUBLIC_LISTEN_PORT`, use the same value for the platform's ingress target. The Fly.io and Azure Container Apps templates do this automatically when rendered; their cleartext default is `8008`. The private listeners are for communication within the container and should not be exposed through platform ingress.
+
+Unset `PRIVATE_METRICS_LISTEN_PORT` to use the `9090` default. Set it to `disabled` to turn off metrics. An explicitly empty value or the literal string `null` also disables the listener. Some deployment formats treat an unquoted YAML `null` as an unset variable, so use `disabled`, `""`, or `"null"` when disabling it.
+
+All listener ports must be distinct. Caddy also uses port `2019` for its admin API, and in HTTPS mode it uses port `80` for redirects and ACME HTTP challenges. Caddy's cleartext configuration cannot use port `443`; the healthcheck listener also cannot use `443` because it serves plain HTTP.
 
 ## Configuring upstream/global nameservers
 

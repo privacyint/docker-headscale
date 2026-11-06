@@ -7,8 +7,8 @@
 ARG HEADSCALE_VERSION="0.29.7"
 ARG HEADSCALE_SHA256="e827fc9b12d958bc95b081c4401dd63f8e0471d025b45b508535a920532150a8"
 
-ARG LITESTREAM_VERSION="0.5.17"
-ARG LITESTREAM_SHA256="cfb371176d164437ae869f8351cfde49bd1804ae71c61923f75c9cba9c9c006d"
+ARG LITESTREAM_VERSION="0.5.18"
+ARG LITESTREAM_SHA256="d3687b9fd0f2e9426bbd3da828429ff3f1dfc5c9b74d54fdf028e4ee510e7dea"
 
 # We're building these from source, so we need to specify the versions here rather than hash
 ARG HEADSCALE_ADMIN_ENDPOINT="/admin"
@@ -17,8 +17,8 @@ ARG HEADSCALE_ADMIN_VERSION="c3a2d210c387535fce5284582051519df5e8d8ab" # v0.29.2
 ARG HEADSCALE_ADMIN_NODE_VERSION="25"
 
 # No checksum needed for these tools, we pull from official images
-ARG CADDY_VERSION="2.11.7"
-ARG MAIN_IMAGE_ALPINE_VERSION="3.24.3"
+ARG CADDY_VERSION="2.11.9"
+ARG MAIN_IMAGE_ALPINE_VERSION="3.24.4"
 
 # github download links
 # These should never need adjusting unless the URIs change
@@ -76,14 +76,12 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     ARG LITESTREAM_SHA256
 
     # Upgrade system and install various dependencies
-    # - BusyBox's wget isn't reliable enough
+    # - BusyBox's wget isn't reliable enough, get GNU's. We also use it in healthcheck
     # - I'm gonna need a better shell
     # - gettext provides `envsubst` for templating
     # hadolint ignore=DL3018,SC2086
-    RUN BUILD_DEPS="wget"; \
-        RUNTIME_DEPS="bash gettext"; \
+    RUN RUNTIME_DEPS="wget bash gettext"; \
         apk --no-cache upgrade; \
-        apk add --no-cache --virtual BuildTimeDeps ${BUILD_DEPS}; \
         apk add --no-cache ${RUNTIME_DEPS}
 
     # Copy caddy from the first stage
@@ -135,9 +133,6 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     
     # Headscale web GUI
     COPY --from=admin-gui /app/admin/ /admin-gui/admin/
-    
-    # Remove build-time dependencies
-    RUN apk del BuildTimeDeps
 
     # Copy configuration templates
     COPY ./templates/headscale.template.yaml /etc/headscale/config.yaml
@@ -149,10 +144,10 @@ FROM alpine:${MAIN_IMAGE_ALPINE_VERSION}
     COPY --chmod=755 ./scripts/ /usr/local/bin/
 
     # Default HTTPS port - override with $PUBLIC_LISTEN_PORT environment variable
-    EXPOSE 443
+    EXPOSE ${PUBLIC_LISTEN_PORT:-443}
 
-    # Health check to ensure services are running
+    # Check that Headscale and Caddy are responding
     HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-        CMD headscale version && caddy version || exit 1
+        CMD wget --no-proxy -q -O /dev/null "http://127.0.0.1:${PRIVATE_HEALTHCHECK_PORT:-9999}/health" || exit 1
 
     ENTRYPOINT ["/usr/local/bin/container-entrypoint.sh"]
