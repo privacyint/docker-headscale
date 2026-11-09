@@ -29,6 +29,8 @@ properties:
         env:
           - name: PUBLIC_SERVER_URL
             value: ${PUBLIC_SERVER_URL}
+          - name: PUBLIC_SERVER_PORT
+            value: "${PUBLIC_SERVER_PORT}"
           - name: PUBLIC_LISTEN_PORT
             value: "${PUBLIC_LISTEN_PORT}"
           - name: HEADSCALE_DNS_BASE_DOMAIN

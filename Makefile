@@ -84,6 +84,7 @@ render-fly-config: check-envsubst
 	@set -euo pipefail; \
 	source scripts/defaults.sh; \
 	export PUBLIC_LISTEN_PORT="$${PUBLIC_LISTEN_PORT:-$${public_listen_port_http_default}}"; \
+	export PUBLIC_SERVER_PORT="$${PUBLIC_SERVER_PORT:-$${public_server_port_default}}"; \
 	envsubst < templates/fly.template.toml > fly.toml; \
 	printf '%s\n' 'Wrote fly.toml'
 
@@ -98,6 +99,7 @@ render-azure-container-apps: check-envsubst
 	@set -euo pipefail; \
 	source scripts/defaults.sh; \
 	export PUBLIC_LISTEN_PORT="$${PUBLIC_LISTEN_PORT:-$${public_listen_port_http_default}}"; \
+	export PUBLIC_SERVER_PORT="$${PUBLIC_SERVER_PORT:-$${public_server_port_default}}"; \
 	envsubst < templates/azure-container-apps.template.yaml > azure-container-apps.yaml; \
 	printf '%s\n' 'Wrote azure-container-apps.yaml'
 

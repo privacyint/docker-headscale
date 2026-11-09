@@ -42,6 +42,14 @@ check_public_listen_port() {
 }
 
 #######################################
+# Set or validate the externally advertised Headscale URL port
+#######################################
+check_public_server_port() {
+	check_env_var_or_set_default "PUBLIC_SERVER_PORT" "${public_server_port_default}"
+	validate_port "PUBLIC_SERVER_PORT"
+}
+
+#######################################
 # Set default or validate PRIVATE_HEALTHCHECK_PORT
 #######################################
 check_private_healthcheck_port() {
@@ -343,6 +351,7 @@ build_global_nameservers_yaml() {
 check_headscale_environment_vars() {
 	log_info "Checking Headscale environment variables..."
 	check_public_listen_port
+	check_public_server_port
 	check_private_headscale_listen_port
 	configure_gomaxprocs
 	check_litestream_replica_url
