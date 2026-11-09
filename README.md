@@ -45,12 +45,13 @@ The default ports are suitable for the bundled Fly.io and Azure Container Apps t
 | Environment variable | Default | Purpose |
 | --- | --- | --- |
 | `PUBLIC_LISTEN_PORT` | `443` with HTTPS; `8008` with `CADDY_FRONTEND=DISABLE_HTTPS` | Caddy's public listener |
+| `PUBLIC_SERVER_PORT` | `443` | Port advertised to Headscale clients in `server_url`; independent of the container listener when TLS is terminated by the platform |
 | `PRIVATE_HEADSCALE_LISTEN_PORT` | `8080` | Headscale's loopback-only HTTP listener |
 | `PRIVATE_METRICS_LISTEN_PORT` | `9090` | Headscale's loopback-only metrics listener; set to `disabled` to turn it off |
 | `PRIVATE_GRPC_LISTEN_PORT` | `50443` | Headscale's loopback-only gRPC listener |
 | `PRIVATE_HEALTHCHECK_PORT` | `9999` | Caddy's loopback-only healthcheck listener |
 
-If you override `PUBLIC_LISTEN_PORT`, use the same value for the platform's ingress target. The Fly.io and Azure Container Apps templates do this automatically when rendered; their cleartext default is `8008`. The private listeners are for communication within the container and should not be exposed through platform ingress.
+If you override `PUBLIC_LISTEN_PORT`, use the same value for the platform's ingress target. The Fly.io and Azure Container Apps templates do this automatically when rendered; their cleartext default is `8008`. For deployments where the platform terminates TLS, leave `PUBLIC_SERVER_PORT` at `443` even though the container listener is `8008`. The private listeners are for communication within the container and should not be exposed through platform ingress.
 
 Unset `PRIVATE_METRICS_LISTEN_PORT` to use the `9090` default. Set it to `disabled` to turn off metrics. An explicitly empty value or the literal string `null` also disables the listener. Some deployment formats treat an unquoted YAML `null` as an unset variable, so use `disabled`, `""`, or `"null"` when disabling it.
 
